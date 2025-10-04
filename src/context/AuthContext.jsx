@@ -8,6 +8,14 @@ import React, {
 } from "react";
 import api from "../api";
 
+const hasPaymentFlag = (data = {}) =>
+  !!(
+    data?.phonepePaymentId ||
+    data?.phonepeMerchantTransactionId ||
+    data?.razorpayPaymentId ||
+    data?.isPaid
+  );
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -42,19 +50,18 @@ export const AuthProvider = ({ children }) => {
           }
           return;
         }
-
         const savedUser = localStorage.getItem("qr_folio_user");
         if (savedUser) {
           try {
             const parsed = JSON.parse(savedUser);
             if (isMounted) {
-              const paymentComplete = !!(
-                parsed?.razorpayPaymentId || parsed?.isPaid
-              );
+              const paymentComplete = hasPaymentFlag(parsed);
               const normalized = {
                 ...parsed,
                 isPaid: paymentComplete,
                 hasCompletedSetup: paymentComplete,
+                phonepePaymentId: parsed.phonepePaymentId,
+                phonepeMerchantTransactionId: parsed.phonepeMerchantTransactionId,
               };
               setUser(normalized);
             }
@@ -64,10 +71,7 @@ export const AuthProvider = ({ children }) => {
           }
         }
 
-        try {
-        } catch (error) {
-          console.error("Failed to refresh user:", error);
-        }
+        // Optionally refresh user here if needed
       } catch (error) {
         console.error("Auth initialization error:", error);
         if (isMounted) {
@@ -150,9 +154,7 @@ export const AuthProvider = ({ children }) => {
 
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        const paymentComplete = !!(
-          userData?.razorpayPaymentId || userData?.isPaid
-        );
+        const paymentComplete = hasPaymentFlag(userData);
         const verifiedUser = {
           id: userData._id || res.data.userId,
           email: userData.email || userEmail,
@@ -160,6 +162,8 @@ export const AuthProvider = ({ children }) => {
           isVerified: true,
           isPaid: paymentComplete,
           hasCompletedSetup: paymentComplete,
+          phonepePaymentId: userData.phonepePaymentId,
+          phonepeMerchantTransactionId: userData.phonepeMerchantTransactionId,
           ...userData,
         };
 
@@ -195,16 +199,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const createPaymentOrder = async (amountPaise, emailOverride) => {
+  const createPaymentOrder = async (amountPaise) => {
     try {
-      const email = emailOverride || user?.email || signupData?.email;
-      if (!email) return { success: false, error: "No user email for payment" };
-      const res = await api.post("/auth/razorpay-order", {
-        email,
+      if (!amountPaise) {
+        return { success: false, error: "Amount is required" };
+      }
+
+      const res = await api.post("/phonepe/order", {
         amount: amountPaise,
       });
+
       if (res.data?.success) {
-        return { success: true, data: res.data };
+        const { success, ...rest } = res.data;
+        return { success: true, data: rest };
       }
       return {
         success: false,
@@ -218,31 +225,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const verifyPayment = async (
-    { razorpay_payment_id, razorpay_order_id, razorpay_signature },
-    emailOverride
-  ) => {
+  const verifyPayment = async ({ merchantTransactionId }, options = {}) => {
     try {
-      const email = emailOverride || user?.email || signupData?.email;
-      if (!email)
+      if (!merchantTransactionId)
         return {
           success: false,
-          error: "No user email for payment verification",
+          error: "Missing PhonePe transaction reference",
         };
 
-      setLoading(true);
+      if (!options.silent) {
+        setLoading(true);
+      }
 
-      const res = await api.post("/auth/verify-payment", {
-        email,
-        razorpay_payment_id,
-        razorpay_order_id,
-        razorpay_signature,
-      });
+      const res = await api.get(`/phonepe/status/${merchantTransactionId}`);
 
       if (res.data?.success) {
+        const paymentId = res.data?.paymentId || merchantTransactionId;
         const updatedUser = {
           ...user,
-          razorpayPaymentId: res.data.paymentId || razorpay_payment_id,
+          phonepePaymentId: paymentId,
+          phonepeMerchantTransactionId: merchantTransactionId,
           isPaid: true,
           hasCompletedSetup: true,
         };
@@ -280,7 +282,11 @@ export const AuthProvider = ({ children }) => {
 
       return {
         success: false,
-        error: res.data?.message || "Payment verification failed",
+        error:
+          res.data?.message ||
+          (res.data?.status === "PENDING"
+            ? "Payment is still pending."
+            : "Payment verification failed"),
       };
     } catch (err) {
       console.error("Payment verification error:", err);
@@ -292,7 +298,9 @@ export const AuthProvider = ({ children }) => {
           "An error occurred during payment verification",
       };
     } finally {
-      setLoading(false);
+      if (!options.silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -334,8 +342,8 @@ export const AuthProvider = ({ children }) => {
         const normalized = {
           ...u,
           email: u?.email || normalizedEmail,
-          isPaid: !!(u?.razorpayPaymentId || u?.isPaid),
-          hasCompletedSetup: !!(u?.razorpayPaymentId || u?.isPaid),
+          isPaid: hasPaymentFlag(u),
+          hasCompletedSetup: hasPaymentFlag(u),
           isVerified: u?.isVerified || false,
         };
 
@@ -375,8 +383,8 @@ export const AuthProvider = ({ children }) => {
         const normalized = {
           ...data.user,
           email: data.user?.email || normalizedEmail,
-          isPaid: false,
-          hasCompletedSetup: false,
+          isPaid: hasPaymentFlag(data.user),
+          hasCompletedSetup: hasPaymentFlag(data.user),
           isVerified: data.user?.isVerified || true,
         };
 
@@ -480,11 +488,7 @@ export const AuthProvider = ({ children }) => {
         ...extra,
       };
 
-      const paymentComplete = !!(
-        merged?.razorpayPaymentId ||
-        merged?.isPaid ||
-        incomingUser?.razorpayPaymentId
-      );
+      const paymentComplete = hasPaymentFlag({ ...merged, ...incomingUser });
 
       return {
         ...merged,

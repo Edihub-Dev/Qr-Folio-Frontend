@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +10,8 @@ const PaymentForm = () => {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("professional");
   const [errors, setErrors] = useState({});
+  const [statusMessage, setStatusMessage] = useState("");
+  const phonePeScriptRef = useRef({ loaded: false, url: null });
 
   const plans = {
     basic: {
@@ -50,16 +52,6 @@ const PaymentForm = () => {
   };
 
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  useEffect(() => {
     if (user?.hasCompletedSetup) {
       navigate("/dashboard", { replace: true });
     }
@@ -74,7 +66,7 @@ const PaymentForm = () => {
 
       if (message.includes('WebGL') || 
           message.includes('svg') || 
-          message.includes('razorpay') ||
+          message.includes('phonepe') ||
           message.includes('GroupMarkerNotSet')) {
         return;
       }
@@ -85,7 +77,7 @@ const PaymentForm = () => {
       const message = args[0]?.toString() || '';
       if (message.includes('WebGL') || 
           message.includes('svg') || 
-          message.includes('razorpay') ||
+          message.includes('phonepe') ||
           message.includes('GroupMarkerNotSet')) {
         return;
       }
@@ -98,102 +90,212 @@ const PaymentForm = () => {
     };
   }, []);
 
-  const startRazorpayPayment = async () => {
+  const loadPhonePeSdk = useCallback(async (sdkUrl) => {
+    if (!sdkUrl) {
+      return;
+    }
+
+    if (
+      phonePeScriptRef.current.loaded &&
+      phonePeScriptRef.current.url === sdkUrl
+    ) {
+      return;
+    }
+
+    await new Promise((resolve, reject) => {
+      const existingScript = document.querySelector(
+        `script[src="${sdkUrl}"]`
+      );
+      if (existingScript) {
+        if (existingScript.getAttribute("data-loaded") === "true") {
+          phonePeScriptRef.current = { loaded: true, url: sdkUrl };
+          resolve();
+        } else {
+          existingScript.addEventListener("load", () => {
+            existingScript.setAttribute("data-loaded", "true");
+            phonePeScriptRef.current = { loaded: true, url: sdkUrl };
+            resolve();
+          });
+          existingScript.addEventListener("error", reject);
+        }
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = sdkUrl;
+      script.async = true;
+      script.addEventListener("load", () => {
+        script.setAttribute("data-loaded", "true");
+        phonePeScriptRef.current = { loaded: true, url: sdkUrl };
+        resolve();
+      });
+      script.addEventListener("error", () => {
+        script.remove();
+        reject(new Error("Failed to load PhonePe SDK"));
+      });
+      document.body.appendChild(script);
+    });
+  }, []);
+
+  const pollPaymentStatus = useCallback(
+    async (merchantTransactionId) => {
+      const maxAttempts = 15;
+      const delayMs = 4000;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        const result = await verifyPayment({ merchantTransactionId }, { silent: true });
+
+        if (result.success) {
+          return { success: true };
+        }
+
+        const lowerMessage = (result.error || "").toLowerCase();
+        const paymentPending =
+          lowerMessage.includes("not completed") ||
+          lowerMessage.includes("pending") ||
+          lowerMessage.includes("unable to verify");
+
+        if (!paymentPending) {
+          return {
+            success: false,
+            error: result.error || "Payment verification failed.",
+          };
+        }
+
+        setStatusMessage(`Waiting for payment confirmation... (attempt ${
+          attempt + 1
+        }/${maxAttempts})`);
+
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+
+      return {
+        success: false,
+        error:
+          "Payment is still pending. If you completed the payment, please refresh later or contact support.",
+      };
+    },
+    [verifyPayment]
+  );
+
+  const openPhonePeCheckout = useCallback((checkoutPayload = {}) => {
+    const redirectUrl =
+      checkoutPayload?.redirectInfo?.url ||
+      checkoutPayload?.redirectInfo?.redirectUrl;
+
+    if (redirectUrl) {
+      const checkoutWindow = window.open(redirectUrl, "_blank", "noopener,noreferrer");
+      if (checkoutWindow) {
+        checkoutWindow.focus();
+      } else {
+        window.location.href = redirectUrl;
+      }
+      return true;
+    }
+
+    const payload = checkoutPayload?.payload;
+    if (
+      payload &&
+      window.PhonePe &&
+      typeof window.PhonePe.execute === "function"
+    ) {
+      try {
+        window.PhonePe.execute(payload);
+        return true;
+      } catch (err) {
+        console.warn("PhonePe execute failed, falling back to redirect", err);
+      }
+    }
+
+    return false;
+  }, []);
+
+  const startPhonePePayment = useCallback(async () => {
+    if (user?.hasCompletedSetup) {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
+    if (!user?.name?.trim()) {
+      setErrors({
+        submit: "Please update your name in your profile before making a payment.",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setErrors({});
+    setStatusMessage("");
+
     try {
-      if (user?.hasCompletedSetup) {
-        navigate("/dashboard", { replace: true });
-        return;
-      }
-      setLoading(true);
-      setErrors({});
-
-      if (!user?.name?.trim()) {
-        setErrors({ 
-          submit: "Please update your name in your profile before making a payment." 
-        });
-        setLoading(false);
-        return;
-      }
-
       const amountPaise = plans[selectedPlan].price * 100;
       const orderRes = await createPaymentOrder(amountPaise, user?.email);
+
       if (!orderRes.success) {
-        setErrors({ submit: orderRes.error });
-        setLoading(false);
-        return;
+        throw new Error(orderRes.error || "Unable to initiate payment.");
       }
 
-      const { orderId, amount, currency, key } = orderRes.data;
+      const {
+        merchantTransactionId,
+        instrumentResponse,
+        redirectInfo,
+        sdkUrl,
+      } = orderRes.data || {};
 
-      if (!window.Razorpay) {
-        setErrors({ submit: "Razorpay SDK failed to load. Please refresh and try again." });
-        setLoading(false);
-        return;
+      if (!merchantTransactionId) {
+        throw new Error("Missing transaction reference from PhonePe.");
       }
 
-      const options = {
-        key,
-        amount,
-        currency,
-        name: "QR Folio",
-        description: `${plans[selectedPlan].name} Plan`,
-        order_id: orderId,
-        prefill: {
-          name: user?.name?.trim() || "Customer",
-          email: user?.email?.trim() || "",
-          contact: "+919999999999"
-        },
-        theme: { color: "#3b82f6" },
-        handler: async function (response) {
-          try {
-            setLoading(true);
-            setErrors({});
-            
-            const verifyRes = await verifyPayment({
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature,
-            }, user?.email);
-            
-            if (verifyRes.success) {
-              await refreshUser();
-              navigate('/dashboard', { replace: true });
-            } else {
-              setErrors({ 
-                submit: verifyRes.error || "Payment verification failed. Please contact support if the amount was deducted." 
-              });
-            }
-          } catch (err) {
-            console.error("Payment processing error:", err);
-            setErrors({ 
-              submit: "An unexpected error occurred. Please check your payment status or contact support." 
-            });
-          } finally {
-            setLoading(false);
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setLoading(false);
-            setTimeout(() => {
-              if (window.console && window.console.clear) {
-                const hasRazorpayErrors = document.querySelectorAll('[src*="razorpay"]').length > 0;
-                if (hasRazorpayErrors) {
-                  console.log('Payment modal closed - Razorpay warnings are normal and can be ignored');
-                }
-              }
-            }, 100);
-          },
-        },
+      if (sdkUrl) {
+        try {
+          await loadPhonePeSdk(sdkUrl);
+        } catch (sdkError) {
+          console.warn("PhonePe SDK load failed:", sdkError.message);
+        }
+      }
+
+      const checkoutPayload = {
+        ...(instrumentResponse || {}),
       };
+      if (!checkoutPayload.redirectInfo && redirectInfo) {
+        checkoutPayload.redirectInfo = redirectInfo;
+      }
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      const opened = openPhonePeCheckout(checkoutPayload);
+      if (!opened) {
+        throw new Error(
+          "Unable to open PhonePe checkout. Please try again or use a different browser."
+        );
+      }
+
+      setStatusMessage("Waiting for you to complete the payment in PhonePe...");
+
+      const pollResult = await pollPaymentStatus(merchantTransactionId);
+
+      if (!pollResult.success) {
+        throw new Error(pollResult.error);
+      }
+
+      await refreshUser();
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setErrors({ submit: err.message || "Payment failed" });
+      setStatusMessage("");
     } finally {
+      setLoading(false);
     }
-  };
+  }, [
+    user,
+    navigate,
+    plans,
+    selectedPlan,
+    createPaymentOrder,
+    loadPhonePeSdk,
+    openPhonePeCheckout,
+    pollPaymentStatus,
+    refreshUser,
+  ]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -330,16 +432,22 @@ const PaymentForm = () => {
               </div>
             )}
 
+            {statusMessage && !errors.submit && (
+              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-amber-700 text-sm">{statusMessage}</p>
+              </div>
+            )}
+
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-blue-700 text-sm">
                 <strong>Note:</strong> You may see some technical warnings in the browser console during payment. 
-                These are from Razorpay's payment system and don't affect the payment process. Your payment will work normally.
+                These are from PhonePe's payment system and don't affect the payment process. Your payment will work normally.
               </p>
             </div>
 
             <div className="space-y-6">
               <motion.button
-                onClick={startRazorpayPayment}
+                onClick={startPhonePePayment}
                 disabled={loading || user?.hasCompletedSetup}
                 whileHover={{ scale: loading ? 1 : 1.02 }}
                 whileTap={{ scale: loading ? 1 : 0.98 }}
@@ -350,10 +458,10 @@ const PaymentForm = () => {
                 ) : loading ? (
                   <div className="flex items-center justify-center space-x-2">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Opening Razorpay...</span>
+                    <span>Opening PhonePe...</span>
                   </div>
                 ) : (
-                  `Pay ₹${plans[selectedPlan].price}/year (Razorpay)`
+                  `Pay ₹${plans[selectedPlan].price}/year (PhonePe)`
                 )}
               </motion.button>
             </div>

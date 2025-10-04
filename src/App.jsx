@@ -20,6 +20,8 @@ import PublicProfilePage from "./pages/PublicProfilePage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import RefundPolicy from "./pages/RefundPolicy";
+import PhonePeDemoPage from "./pages/PhonePeDemoPage";
+import PaymentStatusPage from "./pages/PaymentStatusPage";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -192,6 +194,8 @@ function App() {
                 </SetupRoute>
               }
             />
+            <Route path="/phonepe-demo" element={<PhonePeDemoPage />} />
+            <Route path="/payment-status" element={<PaymentStatusPage />} />
             <Route path="/verify-otp" element={<VerifyOTPPage />} />
             <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
             <Route path="/RefundPolicy" element={<RefundPolicy />} />

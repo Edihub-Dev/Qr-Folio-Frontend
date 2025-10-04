@@ -1,7 +1,14 @@
 import axios from "axios";
 
+const envBaseUrl = import.meta?.env?.VITE_API_BASE_URL;
+const defaultBaseUrl = typeof window !== "undefined" && window.location.hostname === "localhost"
+  ? "http://localhost:5000"
+  : "https://api.qrfolio.net";
+
+const apiBaseUrl = (envBaseUrl || defaultBaseUrl).replace(/\/$/, "");
+
 const api = axios.create({
-  baseURL: "https://api.qrfolio.net/api",
+  baseURL: `${apiBaseUrl}/api`,
   withCredentials: true,
 });
 
