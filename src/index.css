@@ -1,0 +1,7 @@
+/* Import custom fonts */
+@import './styles/fonts.css';
+
+/* Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
