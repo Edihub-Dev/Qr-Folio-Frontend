@@ -8,7 +8,6 @@ export const setupConsoleFilter = () => {
     const msg = message?.toString().toLowerCase() || '';
     return (
       msg.includes('webgl') ||
-      msg.includes('razorpay') ||
       msg.includes('groupmarkernotset') ||
       msg.includes('svg') && msg.includes('attribute') ||
       msg.includes('swiftshader') ||
