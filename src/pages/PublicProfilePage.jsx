@@ -100,11 +100,21 @@ const PublicProfilePage = () => {
     );
   }
 
-  const avatar = (() => {
-    const src = user.profilePhoto || user.photo || user.avatar;
-    if (src) return src;
-    return initialsAvatar;
-  })();
+  const avatar = useMemo(() => {
+    const sources = [
+      user.profilePhotoDataUri,
+      user.profilePhoto,
+      user.photo,
+      user.avatar,
+    ].filter(Boolean);
+    return sources[0] || initialsAvatar;
+  }, [
+    initialsAvatar,
+    user.avatar,
+    user.photo,
+    user.profilePhoto,
+    user.profilePhotoDataUri,
+  ]);
   const displayName = user.name || "—";
   const displayEmail = user.email || user.companyEmail || "—";
   const address =
@@ -169,6 +179,14 @@ const PublicProfilePage = () => {
           const src = imgEl.getAttribute("src");
           if (!src) return;
           if (src.startsWith("data:")) return;
+
+          if (
+            imgEl.dataset.profilePhoto === "true" &&
+            user.profilePhotoDataUri
+          ) {
+            imgEl.setAttribute("src", user.profilePhotoDataUri);
+            return;
+          }
 
           try {
             const parsed = new URL(src, window.location.href);
@@ -334,16 +352,16 @@ const PublicProfilePage = () => {
           <div className="p-6 grid grid-cols-12 gap-4">
             <div className="col-span-12 sm:col-span-3 flex items-start justify-center sm:justify-start mb-2 sm:mb-0">
               <img
-                src={avatar}
+                src={user.profilePhotoDataUri || avatar}
                 alt={displayName}
                 className="w-28 h-28 rounded-md object-cover border shadow-sm"
+                data-profile-photo="true"
               />
             </div>
 
             <div className="col-span-12 sm:col-span-6 text-center sm:text-left min-w-0">
               <div className="text-2xl font-bold text-gray-900 break-words">
                 {displayName}
-              </div>
               <div className="text-sm text-gray-600 mt-1">
                 {user.designation || "—"}
               </div>
