@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api";
+import { useAuth } from "../context/AuthContext";
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_ATTEMPTS = 12;
@@ -8,6 +9,7 @@ const MAX_ATTEMPTS = 12;
 const PaymentStatusPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [status, setStatus] = useState("PENDING");
   const [message, setMessage] = useState("Checking payment status...");
   const [attempts, setAttempts] = useState(0);
@@ -44,6 +46,11 @@ const PaymentStatusPage = () => {
         );
 
         if (res.data?.success || nextStatus === "COMPLETED") {
+          try {
+            await refreshUser();
+          } catch (refreshErr) {
+            console.warn("Failed to refresh user after payment:", refreshErr);
+          }
           timer = setTimeout(() => navigate("/dashboard", { replace: true }), 2000);
           return;
         }
