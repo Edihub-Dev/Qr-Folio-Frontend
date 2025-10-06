@@ -38,7 +38,28 @@ const PublicProfilePage = () => {
         if (!data?.success || !data?.user) {
           throw new Error(data?.message || "Failed to load profile");
         }
-        setUser(data.user);
+        let profileData = {
+          ...data.user,
+        };
+
+        profileData.id =
+          profileData.id || profileData._id || profileData.authUserId || id;
+
+        if (!profileData.profilePhotoDataUri && profileData.id) {
+          try {
+            const photoRes = await api.get(`/user/public/${profileData.id}/photo-data`);
+            if (photoRes.data?.success && photoRes.data?.dataUri) {
+              profileData = {
+                ...profileData,
+                profilePhotoDataUri: photoRes.data.dataUri,
+              };
+            }
+          } catch (photoErr) {
+            console.warn("Failed to fetch profile photo data URI", photoErr.message);
+          }
+        }
+
+        setUser(profileData);
       } catch (e) {
         setError(e.message || "Failed to load profile");
       } finally {
