@@ -413,6 +413,7 @@ const PublicProfilePage = () => {
             <div className="col-span-12 sm:col-span-6 text-center sm:text-left min-w-0">
               <div className="text-2xl font-bold text-gray-900 break-words">
                 {displayName}
+              </div>
               <div className="text-sm text-gray-600 mt-1">
                 {user.designation || "—"}
               </div>
