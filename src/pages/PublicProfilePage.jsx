@@ -45,9 +45,9 @@ const PublicProfilePage = () => {
         profileData.id =
           profileData.id || profileData._id || profileData.authUserId || id;
 
-        if (!profileData.profilePhotoDataUri && profileData.id) {
+        if (!profileData.profilePhotoDataUri) {
           try {
-            const photoRes = await api.get(`/user/public/${profileData.id}/photo-data`);
+            const photoRes = await api.get(`/user/public/${id}/photo-data`);
             if (photoRes.data?.success && photoRes.data?.dataUri) {
               profileData = {
                 ...profileData,
