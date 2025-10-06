@@ -170,6 +170,31 @@ const PublicProfilePage = () => {
     }
   };
 
+  const waitForImage = (imgEl, nextSrc) =>
+    new Promise((resolve) => {
+      if (!imgEl) {
+        return resolve();
+      }
+
+      const finalize = () => {
+        imgEl.removeEventListener("load", finalize);
+        imgEl.removeEventListener("error", finalize);
+        resolve();
+      };
+
+      if (nextSrc && imgEl.getAttribute("src") !== nextSrc) {
+        imgEl.setAttribute("src", nextSrc);
+      }
+
+      const naturalWidth = imgEl.naturalWidth || 0;
+      if (imgEl.complete && naturalWidth > 0 && (!nextSrc || imgEl.src === nextSrc)) {
+        return resolve();
+      }
+
+      imgEl.addEventListener("load", finalize, { once: true });
+      imgEl.addEventListener("error", finalize, { once: true });
+    });
+
   const handleDownloadCard = async () => {
     if (!cardRef.current) return;
 
@@ -205,7 +230,12 @@ const PublicProfilePage = () => {
             imgEl.dataset.profilePhoto === "true" &&
             user.profilePhotoDataUri
           ) {
-            imgEl.setAttribute("src", user.profilePhotoDataUri);
+            await waitForImage(imgEl, user.profilePhotoDataUri);
+            return;
+          }
+
+          if (imgEl.dataset.qrCode === "true") {
+            await waitForImage(imgEl);
             return;
           }
 
@@ -215,22 +245,22 @@ const PublicProfilePage = () => {
             if (!sameOrigin) {
               const dataUrl = await fetchAsDataUrl(src);
               if (dataUrl) {
-                imgEl.setAttribute("src", dataUrl);
+                await waitForImage(imgEl, dataUrl);
                 return;
               }
-              imgEl.setAttribute("src", initialsAvatar);
+              await waitForImage(imgEl, initialsAvatar);
               return;
             }
             const dataUrl = await fetchAsDataUrl(src);
             if (dataUrl) {
-              imgEl.setAttribute("src", dataUrl);
+              await waitForImage(imgEl, dataUrl);
             }
           } catch (_) {
             const dataUrl = await fetchAsDataUrl(src);
             if (dataUrl) {
-              imgEl.setAttribute("src", dataUrl);
+              await waitForImage(imgEl, dataUrl);
             } else {
-              imgEl.setAttribute("src", initialsAvatar);
+              await waitForImage(imgEl, initialsAvatar);
             }
           }
         })
