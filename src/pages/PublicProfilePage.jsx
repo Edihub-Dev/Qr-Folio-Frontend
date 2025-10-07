@@ -122,20 +122,19 @@ const PublicProfilePage = () => {
   }
 
   const avatar = useMemo(() => {
+    if (!user) {
+      return initialsAvatar;
+    }
+
     const sources = [
       user.profilePhotoDataUri,
       user.profilePhoto,
       user.photo,
       user.avatar,
     ].filter(Boolean);
+
     return sources[0] || initialsAvatar;
-  }, [
-    initialsAvatar,
-    user.avatar,
-    user.photo,
-    user.profilePhoto,
-    user.profilePhotoDataUri,
-  ]);
+  }, [initialsAvatar, user]);
   const displayName = user.name || "—";
   const displayEmail = user.email || user.companyEmail || "—";
   const address =
