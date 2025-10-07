@@ -112,6 +112,21 @@ const PublicProfilePage = () => {
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }, [user?.name]);
 
+  const avatar = useMemo(() => {
+    if (!user) {
+      return initialsAvatar;
+    }
+
+    const sources = [
+      user.profilePhotoDataUri,
+      user.profilePhoto,
+      user.photo,
+      user.avatar,
+    ].filter(Boolean);
+
+    return sources[0] || initialsAvatar;
+  }, [initialsAvatar, user]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -127,21 +142,6 @@ const PublicProfilePage = () => {
       </div>
     );
   }
-
-  const avatar = useMemo(() => {
-    if (!user) {
-      return initialsAvatar;
-    }
-
-    const sources = [
-      user.profilePhotoDataUri,
-      user.profilePhoto,
-      user.photo,
-      user.avatar,
-    ].filter(Boolean);
-
-    return sources[0] || initialsAvatar;
-  }, [initialsAvatar, user]);
   const displayName = user.name || "—";
   const displayEmail = user.email || user.companyEmail || "—";
   const address =
@@ -274,6 +274,7 @@ const PublicProfilePage = () => {
 
       let dataUrl;
       try {
+        const { toPng } = await import("html-to-image");
         dataUrl = await toPng(clone, {
           cacheBust: true,
           backgroundColor: "#ffffff",
