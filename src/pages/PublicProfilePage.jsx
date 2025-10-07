@@ -22,13 +22,8 @@ const PublicProfilePage = () => {
   const cardRef = useRef(null);
   const { user: authUser, loading: authLoading } = useAuth();
 
-  const hasFetchedProfile = useRef(false);
-
   useEffect(() => {
-    if (hasFetchedProfile.current) {
-      return;
-    }
-    hasFetchedProfile.current = true;
+    let isActive = true;
 
     const fetchUser = async () => {
       try {
@@ -61,12 +56,24 @@ const PublicProfilePage = () => {
 
         setUser(profileData);
       } catch (e) {
+        if (!isActive) return;
         setError(e.message || "Failed to load profile");
       } finally {
+        if (!isActive) return;
         setLoading(false);
       }
     };
-    if (id) fetchUser();
+    if (id) {
+      fetchUser();
+    } else {
+      setUser(null);
+      setLoading(false);
+      setError("Profile not found");
+    }
+
+    return () => {
+      isActive = false;
+    };
   }, [id]);
 
   const handlePoweredByClick = useCallback(() => {
