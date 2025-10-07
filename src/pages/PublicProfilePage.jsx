@@ -1,11 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useMemo,
-  useRef,
-  useCallback,
-} from "react";
-import { toPng } from "html-to-image";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Download, QrCode, Printer } from "lucide-react";
@@ -99,33 +92,24 @@ const PublicProfilePage = () => {
     navigate("/", { replace: false });
   }, [authLoading, authUser, navigate]);
 
-  const initialsAvatar = useMemo(() => {
-    const baseName = user?.name || "User";
-    const initials = baseName
-      .split(" ")
-      .filter(Boolean)
-      .map((s) => s[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
-    const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\n  <rect width='100%' height='100%' fill='%23e5e7eb'/>\n  <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='72' fill='%236b7280' font-family='Arial, sans-serif'>${initials}</text>\n</svg>`;
-    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-  }, [user?.name]);
+  const baseName = user?.name || "User";
+  const initials = baseName
+    .split(" ")
+    .filter(Boolean)
+    .map((s) => s[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  const initialsSvg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\n  <rect width='100%' height='100%' fill='%23e5e7eb'/>\n  <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='72' fill='%236b7280' font-family='Arial, sans-serif'>${initials}</text>\n</svg>`;
+  const initialsAvatar = `data:image/svg+xml;utf8,${encodeURIComponent(initialsSvg)}`;
 
-  const avatar = useMemo(() => {
-    if (!user) {
-      return initialsAvatar;
-    }
-
-    const sources = [
-      user.profilePhotoDataUri,
-      user.profilePhoto,
-      user.photo,
-      user.avatar,
-    ].filter(Boolean);
-
-    return sources[0] || initialsAvatar;
-  }, [initialsAvatar, user]);
+  const avatarSources = [
+    user?.profilePhotoDataUri,
+    user?.profilePhoto,
+    user?.photo,
+    user?.avatar,
+  ].filter(Boolean);
+  const avatar = avatarSources[0] || initialsAvatar;
 
   if (loading) {
     return (
