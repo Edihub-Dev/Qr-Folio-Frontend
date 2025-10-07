@@ -81,7 +81,7 @@ const QRCodeGenerator = React.forwardRef(
       <>
         <canvas
           ref={canvasRef}
-          className={`max-w-full h-auto ${className}`}
+          className="absolute opacity-0 pointer-events-none"
           style={{ width: size, height: size }}
           aria-hidden="true"
         />
