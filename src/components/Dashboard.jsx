@@ -80,7 +80,8 @@ const Dashboard = () => {
 
   const [qrSize, setQrSize] = useState(200);
   const [copied, setCopied] = useState(false);
-  const qrRef = useRef(null);
+  const qrWrapperRef = useRef(null);
+  const qrGeneratorRef = useRef(null);
 
   const profileUrl =
     user.qrCodeUrl || (user.id ? `${baseClientUrl}/profile/${user.id}` : "");
@@ -299,17 +300,21 @@ const Dashboard = () => {
   };
 
   const handleSaveQR = () => {
-    if (qrRef.current) {
-      const canvas = qrRef.current.querySelector("canvas");
-      if (canvas) {
-        const url = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        const safeName = (user.name || "User").replace(/\s+/g, "_");
-        link.download = `${safeName}_QR_Code.png`;
-        link.href = url;
-        link.click();
-      }
+    if (!qrGeneratorRef.current) {
+      return;
     }
+
+    const canvas = qrGeneratorRef.current.getCanvas();
+    if (!canvas) {
+      return;
+    }
+
+    const url = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    const safeName = (user.name || "User").replace(/\s+/g, "_");
+    link.download = `${safeName}_QR_Code.png`;
+    link.href = url;
+    link.click();
   };
 
   const handleCopyLink = () => {
@@ -526,9 +531,9 @@ const Dashboard = () => {
           <h3 className="text-lg font-bold text-gray-900 mb-4">Your QR Code</h3>
 
           <div className="space-y-4">
-            <div className="flex justify-center" ref={qrRef}>
+            <div className="flex justify-center" ref={qrWrapperRef}>
               <div className="p-4 bg-white rounded-xl border-2 border-gray-100">
-                <QRCodeGenerator value={profileUrl} size={qrSize} level="H" />
+                <QRCodeGenerator ref={qrGeneratorRef} value={profileUrl} size={qrSize} level="H" />
               </div>
             </div>
 

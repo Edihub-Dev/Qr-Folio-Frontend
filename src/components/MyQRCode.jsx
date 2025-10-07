@@ -27,7 +27,8 @@ const MyQRCode = () => {
   });
 
   const [previewDevice, setPreviewDevice] = useState("desktop");
-  const qrRef = useRef(null);
+  const qrContainerRef = useRef(null);
+  const qrCodeRef = useRef(null);
 
   const baseClientUrl = useMemo(() => {
     const envUrl = import.meta.env.VITE_CLIENT_BASE_URL;
@@ -94,19 +95,43 @@ const MyQRCode = () => {
     }));
   };
 
-  const handleDownload = (format = "png") => {
-    if (qrRef.current) {
-      const canvas = qrRef.current.querySelector("canvas");
-      if (canvas) {
-        const url = canvas.toDataURL(`image/${format}`);
-        const link = document.createElement("a");
-        const safeName = (user?.name || "QR_Code").replace(/\s+/g, "_");
-        link.download = `${safeName}.${format}`;
-        link.href = url;
-        link.click();
-        showToast(`Downloaded ${format.toUpperCase()} file`);
-      }
+  const handleDownload = async (format = "png") => {
+    if (!qrCodeRef.current) {
+      showToast("QR not ready yet");
+      return;
     }
+
+    const safeName = (user?.name || "QR_Code").replace(/\s+/g, "_");
+
+    if (format === "svg") {
+      const svg = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+        `<svg xmlns='http://www.w3.org/2000/svg' width='${qrConfig.size}' height='${qrConfig.size}'>\n` +
+        `<rect width='100%' height='100%' fill='${qrConfig.background}'/>\n` +
+        `<image href='${qrCodeRef.current.getDataUrl() || ""}' width='${qrConfig.size}' height='${qrConfig.size}' />\n` +
+        `</svg>`;
+      const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = `${safeName}.svg`;
+      link.href = url;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast("Downloaded SVG file");
+      return;
+    }
+
+    const canvas = qrCodeRef.current.getCanvas();
+    if (!canvas) {
+      showToast("QR not ready yet");
+      return;
+    }
+
+    const url = canvas.toDataURL(`image/${format}`);
+    const link = document.createElement("a");
+    link.download = `${safeName}.${format}`;
+    link.href = url;
+    link.click();
+    showToast(`Downloaded ${format.toUpperCase()} file`);
   };
 
   const handleCopyLink = () => {
@@ -200,8 +225,9 @@ const MyQRCode = () => {
               `}
               style={{ backgroundColor: qrConfig.background }}
             >
-              <div ref={qrRef} className="flex justify-center">
+              <div ref={qrContainerRef} className="flex justify-center">
                 <QRCodeGenerator
+                  ref={qrCodeRef}
                   value={profileUrl}
                   size={
                     previewDevice === "mobile"
