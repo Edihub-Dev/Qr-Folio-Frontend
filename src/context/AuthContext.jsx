@@ -16,6 +16,14 @@ const hasPaymentFlag = (data = {}) =>
     data?.isPaid
   );
 
+const PAYMENT_SUCCESS_STATES = new Set([
+  "COMPLETED",
+  "SUCCESS",
+  "SUCCESSFUL",
+  "CAPTURED",
+  "PAID",
+]);
+
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -199,14 +207,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const createPaymentOrder = async (amountPaise) => {
+  const createPaymentOrder = async ({
+    amountPaise,
+    email,
+    customerName,
+    mobileNumber,
+    note,
+  } = {}) => {
     try {
       if (!amountPaise) {
         return { success: false, error: "Amount is required" };
       }
 
-      const res = await api.post("/phonepe/order", {
+      const res = await api.post("/phonepe/create-order", {
         amount: amountPaise,
+        email,
+        customerName,
+        mobileNumber,
+        note,
       });
 
       if (res.data?.success) {
@@ -237,10 +255,28 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
       }
 
-      const res = await api.get(`/phonepe/status/${merchantTransactionId}`);
+      const res = await api.get(`/phonepe/order/${merchantTransactionId}`);
 
       if (res.data?.success) {
-        const paymentId = res.data?.paymentId || merchantTransactionId;
+        const order = res.data.order;
+        const status = (order?.status || "").toUpperCase();
+
+        if (!PAYMENT_SUCCESS_STATES.has(status)) {
+          return {
+            success: false,
+            error:
+              status === "PENDING"
+                ? "Payment is still pending."
+                : "Payment verification failed.",
+          };
+        }
+
+        const paymentId =
+          order?.lastStatusPayload?.transactionId ||
+          order?.lastStatusPayload?.paymentId ||
+          order?.merchantOrderId ||
+          merchantTransactionId;
+
         const updatedUser = {
           ...user,
           phonepePaymentId: paymentId,
@@ -267,6 +303,8 @@ export const AuthProvider = ({ children }) => {
         const finalUser = {
           ...updatedUser,
           isVerified: true,
+          hasCompletedSetup: true,
+          isPaid: true,
         };
 
         setUser(finalUser);
@@ -282,11 +320,7 @@ export const AuthProvider = ({ children }) => {
 
       return {
         success: false,
-        error:
-          res.data?.message ||
-          (res.data?.status === "PENDING"
-            ? "Payment is still pending."
-            : "Payment verification failed"),
+        error: res.data?.message || "Payment verification failed",
       };
     } catch (err) {
       console.error("Payment verification error:", err);

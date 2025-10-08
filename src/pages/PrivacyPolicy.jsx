@@ -26,12 +26,12 @@ const PrivacyPolicy = () => {
             “us”, “our”, or the “Platform”) collects, uses, discloses, and
             protects your personal information when you use
             <a
-              href="https://www.qrfolio.net/"
+              href="http://localhost:5173/"
               className="text-blue-600 underline ml-1"
               target="_blank"
               rel="noopener noreferrer"
             >
-              https://www.qrfolio.net/
+              http://localhost:5173/
             </a>{" "}
             and related services (the “Service”).
           </p>
@@ -206,12 +206,12 @@ const PrivacyPolicy = () => {
             <br />
             🌐{" "}
             <a
-              href="https://www.qrfolio.net/"
+              href="http://localhost:5173/"
               className="text-blue-600 underline"
               target="_blank"
               rel="noopener noreferrer"
             >
-              https://www.qrfolio.net/
+              http://localhost:5173/
             </a>
           </p>
         </div>

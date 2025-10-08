@@ -16,7 +16,7 @@ const PaymentForm = () => {
   const plans = {
     basic: {
       name: "Basic",
-      price: 599,
+      price: 1,
       description: "Perfect for individuals",
       features: [
         "Digital Business Card",
@@ -27,7 +27,7 @@ const PaymentForm = () => {
     },
     professional: {
       name: "Professional",
-      price: 599,
+      price: 1,
       description: "Best for professionals",
       features: [
         "Everything in Basic",
@@ -39,7 +39,7 @@ const PaymentForm = () => {
     },
     enterprise: {
       name: "Enterprise",
-      price: 599,
+      price: 1,
       description: "For large organizations",
       features: [
         "Everything in Professional",
@@ -52,7 +52,7 @@ const PaymentForm = () => {
   };
 
   useEffect(() => {
-    if (user?.hasCompletedSetup) {
+    if (user?.hasCompletedSetup || user?.isPaid) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, navigate]);
@@ -60,25 +60,29 @@ const PaymentForm = () => {
   useEffect(() => {
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
-    
-    console.error = (...args) => {
-      const message = args[0]?.toString() || '';
 
-      if (message.includes('WebGL') || 
-          message.includes('svg') || 
-          message.includes('phonepe') ||
-          message.includes('GroupMarkerNotSet')) {
+    console.error = (...args) => {
+      const message = args[0]?.toString() || "";
+
+      if (
+        message.includes("WebGL") ||
+        message.includes("svg") ||
+        message.includes("phonepe") ||
+        message.includes("GroupMarkerNotSet")
+      ) {
         return;
       }
       originalConsoleError.apply(console, args);
     };
 
     console.warn = (...args) => {
-      const message = args[0]?.toString() || '';
-      if (message.includes('WebGL') || 
-          message.includes('svg') || 
-          message.includes('phonepe') ||
-          message.includes('GroupMarkerNotSet')) {
+      const message = args[0]?.toString() || "";
+      if (
+        message.includes("WebGL") ||
+        message.includes("svg") ||
+        message.includes("phonepe") ||
+        message.includes("GroupMarkerNotSet")
+      ) {
         return;
       }
       originalConsoleWarn.apply(console, args);
@@ -103,9 +107,7 @@ const PaymentForm = () => {
     }
 
     await new Promise((resolve, reject) => {
-      const existingScript = document.querySelector(
-        `script[src="${sdkUrl}"]`
-      );
+      const existingScript = document.querySelector(`script[src="${sdkUrl}"]`);
       if (existingScript) {
         if (existingScript.getAttribute("data-loaded") === "true") {
           phonePeScriptRef.current = { loaded: true, url: sdkUrl };
@@ -143,7 +145,10 @@ const PaymentForm = () => {
       const delayMs = 4000;
 
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-        const result = await verifyPayment({ merchantTransactionId }, { silent: true });
+        const result = await verifyPayment(
+          { merchantTransactionId },
+          { silent: true }
+        );
 
         if (result.success) {
           return { success: true };
@@ -162,9 +167,11 @@ const PaymentForm = () => {
           };
         }
 
-        setStatusMessage(`Waiting for payment confirmation... (attempt ${
-          attempt + 1
-        }/${maxAttempts})`);
+        setStatusMessage(
+          `Waiting for payment confirmation... (attempt ${
+            attempt + 1
+          }/${maxAttempts})`
+        );
 
         // eslint-disable-next-line no-await-in-loop
         await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -185,7 +192,11 @@ const PaymentForm = () => {
       checkoutPayload?.redirectInfo?.redirectUrl;
 
     if (redirectUrl) {
-      const checkoutWindow = window.open(redirectUrl, "_blank", "noopener,noreferrer");
+      const checkoutWindow = window.open(
+        redirectUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
       if (checkoutWindow) {
         checkoutWindow.focus();
       } else {
@@ -212,14 +223,15 @@ const PaymentForm = () => {
   }, []);
 
   const startPhonePePayment = useCallback(async () => {
-    if (user?.hasCompletedSetup) {
+    if (user?.hasCompletedSetup || user?.isPaid) {
       navigate("/dashboard", { replace: true });
       return;
     }
 
     if (!user?.name?.trim()) {
       setErrors({
-        submit: "Please update your name in your profile before making a payment.",
+        submit:
+          "Please update your name in your profile before making a payment.",
       });
       return;
     }
@@ -230,7 +242,13 @@ const PaymentForm = () => {
 
     try {
       const amountPaise = plans[selectedPlan].price * 100;
-      const orderRes = await createPaymentOrder(amountPaise, user?.email);
+      const orderRes = await createPaymentOrder({
+        amountPaise,
+        email: user?.email,
+        customerName: user?.name,
+        mobileNumber: user?.phone,
+        note: `${plans[selectedPlan].name} plan purchase`,
+      });
 
       if (!orderRes.success) {
         throw new Error(orderRes.error || "Unable to initiate payment.");
@@ -330,7 +348,6 @@ const PaymentForm = () => {
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -341,14 +358,14 @@ const PaymentForm = () => {
             </h2>
             <div className="space-y-4">
               {Object.entries(plans).map(([key, plan]) => {
-                const isDisabled = key !== 'professional';
+                const isDisabled = key !== "professional";
                 return (
                   <motion.div
                     key={key}
                     whileHover={{ scale: isDisabled ? 1 : 1.02 }}
                     onClick={() => !isDisabled && setSelectedPlan(key)}
                     className={`border-2 rounded-xl p-4 transition-all ${
-                      isDisabled 
+                      isDisabled
                         ? "border-gray-200 bg-gray-100 cursor-not-allowed opacity-60"
                         : selectedPlan === key
                         ? "border-primary-500 bg-primary-50 cursor-pointer"
@@ -362,30 +379,58 @@ const PaymentForm = () => {
                           name="plan"
                           value={key}
                           checked={selectedPlan === key}
-                          onChange={(e) => !isDisabled && setSelectedPlan(e.target.value)}
+                          onChange={(e) =>
+                            !isDisabled && setSelectedPlan(e.target.value)
+                          }
                           disabled={isDisabled}
                           className="w-4 h-4 text-primary-600 disabled:opacity-50"
                         />
                         <div>
-                          <h3 className={`font-semibold ${isDisabled ? 'text-gray-500' : 'text-gray-900'}`}>
-                            {plan.name} {isDisabled && '(Coming Soon)'}
+                          <h3
+                            className={`font-semibold ${
+                              isDisabled ? "text-gray-500" : "text-gray-900"
+                            }`}
+                          >
+                            {plan.name} {isDisabled && "(Coming Soon)"}
                           </h3>
-                          <p className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <p
+                            className={`text-sm ${
+                              isDisabled ? "text-gray-400" : "text-gray-600"
+                            }`}
+                          >
                             {plan.description}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`text-2xl font-bold ${isDisabled ? 'text-gray-500' : 'text-gray-900'}`}>
+                        <div
+                          className={`text-2xl font-bold ${
+                            isDisabled ? "text-gray-500" : "text-gray-900"
+                          }`}
+                        >
                           ₹{plan.price}
                         </div>
-                        <div className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-gray-600'}`}>/year</div>
+                        <div
+                          className={`text-sm ${
+                            isDisabled ? "text-gray-400" : "text-gray-600"
+                          }`}
+                        >
+                          /year
+                        </div>
                       </div>
                     </div>
-                    <ul className={`text-sm space-y-1 ml-7 ${isDisabled ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <ul
+                      className={`text-sm space-y-1 ml-7 ${
+                        isDisabled ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
                       {plan.features.map((feature, idx) => (
                         <li key={idx} className="flex items-center space-x-2">
-                          <CheckCircle className={`w-4 h-4 flex-shrink-0 ${isDisabled ? 'text-gray-400' : 'text-green-500'}`} />
+                          <CheckCircle
+                            className={`w-4 h-4 flex-shrink-0 ${
+                              isDisabled ? "text-gray-400" : "text-green-500"
+                            }`}
+                          />
                           <span>{feature}</span>
                         </li>
                       ))}
@@ -440,8 +485,10 @@ const PaymentForm = () => {
 
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-blue-700 text-sm">
-                <strong>Note:</strong> You may see some technical warnings in the browser console during payment. 
-                These are from PhonePe's payment system and don't affect the payment process. Your payment will work normally.
+                <strong>Note:</strong> You may see some technical warnings in
+                the browser console during payment. These are from PhonePe's
+                payment system and don't affect the payment process. Your
+                payment will work normally.
               </p>
             </div>
 

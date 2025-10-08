@@ -39,7 +39,7 @@ const MyQRCode = () => {
     if (deploymentOverride) {
       return deploymentOverride.replace(/\/$/, "");
     }
-    const productionFallback = "https://www.qrfolio.net";
+    const productionFallback = "http://localhost:5173";
     if (
       typeof window !== "undefined" &&
       window.location.hostname === "localhost"
@@ -61,7 +61,7 @@ const MyQRCode = () => {
   const apiBase = useMemo(
     () =>
       import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
-      "https://api.qrfolio.net",
+      "http://localhost:5000",
     []
   );
   const hasFetchedConfig = useRef(false);
@@ -104,10 +104,13 @@ const MyQRCode = () => {
     const safeName = (user?.name || "QR_Code").replace(/\s+/g, "_");
 
     if (format === "svg") {
-      const svg = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+      const svg =
+        `<?xml version="1.0" encoding="UTF-8"?>\n` +
         `<svg xmlns='http://www.w3.org/2000/svg' width='${qrConfig.size}' height='${qrConfig.size}'>\n` +
         `<rect width='100%' height='100%' fill='${qrConfig.background}'/>\n` +
-        `<image href='${qrCodeRef.current.getDataUrl() || ""}' width='${qrConfig.size}' height='${qrConfig.size}' />\n` +
+        `<image href='${qrCodeRef.current.getDataUrl() || ""}' width='${
+          qrConfig.size
+        }' height='${qrConfig.size}' />\n` +
         `</svg>`;
       const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
       const url = URL.createObjectURL(blob);

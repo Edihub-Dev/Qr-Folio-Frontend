@@ -27,12 +27,12 @@ const TermsConditions = () => {
             "our"). These Terms & Conditions ("Terms") govern your access to and
             use of{" "}
             <a
-              href="https://www.qrfolio.net/"
+              href="http://localhost:5173/"
               className="text-blue-600 underline"
               target="_blank"
               rel="noopener noreferrer"
             >
-              https://www.qrfolio.net/
+              http://localhost:5173/
             </a>{" "}
             and any associated services (the "Service"). By accessing or using
             the Platform, you agree to be bound by these Terms. If you do not

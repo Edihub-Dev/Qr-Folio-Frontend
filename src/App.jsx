@@ -22,6 +22,8 @@ import TermsConditions from "./pages/TermsConditions";
 import RefundPolicy from "./pages/RefundPolicy";
 import PhonePeDemoPage from "./pages/PhonePeDemoPage";
 import PaymentStatusPage from "./pages/PaymentStatusPage";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailure from "./pages/PaymentFailure";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -139,7 +141,7 @@ const SetupRoute = ({ children }) => {
   }
 
   if (!user) return <Navigate to="/login" />;
-  if (user.hasCompletedSetup) return <Navigate to="/dashboard" />;
+  if (user.hasCompletedSetup || user.isPaid) return <Navigate to="/dashboard" />;
   return children;
 };
 
@@ -181,7 +183,7 @@ function App() {
             <Route
               path="/signup"
               element={
-                <PublicRoute>
+                <PublicRoute authPage>
                   <SignupPage />
                 </PublicRoute>
               }
@@ -196,6 +198,8 @@ function App() {
             />
             <Route path="/phonepe-demo" element={<PhonePeDemoPage />} />
             <Route path="/payment-status" element={<PaymentStatusPage />} />
+            <Route path="/success" element={<PaymentSuccess />} />
+            <Route path="/failure" element={<PaymentFailure />} />
             <Route path="/verify-otp" element={<VerifyOTPPage />} />
             <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
             <Route path="/RefundPolicy" element={<RefundPolicy />} />

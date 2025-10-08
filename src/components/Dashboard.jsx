@@ -18,7 +18,7 @@ const Dashboard = () => {
     if (deploymentOverride) {
       return deploymentOverride.replace(/\/$/, "");
     }
-    const productionFallback = "https://www.qrfolio.net";
+    const productionFallback = "http://localhost:5173";
     if (
       typeof window !== "undefined" &&
       window.location.hostname === "localhost"
@@ -533,7 +533,12 @@ const Dashboard = () => {
           <div className="space-y-4">
             <div className="flex justify-center" ref={qrWrapperRef}>
               <div className="p-4 bg-white rounded-xl border-2 border-gray-100">
-                <QRCodeGenerator ref={qrGeneratorRef} value={profileUrl} size={qrSize} level="H" />
+                <QRCodeGenerator
+                  ref={qrGeneratorRef}
+                  value={profileUrl}
+                  size={qrSize}
+                  level="H"
+                />
               </div>
             </div>
 
