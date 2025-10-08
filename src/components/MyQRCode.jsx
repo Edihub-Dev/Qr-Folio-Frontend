@@ -39,7 +39,7 @@ const MyQRCode = () => {
     if (deploymentOverride) {
       return deploymentOverride.replace(/\/$/, "");
     }
-    const productionFallback = "http://localhost:5173";
+    const productionFallback = "http://www.qrfolio.net";
     if (
       typeof window !== "undefined" &&
       window.location.hostname === "localhost"
@@ -61,7 +61,7 @@ const MyQRCode = () => {
   const apiBase = useMemo(
     () =>
       import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
-      "http://localhost:5000",
+      "http://api.qrfolio.net",
     []
   );
   const hasFetchedConfig = useRef(false);

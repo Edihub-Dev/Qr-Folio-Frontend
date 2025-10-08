@@ -18,7 +18,7 @@ const Dashboard = () => {
     if (deploymentOverride) {
       return deploymentOverride.replace(/\/$/, "");
     }
-    const productionFallback = "http://localhost:5173";
+    const productionFallback = "http://www.qrfolio.net";
     if (
       typeof window !== "undefined" &&
       window.location.hostname === "localhost"
