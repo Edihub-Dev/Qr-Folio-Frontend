@@ -57,7 +57,7 @@ const PaymentForm = () => {
     () => ({
       basic: {
         name: "Basic",
-        price: 1,
+        price: 10,
         description: "Perfect for individuals",
         features: [
           "Digital Business Card",
