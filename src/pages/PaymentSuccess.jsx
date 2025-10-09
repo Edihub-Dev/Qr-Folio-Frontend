@@ -15,6 +15,7 @@ function PaymentSuccess() {
   const hasRefreshed = useRef(false);
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
+  const confirmingRef = useRef(false);
 
   const normalizedStatus = (order?.status || "").toUpperCase();
   const isSuccess = [
@@ -48,6 +49,25 @@ function PaymentSuccess() {
             const status = (nextOrder?.status || "").toUpperCase();
             if (["COMPLETED", "SUCCESS", "SUCCESSFUL", "PAID", "CONFIRMED"].includes(status)) {
               setRedirectCountdown(5);
+            } else if (
+              gateway === "chainpay" &&
+              nextOrder?.status === "PENDING" &&
+              !confirmingRef.current
+            ) {
+              confirmingRef.current = true;
+              try {
+                const confirmRes = await api.post("/chainpay/confirm", {
+                  orderId: chainpayOrderId,
+                });
+                if (confirmRes.data?.success && confirmRes.data.order) {
+                  setOrder(confirmRes.data.order);
+                  setRedirectCountdown(5);
+                }
+              } catch (confirmError) {
+                console.warn("ChainPay manual confirmation failed", confirmError);
+              } finally {
+                confirmingRef.current = false;
+              }
             }
           } else {
             setError(data?.message || "Unable to fetch order details");

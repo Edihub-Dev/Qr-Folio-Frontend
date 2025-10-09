@@ -68,7 +68,7 @@ const PaymentForm = () => {
       },
       professional: {
         name: "Professional",
-        price: 1,
+        price: 899,
         description: "Best for professionals",
         features: [
           "Everything in Basic",
@@ -78,18 +78,18 @@ const PaymentForm = () => {
           "Team Collaboration",
         ],
       },
-      enterprise: {
-        name: "Enterprise",
-        price: 1,
-        description: "For large organizations",
-        features: [
-          "Everything in Professional",
-          "White Label Solution",
-          "API Access",
-          "Dedicated Manager",
-          "Custom Integrations",
-        ],
-      },
+      // enterprise: {
+      //   name: "Enterprise",
+      //   price: 1,
+      //   description: "For large organizations",
+      //   features: [
+      //     "Everything in Professional",
+      //     "White Label Solution",
+      //     "API Access",
+      //     "Dedicated Manager",
+      //     "Custom Integrations",
+      //   ],
+      // },
     }),
     []
   );
@@ -109,7 +109,7 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Crypto Growth",
-        price: 3499,
+        price: 899,
         currency: "INR",
         description: "Premium tools with annual INR billing",
         features: [
@@ -119,18 +119,18 @@ const PaymentForm = () => {
           "Multi-wallet support",
         ],
       },
-      enterprise: {
-        name: "Crypto Enterprise",
-        price: 6999,
-        currency: "INR",
-        description: "Enterprise billing with custom crypto support",
-        features: [
-          "Dedicated ChainPay success engineer",
-          "Custom webhook retry policies",
-          "Tiered access management",
-          "Multi-company dashboards",
-        ],
-      },
+      // enterprise: {
+      //   name: "Crypto Enterprise",
+      //   price: 6999,
+      //   currency: "INR",
+      //   description: "Enterprise billing with custom crypto support",
+      //   features: [
+      //     "Dedicated ChainPay success engineer",
+      //     "Custom webhook retry policies",
+      //     "Tiered access management",
+      //     "Multi-company dashboards",
+      //   ],
+      // },
     }),
     []
   );
