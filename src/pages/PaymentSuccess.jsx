@@ -13,9 +13,10 @@ function PaymentSuccess() {
   const [error, setError] = useState("");
   const [redirectCountdown, setRedirectCountdown] = useState(5);
   const hasRefreshed = useRef(false);
+  const confirmingRef = useRef(false);
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
-  const confirmingRef = useRef(false);
+  const successTokenRef = useRef(null);
 
   const normalizedStatus = (order?.status || "").toUpperCase();
   const isSuccess = [
@@ -46,22 +47,36 @@ function PaymentSuccess() {
           if (data?.success) {
             const nextOrder = data.order || data;
             setOrder(nextOrder);
+            if (nextOrder?.successToken) {
+              successTokenRef.current = nextOrder.successToken;
+            }
+            const chainpayToken = nextOrder?.token || nextOrder?.paymentToken;
             const status = (nextOrder?.status || "").toUpperCase();
             if (["COMPLETED", "SUCCESS", "SUCCESSFUL", "PAID", "CONFIRMED"].includes(status)) {
               setRedirectCountdown(5);
             } else if (
               gateway === "chainpay" &&
               nextOrder?.status === "PENDING" &&
+              chainpayOrderId &&
               !confirmingRef.current
             ) {
               confirmingRef.current = true;
               try {
                 const confirmRes = await api.post("/chainpay/confirm", {
                   orderId: chainpayOrderId,
+                  token: chainpayToken,
+                  successToken: successTokenRef.current,
                 });
                 if (confirmRes.data?.success && confirmRes.data.order) {
-                  setOrder(confirmRes.data.order);
-                  setRedirectCountdown(5);
+                  const confirmedOrder = confirmRes.data.order;
+                  setOrder(confirmedOrder);
+                  if (confirmedOrder?.successToken) {
+                    successTokenRef.current = confirmedOrder.successToken;
+                  }
+                  const confirmedStatus = (confirmedOrder?.status || "").toUpperCase();
+                  if (["COMPLETED", "SUCCESS", "SUCCESSFUL", "PAID", "CONFIRMED"].includes(confirmedStatus)) {
+                    setRedirectCountdown(5);
+                  }
                 }
               } catch (confirmError) {
                 console.warn("ChainPay manual confirmation failed", confirmError);
@@ -146,7 +161,10 @@ function PaymentSuccess() {
         </p>
         {(merchantOrderId || chainpayOrderId) && (
           <p className="text-sm text-gray-500 mt-2">
-            Order ID: <span className="font-mono">{merchantOrderId || chainpayOrderId}</span>
+            Order ID:{" "}
+            <span className="font-mono">
+              {merchantOrderId || chainpayOrderId}
+            </span>
           </p>
         )}
 
@@ -166,11 +184,13 @@ function PaymentSuccess() {
                 {typeof order?.amount === "number"
                   ? `₹${((order?.amount || 0) / 100).toFixed(2)}`
                   : order?.value
-                  ? `${order?.currency || "₹"}${Number(order.value).toFixed(2)}`
+                  ? `₹${Number(order.value).toFixed(2)}`
                   : "-"}
               </div>
               <div className="text-gray-500">Status</div>
-              <div className="font-medium text-green-700">{normalizedStatus}</div>
+              <div className="font-medium text-green-700">
+                {normalizedStatus}
+              </div>
             </div>
           </div>
         ) : null}
