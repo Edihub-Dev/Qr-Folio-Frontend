@@ -57,7 +57,7 @@ const PaymentForm = () => {
     () => ({
       basic: {
         name: "Basic",
-        price: 10,
+        price: 1,
         description: "Perfect for individuals",
         features: [
           "Digital Business Card",
@@ -98,7 +98,7 @@ const PaymentForm = () => {
     () => ({
       starter: {
         name: "Crypto Starter",
-        price: 1,
+        price: 10,
         currency: "INR",
         description: "Start accepting crypto payments with INR billing",
         features: [
