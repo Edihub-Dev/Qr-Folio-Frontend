@@ -81,7 +81,7 @@ const LandingPage = () => {
     },
     {
       name: "Professional",
-      price: "899",
+      price: "1",
       period: "Year",
       description: "Best for professionals",
       features: [
