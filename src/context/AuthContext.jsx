@@ -8,14 +8,6 @@ import React, {
 } from "react";
 import api from "../api";
 
-const hasPaymentFlag = (data = {}) =>
-  !!(
-    data?.phonepePaymentId ||
-    data?.phonepeMerchantTransactionId ||
-    data?.razorpayPaymentId ||
-    data?.isPaid
-  );
-
 const PAYMENT_SUCCESS_STATES = new Set([
   "COMPLETED",
   "SUCCESS",
@@ -23,6 +15,29 @@ const PAYMENT_SUCCESS_STATES = new Set([
   "CAPTURED",
   "PAID",
 ]);
+
+const hasPaymentFlag = (data = {}) => {
+  if (!data) {
+    return false;
+  }
+
+  if (data.isPaid) {
+    return true;
+  }
+
+  if (typeof data.chainpayStatus === "string") {
+    const normalized = data.chainpayStatus.toUpperCase();
+    if (PAYMENT_SUCCESS_STATES.has(normalized)) {
+      return true;
+    }
+  }
+
+  if (data.phonepePaymentId) {
+    return true;
+  }
+
+  return false;
+};
 
 const AuthContext = createContext();
 
@@ -69,7 +84,8 @@ export const AuthProvider = ({ children }) => {
                 isPaid: paymentComplete,
                 hasCompletedSetup: paymentComplete,
                 phonepePaymentId: parsed.phonepePaymentId,
-                phonepeMerchantTransactionId: parsed.phonepeMerchantTransactionId,
+                phonepeMerchantTransactionId:
+                  parsed.phonepeMerchantTransactionId,
               };
               setUser(normalized);
             }
@@ -213,6 +229,9 @@ export const AuthProvider = ({ children }) => {
     customerName,
     mobileNumber,
     note,
+    planKey,
+    planName,
+    pricing,
   } = {}) => {
     try {
       if (!amountPaise) {
@@ -225,6 +244,9 @@ export const AuthProvider = ({ children }) => {
         customerName,
         mobileNumber,
         note,
+        planKey,
+        planName,
+        pricing,
       });
 
       if (res.data?.success) {
@@ -234,6 +256,44 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         error: res.data?.message || "Failed to create order",
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message,
+      };
+    }
+  };
+
+  const createChainpayPayment = async ({
+    amountFiat,
+    currency = "INR",
+    description,
+    planKey,
+    planName,
+    pricing,
+  } = {}) => {
+    try {
+      if (!amountFiat) {
+        return { success: false, error: "Amount is required" };
+      }
+
+      const res = await api.post("/chainpay/create-payment", {
+        amountFiat,
+        currency,
+        description,
+        planKey,
+        planName,
+        pricing,
+      });
+
+      if (res.data?.success) {
+        return { success: true, data: res.data };
+      }
+
+      return {
+        success: false,
+        error: res.data?.message || "Failed to create ChainPay payment",
       };
     } catch (err) {
       return {
@@ -657,6 +717,7 @@ export const AuthProvider = ({ children }) => {
     resendOTP,
     verifyOTP,
     createPaymentOrder,
+    createChainpayPayment,
     verifyPayment,
     login,
     logout,

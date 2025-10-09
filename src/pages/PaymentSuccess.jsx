@@ -6,6 +6,8 @@ import { useAuth } from "../context/AuthContext";
 function PaymentSuccess() {
   const [params] = useSearchParams();
   const merchantOrderId = params.get("merchantOrderId");
+  const chainpayOrderId = params.get("orderId");
+  const gateway = params.get("gateway") || "phonepe";
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -14,21 +16,37 @@ function PaymentSuccess() {
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
 
+  const normalizedStatus = (order?.status || "").toUpperCase();
+  const isSuccess = [
+    "COMPLETED",
+    "SUCCESS",
+    "SUCCESSFUL",
+    "PAID",
+    "CONFIRMED",
+  ].includes(normalizedStatus);
+
   useEffect(() => {
     let mounted = true;
 
     async function fetchOrder() {
-      if (!merchantOrderId) {
-        setLoading(false);
-        return;
-      }
-
       try {
-        const { data } = await api.get(`/phonepe/order/${merchantOrderId}`);
+        let response;
+        if (gateway === "chainpay" && chainpayOrderId) {
+          response = await api.get(`/chainpay/order/${chainpayOrderId}`);
+        } else if (merchantOrderId) {
+          response = await api.get(`/phonepe/order/${merchantOrderId}`);
+        } else {
+          setLoading(false);
+          return;
+        }
+
+        const { data } = response;
         if (mounted) {
           if (data?.success) {
-            setOrder(data.order);
-            if (data.order?.status === "COMPLETED") {
+            const nextOrder = data.order || data;
+            setOrder(nextOrder);
+            const status = (nextOrder?.status || "").toUpperCase();
+            if (["COMPLETED", "SUCCESS", "SUCCESSFUL", "PAID", "CONFIRMED"].includes(status)) {
               setRedirectCountdown(5);
             }
           } else {
@@ -50,10 +68,10 @@ function PaymentSuccess() {
     return () => {
       mounted = false;
     };
-  }, [merchantOrderId]);
+  }, [merchantOrderId, chainpayOrderId, gateway]);
 
   useEffect(() => {
-    if (order?.status !== "COMPLETED") {
+    if (!isSuccess) {
       return undefined;
     }
 
@@ -83,7 +101,7 @@ function PaymentSuccess() {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [order, redirectCountdown, navigate, refreshUser]);
+  }, [order, redirectCountdown, navigate, refreshUser, isSuccess]);
 
   return (
     <div className="min-h-screen bg-green-50 flex items-center justify-center p-6">
@@ -106,9 +124,9 @@ function PaymentSuccess() {
         <p className="text-gray-600 mt-1">
           Thank you! Your payment has been processed.
         </p>
-        {merchantOrderId && (
+        {(merchantOrderId || chainpayOrderId) && (
           <p className="text-sm text-gray-500 mt-2">
-            Order ID: <span className="font-mono">{merchantOrderId}</span>
+            Order ID: <span className="font-mono">{merchantOrderId || chainpayOrderId}</span>
           </p>
         )}
 
@@ -125,15 +143,19 @@ function PaymentSuccess() {
               <div className="font-medium">{order?.mobileNumber || ""}</div>
               <div className="text-gray-500">Amount</div>
               <div className="font-medium">
-                ₹{((order?.amount || 0) / 100).toFixed(2)}
+                {typeof order?.amount === "number"
+                  ? `₹${((order?.amount || 0) / 100).toFixed(2)}`
+                  : order?.value
+                  ? `${order?.currency || "₹"}${Number(order.value).toFixed(2)}`
+                  : "-"}
               </div>
               <div className="text-gray-500">Status</div>
-              <div className="font-medium text-green-700">{order?.status}</div>
+              <div className="font-medium text-green-700">{normalizedStatus}</div>
             </div>
           </div>
         ) : null}
 
-        {order?.status === "COMPLETED" ? (
+        {isSuccess ? (
           <p className="mt-6 text-sm text-gray-500">
             Redirecting you to the dashboard in {redirectCountdown}s...
           </p>
