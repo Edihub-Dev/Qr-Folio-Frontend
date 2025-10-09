@@ -81,7 +81,7 @@ const LandingPage = () => {
     },
     {
       name: "Professional",
-      price: "599",
+      price: "899",
       period: "Year",
       description: "Best for professionals",
       features: [
@@ -95,22 +95,22 @@ const LandingPage = () => {
       highlighted: true,
       paymentEnabled: true,
     },
-    {
-      name: "Enterprise",
-      price: "599",
-      period: "Year",
-      description: "For large organizations",
-      features: [
-        "Everything in Basic",
-        "Custom Branding",
-        "Advanced Analytics",
-        "Priority Support",
-        "Team Collaboration",
-        "Prices Exclusive of Taxes",
-      ],
-      highlighted: false,
-      paymentEnabled: true,
-    },
+    // {
+    //   name: "Enterprise",
+    //   price: "599",
+    //   period: "Year",
+    //   description: "For large organizations",
+    //   features: [
+    //     "Everything in Basic",
+    //     "Custom Branding",
+    //     "Advanced Analytics",
+    //     "Priority Support",
+    //     "Team Collaboration",
+    //     "Prices Exclusive of Taxes",
+    //   ],
+    //   highlighted: false,
+    //   paymentEnabled: true,
+    // },
   ];
 
   const testimonials = [
