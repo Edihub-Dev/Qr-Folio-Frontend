@@ -75,7 +75,7 @@ function PaymentSuccess() {
               })();
             } else if (
               gateway === "chainpay" &&
-              nextOrder?.status === "PENDING" &&
+              status === "PENDING" &&
               chainpayOrderId &&
               !confirmingRef.current
             ) {
