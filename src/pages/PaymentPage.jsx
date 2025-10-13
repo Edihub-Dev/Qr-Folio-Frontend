@@ -106,7 +106,7 @@ const PaymentForm = () => {
       starter: {
         name: "Basic (Silver)",
         price: 399,
-        currency: "INR",
+        // currency: "INR",
         description: "Start accepting crypto payments with INR billing",
         features: [
           "Custom QR Code",
@@ -844,6 +844,7 @@ const PaymentForm = () => {
                   ) : (
                     `Pay ${chainpayButtonDisplay}`
                   )}
+                  <p>(45.644444 MSTC)</p>
                 </motion.button>
 
                 {showChainpayPlans && (
