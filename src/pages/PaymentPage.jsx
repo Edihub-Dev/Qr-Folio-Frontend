@@ -104,7 +104,7 @@ const PaymentForm = () => {
   const chainpayPlans = useMemo(
     () => ({
       starter: {
-        name: "Basic (Silver) - 45.560376 MSTC",
+        name: "Basic (Silver) - 100.2029528 MSTC",
         price: 790,
         // currency: "INR",
         description: "Start accepting crypto payments with INR billing",
@@ -119,7 +119,7 @@ const PaymentForm = () => {
         ],
       },
       growth: {
-        name: "Standard (Gold) - 68.3976581 MSTC",
+        name: "Standard (Gold) - 200.4059056 MSTC",
         price: 1580,
         // currency: "INR",
         description: "Premium tools with annual INR billing",
@@ -134,7 +134,7 @@ const PaymentForm = () => {
         ],
       },
       enterprise: {
-        name: "Premium (Platinum) - 114.0722212 MSTC",
+        name: "Premium (Platinum) - 300.608859 MSTC",
         price: 2370,
         // currency: "INR",
         description: "Enterprise billing with custom crypto support",
