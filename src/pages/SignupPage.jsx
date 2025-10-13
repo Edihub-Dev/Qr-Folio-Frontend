@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { QrCode, ArrowLeft } from "lucide-react";
+import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -17,6 +17,10 @@ const SignupPage = () => {
     confirmPassword: "",
     agreeToTerms: false,
   });
+  const [showPasswordFields, setShowPasswordFields] = useState({
+    password: false,
+    confirmPassword: false,
+  });
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -25,6 +29,13 @@ const SignupPage = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswordFields((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
   };
 
   const validateForm = () => {
@@ -143,34 +154,62 @@ const SignupPage = () => {
               <p className="text-sm text-red-600">{errors.email}</p>
             )}
 
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="Password"
-              className={`w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                errors.password
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 bg-gray-50"
-              }`}
-            />
+            <div className="relative">
+              <input
+                type={showPasswordFields.password ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Password"
+                className={`w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 ${
+                  errors.password
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-200 bg-gray-50"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => togglePasswordVisibility("password")}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                aria-label={showPasswordFields.password ? "Hide password" : "Show password"}
+              >
+                {showPasswordFields.password ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
             {errors.password && (
               <p className="text-sm text-red-600">{errors.password}</p>
             )}
 
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              placeholder="Confirm Password"
-              className={`w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                errors.confirmPassword
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 bg-gray-50"
-              }`}
-            />
+            <div className="relative">
+              <input
+                type={showPasswordFields.confirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                placeholder="Confirm Password"
+                className={`w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 ${
+                  errors.confirmPassword
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-200 bg-gray-50"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => togglePasswordVisibility("confirmPassword")}
+                className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                aria-label={showPasswordFields.confirmPassword ? "Hide confirm password" : "Show confirm password"}
+              >
+                {showPasswordFields.confirmPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
             {errors.confirmPassword && (
               <p className="text-sm text-red-600">{errors.confirmPassword}</p>
             )}
