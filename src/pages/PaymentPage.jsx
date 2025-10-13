@@ -120,7 +120,7 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Standard (Gold) - 68.3976581 MSTC",
-        price: 950,
+        price: 1572,
         // currency: "INR",
         description: "Premium tools with annual INR billing",
         features: [
