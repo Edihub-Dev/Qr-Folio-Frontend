@@ -105,7 +105,7 @@ const PaymentForm = () => {
     () => ({
       starter: {
         name: "Basic (Silver) - 45.560376 MSTC",
-        price: 429,
+        price: 465,
         // currency: "INR",
         description: "Start accepting crypto payments with INR billing",
         features: [
