@@ -56,40 +56,47 @@ const PaymentForm = () => {
   const plans = useMemo(
     () => ({
       basic: {
-        name: "Basic",
-        price: 599,
+        name: "Basic (Silver)",
+        price: 1,
         description: "Perfect for individuals",
         features: [
-          "Digital Business Card",
-          "QR Code Generation",
-          "Basic Analytics",
-          "Email Support",
+          "Custom QR Code",
+          "Add Contact Details",
+          "Add Company Details",
+          "Add Basic Profile Details",
+          "Share Profile via QR Code",
+          "Share Profile via Link",
+          "Prices Exclusive of Taxes",
         ],
       },
       professional: {
-        name: "Professional",
+        name: "Standard (Gold)",
         price: 1,
         description: "Best for professionals",
         features: [
           "Everything in Basic",
-          "Custom Branding",
-          "Advanced Analytics",
-          "Priority Support",
-          "Team Collaboration",
+          "Add Custom Links",
+          "Limited Media Storage",
+          "Add Advanced Profile Details",
+          "Quick Share to Social Media",
+          "Publicly Accessible Profile",
+          "Prices Exclusive of Taxes",
         ],
       },
-      // enterprise: {
-      //   name: "Enterprise",
-      //   price: 1,
-      //   description: "For large organizations",
-      //   features: [
-      //     "Everything in Professional",
-      //     "White Label Solution",
-      //     "API Access",
-      //     "Dedicated Manager",
-      //     "Custom Integrations",
-      //   ],
-      // },
+      enterprise: {
+        name: "Premium (Platinum)",
+        price: 1,
+        description: "For large organizations",
+        features: [
+          "Everything in Standard",
+          "Custom Branding",
+          "Team Collaboration",
+          "Personalized Support",
+          "Media Storage up to 10 files of 1GB",
+          "Includes an NFC-enabled profile card. NFC (Near Field Communication) is a short-range wireless technology built into the card, letting it communicate and share data with nearby NFC-enabled smartphones",
+          "Prices Exclusive of Taxes",
+        ],
+      },
     }),
     []
   );
@@ -97,68 +104,120 @@ const PaymentForm = () => {
   const chainpayPlans = useMemo(
     () => ({
       starter: {
-        name: "Crypto Starter",
-        price: 90,
+        name: "Basic (Silver)",
+        price: 100,
         currency: "INR",
         description: "Start accepting crypto payments with INR billing",
         features: [
-          "Includes Basic QR Folio features",
-          "Accepts major stablecoins",
-          "Automatic exchange rate locking",
+          "Custom QR Code",
+          "Add Contact Details",
+          "Add Company Details",
+          "Add Basic Profile Details",
+          "Share Profile via QR Code",
+          "Share Profile via Link",
+          "Prices Exclusive of Taxes",
         ],
       },
       growth: {
-        name: "Crypto Growth",
-        price: 899,
+        name: "Standard (Gold)",
+        price: 699,
         currency: "INR",
         description: "Premium tools with annual INR billing",
         features: [
-          "Everything in Crypto Starter",
-          "Priority payout routing",
-          "On-chain payment analytics",
-          "Multi-wallet support",
+          "Everything in Basic",
+          "Add Custom Links",
+          "Limited Media Storage",
+          "Add Advanced Profile Details",
+          "Quick Share to Social Media",
+          "Publicly Accessible Profile",
+          "Prices Exclusive of Taxes",
         ],
       },
-      // enterprise: {
-      //   name: "Crypto Enterprise",
-      //   price: 6999,
-      //   currency: "INR",
-      //   description: "Enterprise billing with custom crypto support",
-      //   features: [
-      //     "Dedicated ChainPay success engineer",
-      //     "Custom webhook retry policies",
-      //     "Tiered access management",
-      //     "Multi-company dashboards",
-      //   ],
-      // },
+      enterprise: {
+        name: "Premium (Platinum)",
+        price: 999,
+        currency: "INR",
+        description: "Enterprise billing with custom crypto support",
+        features: [
+          "Everything in Standard",
+          "Custom Branding",
+          "Team Collaboration",
+          "Personalized Support",
+          "Media Storage up to 10 files of 1GB",
+          "Includes an NFC-enabled profile card. NFC (Near Field Communication) is a short-range wireless technology built into the card, letting it communicate and share data with nearby NFC-enabled smartphones",
+          "Prices Exclusive of Taxes",
+        ],
+      },
     }),
     []
+  );
+
+  const promoCode = (user?.promoCode || "").toUpperCase();
+  const isPromoEligible = Boolean(
+    user?.promoCodeEligible && !user?.promoCodeUsed && promoCode === "QR10FOLIO"
   );
 
   const selectedPlanPricing = useMemo(() => {
     const plan = plans[selectedPlan];
     if (!plan) {
-      return calculateGstBreakdown(0);
+      return {
+        ...calculateGstBreakdown(0),
+        originalBaseAmount: 0,
+        promoApplied: false,
+        promoCode: null,
+        promoDiscountAmount: 0,
+      };
     }
-    return calculateGstBreakdown(plan.price);
-  }, [plans, selectedPlan]);
+
+    const originalBaseAmount = Number(plan.price || 0);
+    const discountedBaseAmount = isPromoEligible
+      ? Number((originalBaseAmount * 0.9).toFixed(2))
+      : originalBaseAmount;
+
+    const breakdown = calculateGstBreakdown(discountedBaseAmount);
+    const promoDiscountAmount = isPromoEligible
+      ? Number((originalBaseAmount - discountedBaseAmount).toFixed(2))
+      : 0;
+
+    return {
+      ...breakdown,
+      originalBaseAmount,
+      promoApplied: isPromoEligible,
+      promoCode: isPromoEligible ? promoCode : null,
+      promoDiscountAmount,
+    };
+  }, [plans, selectedPlan, isPromoEligible, promoCode]);
 
   const chainpayPricing = useMemo(() => {
     return Object.fromEntries(
-      Object.entries(chainpayPlans).map(([key, plan]) => [
-        key,
-        {
-          baseAmount: plan.price,
-          gstAmount: 0,
-          cgstAmount: 0,
-          sgstAmount: 0,
-          igstAmount: 0,
-          totalAmount: plan.price,
-          currency: plan.currency,
-        },
-      ])
+      Object.entries(chainpayPlans).map(([key, plan]) => {
+        const originalAmount = Number(plan.price || 0);
+        const discountedAmount = isPromoEligible
+          ? Number((originalAmount * 0.9).toFixed(2))
+          : originalAmount;
+        const promoDiscountAmount = isPromoEligible
+          ? Number((originalAmount - discountedAmount).toFixed(2))
+          : 0;
+
+        return [
+          key,
+          {
+            baseAmount: discountedAmount,
+            originalAmount,
+            promoApplied: isPromoEligible,
+            promoCode: isPromoEligible ? promoCode : null,
+            promoDiscountAmount,
+            gstAmount: 0,
+            cgstAmount: 0,
+            sgstAmount: 0,
+            igstAmount: 0,
+            totalAmount: discountedAmount,
+            currency: plan.currency,
+          },
+        ];
+      })
     );
-  }, [chainpayPlans]);
+  }, [chainpayPlans, isPromoEligible, promoCode]);
 
   const formatCurrencyDisplay = (amount, currency) => {
     if (typeof amount !== "number") {
@@ -171,6 +230,14 @@ const PaymentForm = () => {
 
     return `${amount.toFixed(2)} ${currency || ""}`.trim();
   };
+
+  const selectedChainpayPricing = chainpayPricing[selectedChainpayPlan];
+  const chainpayButtonDisplay = formatCurrencyDisplay(
+    selectedChainpayPricing?.totalAmount ??
+      chainpayPlans[selectedChainpayPlan]?.price ??
+      0,
+    chainpayPlans[selectedChainpayPlan]?.currency
+  );
 
   useEffect(() => {
     if (user?.hasCompletedSetup || user?.isPaid) {
@@ -488,6 +555,13 @@ const PaymentForm = () => {
         planKey: selectedChainpayPlan,
         planName: plan.name,
         pricing,
+        metadata: {
+          promoApplied: pricing?.promoApplied || false,
+          promoCode: pricing?.promoCode || null,
+          promoDiscountAmount: pricing?.promoDiscountAmount || 0,
+          originalAmount: pricing?.originalAmount || plan.price,
+          finalAmount: pricing?.totalAmount || plan.price,
+        },
       });
 
       if (!paymentRes.success) {
@@ -578,18 +652,16 @@ const PaymentForm = () => {
             </h2>
             <div className="space-y-4">
               {Object.entries(plans).map(([key, plan]) => {
-                const isDisabled = key !== "professional";
+                const isSelected = selectedPlan === key;
                 return (
                   <motion.div
                     key={key}
-                    whileHover={{ scale: isDisabled ? 1 : 1.02 }}
-                    onClick={() => !isDisabled && setSelectedPlan(key)}
-                    className={`border-2 rounded-xl p-4 transition-all ${
-                      isDisabled
-                        ? "border-gray-200 bg-gray-100 cursor-not-allowed opacity-60"
-                        : selectedPlan === key
-                        ? "border-primary-500 bg-primary-50 cursor-pointer"
-                        : "border-gray-200 hover:border-gray-300 cursor-pointer"
+                    whileHover={{ scale: isSelected ? 1 : 1.02 }}
+                    onClick={() => setSelectedPlan(key)}
+                    className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-primary-500 bg-primary-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -598,65 +670,30 @@ const PaymentForm = () => {
                           type="radio"
                           name="plan"
                           value={key}
-                          checked={selectedPlan === key}
-                          onChange={(e) =>
-                            !isDisabled && setSelectedPlan(e.target.value)
-                          }
-                          disabled={isDisabled}
-                          className="w-4 h-4 text-primary-600 disabled:opacity-50"
+                          checked={isSelected}
+                          onChange={(e) => setSelectedPlan(e.target.value)}
+                          className="w-4 h-4 text-primary-600"
                         />
                         <div>
-                          <h3
-                            className={`font-semibold ${
-                              isDisabled ? "text-gray-500" : "text-gray-900"
-                            }`}
-                          >
-                            {plan.name} {isDisabled && "(Coming Soon)"}
+                          <h3 className="font-semibold text-gray-900">
+                            {plan.name}
                           </h3>
-                          <p
-                            className={`text-sm ${
-                              isDisabled ? "text-gray-400" : "text-gray-600"
-                            }`}
-                          >
+                          <p className="text-sm text-gray-600">
                             {plan.description}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div
-                          className={`text-2xl font-bold ${
-                            isDisabled ? "text-gray-500" : "text-gray-900"
-                          }`}
-                        >
+                        <div className="text-2xl font-bold text-gray-900">
                           ₹{plan.price}
-                          {/* <span className="block text-sm font-normal text-gray-500">
-                            + 18% GST
-                          </span>
-                          <span className="block text-xs text-gray-500">
-                            Transaction Fee: 0%
-                          </span> */}
                         </div>
-                        <div
-                          className={`text-sm ${
-                            isDisabled ? "text-gray-400" : "text-gray-600"
-                          }`}
-                        >
-                          /year
-                        </div>
+                        <div className="text-sm text-gray-600">/year</div>
                       </div>
                     </div>
-                    <ul
-                      className={`text-sm space-y-1 ml-7 ${
-                        isDisabled ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
+                    <ul className="text-sm space-y-1 ml-7 text-gray-600">
                       {plan.features.map((feature, idx) => (
                         <li key={idx} className="flex items-center space-x-2">
-                          <CheckCircle
-                            className={`w-4 h-4 flex-shrink-0 ${
-                              isDisabled ? "text-gray-400" : "text-green-500"
-                            }`}
-                          />
+                          <CheckCircle className="w-4 h-4 flex-shrink-0 text-green-500" />
                           <span>{feature}</span>
                         </li>
                       ))}
@@ -672,12 +709,26 @@ const PaymentForm = () => {
               </h3>
               <div className="flex justify-between items-center mb-1">
                 <span className="text-gray-600">
-                  {plans[selectedPlan].name} Plan
+                  {plans[selectedPlan].name}
+                  {selectedPlanPricing.promoApplied &&
+                    selectedPlanPricing.originalBaseAmount > 0 && (
+                      <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                        {selectedPlanPricing.promoCode} Applied
+                      </span>
+                    )}
                 </span>
                 <span className="font-semibold">
                   {formatINR(selectedPlanPricing.baseAmount)} / year
                 </span>
               </div>
+              {selectedPlanPricing.promoApplied && (
+                <div className="flex justify-between items-center text-sm text-green-600">
+                  <span>Promo Discount ({selectedPlanPricing.promoCode})</span>
+                  <span>
+                    -{formatINR(selectedPlanPricing.promoDiscountAmount)}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between items-center text-sm text-gray-600">
                 <span>Transaction Fee</span>
                 <span>0%</span>
@@ -742,7 +793,9 @@ const PaymentForm = () => {
                     <span>Opening PhonePe...</span>
                   </div>
                 ) : (
-                  `Pay ₹${plans[selectedPlan].price}/year (PhonePe)`
+                  `Pay ${formatINR(
+                    selectedPlanPricing.totalAmount
+                  )} / year (PhonePe)`
                 )}
               </motion.button>
 
@@ -789,76 +842,103 @@ const PaymentForm = () => {
                       <span>Opening ChainPay...</span>
                     </div>
                   ) : (
-                    `Pay ${formatCurrencyDisplay(
-                      chainpayPlans[selectedChainpayPlan].price,
-                      chainpayPlans[selectedChainpayPlan].currency
-                    )}`
+                    `Pay ${chainpayButtonDisplay}`
                   )}
                 </motion.button>
 
                 {showChainpayPlans && (
                   <div className="mt-6 space-y-4">
-                    {Object.entries(chainpayPlans).map(([key, plan]) => (
-                      <motion.div
-                        key={key}
-                        whileHover={{ scale: 1.02 }}
-                        onClick={() => setSelectedChainpayPlan(key)}
-                        className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
-                          selectedChainpayPlan === key
-                            ? "border-indigo-500 bg-indigo-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="radio"
-                              name="chainpay-plan"
-                              value={key}
-                              checked={selectedChainpayPlan === key}
-                              onChange={(e) =>
-                                setSelectedChainpayPlan(e.target.value)
-                              }
-                              className="w-4 h-4 text-indigo-600"
-                            />
-                            <div>
-                              <h4 className="font-semibold text-gray-900">
-                                {plan.name}
-                              </h4>
-                              <p className="text-sm text-gray-600">
-                                {plan.description}
-                              </p>
+                    {Object.entries(chainpayPlans).map(([key, plan]) => {
+                      const planPricing = chainpayPricing[key];
+                      const hasPromo = planPricing?.promoApplied;
+                      return (
+                        <motion.div
+                          key={key}
+                          whileHover={{ scale: 1.02 }}
+                          onClick={() => setSelectedChainpayPlan(key)}
+                          className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
+                            selectedChainpayPlan === key
+                              ? "border-indigo-500 bg-indigo-50"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-3">
+                              <input
+                                type="radio"
+                                name="chainpay-plan"
+                                value={key}
+                                checked={selectedChainpayPlan === key}
+                                onChange={(e) =>
+                                  setSelectedChainpayPlan(e.target.value)
+                                }
+                                className="w-4 h-4 text-indigo-600"
+                              />
+                              <div>
+                                <h4 className="font-semibold text-gray-900">
+                                  {plan.name}
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                  {plan.description}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-gray-900">
-                              {formatCurrencyDisplay(plan.price, plan.currency)}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {plan.currency}
-                            </div>
-                            {/* <div className="text-xs text-gray-500 mt-1">
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-gray-900">
+                                {hasPromo ? (
+                                  <>
+                                    <span className="text-base font-medium text-gray-400 line-through">
+                                      {formatCurrencyDisplay(
+                                        planPricing?.originalAmount ??
+                                          plan.price,
+                                        plan.currency
+                                      )}
+                                    </span>
+                                    <span className="ml-2">
+                                      {formatCurrencyDisplay(
+                                        planPricing?.totalAmount ?? plan.price,
+                                        plan.currency
+                                      )}
+                                    </span>
+                                  </>
+                                ) : (
+                                  formatCurrencyDisplay(
+                                    plan.price,
+                                    plan.currency
+                                  )
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {plan.currency}
+                              </div>
+                              {hasPromo && planPricing?.promoCode && (
+                                <div className="mt-1 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                                  {planPricing.promoCode} Applied
+                                </div>
+                              )}
+                              {/* <div className="text-xs text-gray-500 mt-1">
                               GST: {formatINR(chainpayPricing[key].gstAmount)}
                             </div>
                             <div className="text-sm font-semibold text-gray-900">
                               Total:{" "}
                               {formatINR(chainpayPricing[key].totalAmount)}
                             </div> */}
+                            </div>
                           </div>
-                        </div>
-                        <ul className="text-sm text-gray-600 space-y-1 ml-7">
-                          {plan.features.map((feature, idx) => (
-                            <li
-                              key={idx}
-                              className="flex items-center space-x-2"
-                            >
-                              <CheckCircle className="w-4 h-4 text-purple-500" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </motion.div>
-                    ))}
+                          <ul className="text-sm text-gray-600 space-y-1 ml-7">
+                            {plan.features.map((feature, idx) => (
+                              <li
+                                key={idx}
+                                className="flex items-center space-x-2"
+                              >
+                                <CheckCircle className="w-4 h-4 text-purple-500" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

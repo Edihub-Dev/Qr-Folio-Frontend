@@ -1,5 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "../components/Sidebar";
@@ -7,6 +13,8 @@ import Dashboard from "../components/Dashboard";
 import EditProfile from "../components/EditProfile";
 import CompanyDetails from "../components/CompanyDetails";
 import MyQRCode from "../components/MyQRCode";
+import GalleryPage from "./GalleryPage";
+import { PLAN_LABELS, getPlanRank } from "../utils/subscriptionPlan";
 
 const DashboardLayout = () => {
   const { user } = useAuth();
@@ -15,6 +23,48 @@ const DashboardLayout = () => {
   const [isMobile, setIsMobile] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const plan = useMemo(
+    () => (user?.subscriptionPlan || "basic").toLowerCase(),
+    [user?.subscriptionPlan]
+  );
+  const planLabel = PLAN_LABELS[plan] || PLAN_LABELS.basic;
+  const isStandardOrHigher =
+    getPlanRank(plan) >= getPlanRank("standard");
+
+  const renderRestrictedFeature = (featureName, requiredPlan = "standard") => {
+    const requiredPlanLabel =
+      PLAN_LABELS[requiredPlan] || PLAN_LABELS.standard || "Standard";
+
+    return (
+      <div className="max-w-3xl mx-auto mt-16 p-10 bg-white border border-gray-200 rounded-3xl shadow-lg text-center">
+        <div className="text-2xl font-semibold text-gray-900">
+          Upgrade to access {featureName}
+        </div>
+        <p className="mt-4 text-gray-600">
+          Your current plan (<span className="font-medium text-primary-600">{planLabel}</span>)
+          includes Dashboard, Edit Profile, and Company Details. To unlock the {featureName} feature,
+          upgrade to at least the <span className="font-medium">{requiredPlanLabel}</span> plan.
+        </p>
+        <div className="mt-8 flex flex-col sm:flex-row sm:justify-center sm:items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            className="px-5 py-3 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 transition"
+          >
+            Back to Dashboard
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/payment")}
+            className="px-6 py-3 rounded-full bg-primary-600 text-white font-semibold hover:bg-primary-700 transition shadow"
+          >
+            View Plans & Upgrade
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -30,10 +80,10 @@ const DashboardLayout = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-
   useEffect(() => {
     const path = location.pathname.replace(/\/+$/, "");
-    if (path.endsWith("/dashboard") || path.endsWith("/dashboard/")) setActiveTab("dashboard");
+    if (path.endsWith("/dashboard") || path.endsWith("/dashboard/"))
+      setActiveTab("dashboard");
     else if (path.includes("/dashboard/profile")) setActiveTab("profile");
     else if (path.includes("/dashboard/company")) setActiveTab("company");
     else if (path.includes("/dashboard/qrcode")) setActiveTab("qrcode");
@@ -47,8 +97,14 @@ const DashboardLayout = () => {
         return <EditProfile />;
       case "company":
         return <CompanyDetails />;
+      case "gallery":
+        return isStandardOrHigher
+          ? <GalleryPage />
+          : renderRestrictedFeature("Gallery");
       case "qrcode":
-        return <MyQRCode />;
+        return isStandardOrHigher
+          ? <MyQRCode />
+          : renderRestrictedFeature("My QR Code");
       default:
         return <Dashboard />;
     }
@@ -126,7 +182,22 @@ const DashboardLayout = () => {
                 <Route index element={renderContent()} />
                 <Route path="profile" element={<EditProfile />} />
                 <Route path="company" element={<CompanyDetails />} />
-                <Route path="qrcode" element={<MyQRCode />} />
+                <Route
+                  path="gallery"
+                  element={
+                    isStandardOrHigher
+                      ? <GalleryPage />
+                      : renderRestrictedFeature("Gallery")
+                  }
+                />
+                <Route
+                  path="qrcode"
+                  element={
+                    isStandardOrHigher
+                      ? <MyQRCode />
+                      : renderRestrictedFeature("My QR Code")
+                  }
+                />
                 <Route path="*" element={<Navigate to="/dashboard" />} />
               </Routes>
             </motion.div>

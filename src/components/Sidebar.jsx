@@ -7,10 +7,12 @@ import {
   LogOut,
   ChevronLeft,
   Menu,
+  Image,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { PLAN_LABELS, getPlanRank } from "../utils/subscriptionPlan";
 
 const Sidebar = ({
   activeTab,
@@ -22,32 +24,54 @@ const Sidebar = ({
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const menuItems = [
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      path: "/dashboard",
-    },
-    {
-      id: "profile",
-      label: "Edit Profile",
-      icon: User,
-      path: "/dashboard/profile",
-    },
-    {
-      id: "company",
-      label: "Company Details",
-      icon: Building2,
-      path: "/dashboard/company",
-    },
-    {
-      id: "qrcode",
-      label: "My QR Code",
-      icon: QrCode,
-      path: "/dashboard/qrcode",
-    },
-  ];
+  const menuDefinitions = useMemo(
+    () => [
+      {
+        id: "dashboard",
+        label: "Dashboard",
+        icon: LayoutDashboard,
+        path: "/dashboard",
+        minPlan: "basic",
+      },
+      {
+        id: "profile",
+        label: "Edit Profile",
+        icon: User,
+        path: "/dashboard/profile",
+        minPlan: "basic",
+      },
+      {
+        id: "company",
+        label: "Company Details",
+        icon: Building2,
+        path: "/dashboard/company",
+        minPlan: "basic",
+      },
+      {
+        id: "gallery",
+        label: "Gallery",
+        icon: Image,
+        path: "/dashboard/gallery",
+        minPlan: "standard",
+      },
+      {
+        id: "qrcode",
+        label: "My QR Code",
+        icon: QrCode,
+        path: "/dashboard/qrcode",
+        minPlan: "standard",
+      },
+    ],
+    []
+  );
+
+  const menuItems = useMemo(() => {
+    const plan = (user?.subscriptionPlan || "basic").toLowerCase();
+    const planRank = getPlanRank(plan);
+    return menuDefinitions.filter(
+      (item) => planRank >= getPlanRank(item.minPlan || "basic")
+    );
+  }, [menuDefinitions, user?.subscriptionPlan]);
 
   const handleLogout = () => {
     logout();
@@ -116,6 +140,11 @@ const Sidebar = ({
                     <p className="text-xs text-gray-500">
                       Digital Business Cards
                     </p>
+                    {user?.subscriptionPlan && (
+                      <span className="mt-1 inline-flex items-center text-[11px] font-medium uppercase tracking-wide text-primary-600">
+                        {PLAN_LABELS[user.subscriptionPlan] || "Basic (Silver)"}
+                      </span>
+                    )}
                   </div>
                 </motion.div>
               )}

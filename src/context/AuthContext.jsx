@@ -6,6 +6,7 @@ import React, {
   useRef,
   useCallback,
 } from "react";
+
 import api from "../api";
 
 const PAYMENT_SUCCESS_STATES = new Set([
@@ -55,6 +56,116 @@ export const AuthProvider = ({ children }) => {
   const [signupData, setSignupData] = useState(null);
   const hasInitialized = useRef(false);
 
+  const normalizePlan = useCallback((planKey, fallbackName) => {
+    const aliases = {
+      basic: "basic",
+      silver: "basic",
+      starter: "basic",
+      entry: "basic",
+      standard: "standard",
+      professional: "standard",
+      gold: "standard",
+      growth: "standard",
+      pro: "standard",
+      premium: "premium",
+      platinum: "premium",
+      enterprise: "premium",
+      elite: "premium",
+    };
+
+    const key = (planKey || fallbackName || "").toString().trim().toLowerCase();
+    if (!key) {
+      return "basic";
+    }
+    return aliases[key] || "basic";
+  }, []);
+
+  // const fetchGallery = useCallback(async () => {
+  //   try {
+  //     const res = await api.get("/gallery");
+  //     if (res.data?.success) {
+  //       return { success: true, items: res.data.items || [] };
+  //     }
+  //     return {
+  //       success: false,
+  //       error: res.data?.message || "Failed to fetch gallery",
+  //     };
+  //   } catch (err) {
+  //     return {
+  //       success: false,
+  //       error: err.response?.data?.message || err.message,
+  //     };
+  //   }
+  // }, []);
+
+  // const uploadGalleryImage = useCallback(
+  //   async ({ file, title, description }) => {
+  //     const form = new FormData();
+  //     form.append("file", file);
+  //     if (title) form.append("title", title);
+  //     if (description) form.append("description", description);
+
+  //     try {
+  //       const res = await api.post("/gallery/images", form, {
+  //         headers: { "Content-Type": "multipart/form-data" },
+  //       });
+  //       if (res.data?.success) {
+  //         return { success: true, item: res.data.item };
+  //       }
+  //       return {
+  //         success: false,
+  //         error: res.data?.message || "Failed to upload image",
+  //       };
+  //     } catch (err) {
+  //       return {
+  //         success: false,
+  //         error: err.response?.data?.message || err.message,
+  //       };
+  //     }
+  //   },
+  //   []
+  // );
+
+  // const addGalleryVideo = useCallback(async ({ url, title, description }) => {
+  //   try {
+  //     const res = await api.post("/gallery/videos", {
+  //       url,
+  //       title,
+  //       description,
+  //     });
+  //     if (res.data?.success) {
+  //       return { success: true, item: res.data.item };
+  //     }
+  //     return {
+  //       success: false,
+  //       error: res.data?.message || "Failed to add video link",
+  //     };
+  //   } catch (err) {
+  //     return {
+  //       success: false,
+  //       error: err.response?.data?.message || err.message,
+  //     };
+  //   }
+  // }, []);
+
+  // const deleteGalleryItem = useCallback(async (itemId) => {
+  //   try {
+  //     const res = await api.delete(`/gallery/${itemId}`);
+  //     if (res.data?.success) {
+  //       return { success: true };
+  //     }
+  //     return {
+  //       success: false,
+  //       error: res.data?.message || "Failed to delete gallery item",
+  //     };
+  //   } catch (err) {
+  //     return {
+  //       success: false,
+  //       error: err.response?.data?.message || err.message,
+  //     };
+  //   }
+  // }, []);
+
   useEffect(() => {
     if (hasInitialized.current) {
       return;
@@ -86,6 +197,7 @@ export const AuthProvider = ({ children }) => {
                 phonepePaymentId: parsed.phonepePaymentId,
                 phonepeMerchantTransactionId:
                   parsed.phonepeMerchantTransactionId,
+                subscriptionPlan: normalizePlan(parsed.subscriptionPlan, parsed.planName),
               };
               setUser(normalized);
             }
@@ -188,6 +300,9 @@ export const AuthProvider = ({ children }) => {
           hasCompletedSetup: paymentComplete,
           phonepePaymentId: userData.phonepePaymentId,
           phonepeMerchantTransactionId: userData.phonepeMerchantTransactionId,
+          promoCodeEligible: Boolean(userData.promoCodeEligible),
+          promoCodeUsed: Boolean(userData.promoCodeUsed),
+          promoCode: userData.promoCode || null,
           ...userData,
         };
 
@@ -439,6 +554,10 @@ export const AuthProvider = ({ children }) => {
           isPaid: hasPaymentFlag(u),
           hasCompletedSetup: hasPaymentFlag(u),
           isVerified: u?.isVerified || false,
+          promoCodeEligible: Boolean(u?.promoCodeEligible),
+          promoCodeUsed: Boolean(u?.promoCodeUsed),
+          promoCode: u?.promoCode || null,
+          subscriptionPlan: normalizePlan(u?.subscriptionPlan, u?.planName),
         };
 
         console.log("Normalized user data:", normalized);
@@ -476,10 +595,13 @@ export const AuthProvider = ({ children }) => {
         console.log("💳 Payment required response received");
         const normalized = {
           ...data.user,
-          email: data.user?.email || normalizedEmail,
           isPaid: hasPaymentFlag(data.user),
           hasCompletedSetup: hasPaymentFlag(data.user),
           isVerified: data.user?.isVerified || true,
+          promoCodeEligible: Boolean(data.user.promoCodeEligible),
+          promoCodeUsed: Boolean(data.user.promoCodeUsed),
+          promoCode: data.user.promoCode || null,
+          subscriptionPlan: normalizePlan(data.user.subscriptionPlan, data.user.planName),
         };
 
         console.log("User needs to complete payment:", normalized);
@@ -582,23 +704,28 @@ export const AuthProvider = ({ children }) => {
         ...extra,
       };
 
-      const paymentComplete = hasPaymentFlag({ ...merged, ...incomingUser });
+      const normalizedPlan =
+        normalizePlan(merged.subscriptionPlan, merged.planName || merged.planKey) ||
+        "basic";
+
+      const hasCompletedSetupValue =
+        typeof merged.hasCompletedSetup === "boolean"
+          ? merged.hasCompletedSetup
+          : Boolean(merged.isPaid) || Boolean(merged.profileCompleted);
+
+      const isVerifiedValue =
+        typeof merged.isVerified === "boolean"
+          ? merged.isVerified
+          : base?.isVerified ?? false;
 
       return {
         ...merged,
-        id: merged._id || merged.id || base.id,
-        isPaid: paymentComplete,
-        hasCompletedSetup:
-          typeof merged.hasCompletedSetup === "boolean"
-            ? merged.hasCompletedSetup
-            : paymentComplete,
-        isVerified:
-          typeof merged.isVerified === "boolean"
-            ? merged.isVerified
-            : base?.isVerified || true,
+        subscriptionPlan: normalizedPlan,
+        hasCompletedSetup: hasCompletedSetupValue,
+        isVerified: isVerifiedValue,
       };
     },
-    [user]
+    [normalizePlan, user]
   );
 
   const refreshUser = useCallback(async () => {
@@ -709,24 +836,114 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const value = {
-    user,
-    loading,
-    signupData,
-    signup,
-    resendOTP,
-    verifyOTP,
-    createPaymentOrder,
-    createChainpayPayment,
-    verifyPayment,
-    login,
-    logout,
-    updateProfile,
-    refreshUser,
-    editProfile,
-    editCompany,
-    uploadPhoto,
-  };
+  // In AuthContext.jsx, inside the AuthProvider component
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const fetchGallery = useCallback(async () => {
+    try {
+      const res = await api.get("/gallery");
+      if (res.data?.success) {
+        return { success: true, items: res.data.items || [] };
+      }
+      return {
+        success: false,
+        error: res.data?.error || res.data?.message || "Failed to fetch gallery",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "Failed to fetch gallery",
+      };
+    }
+  }, []);
+
+  const uploadGalleryImage = useCallback(async (formData) => {
+    try {
+      const res = await api.post("/gallery/images", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (res.data?.success && res.data?.item) {
+        return { success: true, item: res.data.item };
+      }
+
+      return {
+        success: false,
+        error: res.data?.error || res.data?.message || "Failed to upload image",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "Failed to upload image",
+      };
+    }
+  }, []);
+
+  const addGalleryVideo = useCallback(async (videoData) => {
+    try {
+      const res = await api.post("/gallery/videos", videoData);
+      if (res.data?.success && res.data?.item) {
+        return { success: true, item: res.data.item };
+      }
+
+      return {
+        success: false,
+        error: res.data?.error || res.data?.message || "Failed to add video",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "Failed to add video",
+      };
+    }
+  }, []);
+
+  const deleteGalleryItem = useCallback(async (id) => {
+    try {
+      const res = await api.delete(`/gallery/${id}`);
+      if (res.data?.success) {
+        return { success: true };
+      }
+      return {
+        success: false,
+        error: res.data?.error || res.data?.message || "Failed to delete item",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || error.message || "Failed to delete item",
+      };
+    }
+  }, []);
+
+  // Add these to the value object in the return statement
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signupData,
+        signup,
+        resendOTP,
+        verifyOTP,
+        createPaymentOrder,
+        createChainpayPayment,
+        verifyPayment,
+        login,
+        logout,
+        updateProfile,
+        refreshUser,
+        editProfile,
+        editCompany,
+        uploadPhoto,
+        fetchGallery,
+        uploadGalleryImage,
+        addGalleryVideo,
+        deleteGalleryItem,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

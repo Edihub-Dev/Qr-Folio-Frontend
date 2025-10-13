@@ -7,7 +7,7 @@ function PaymentSuccess() {
   const [params] = useSearchParams();
   const merchantOrderId = params.get("merchantOrderId");
   const chainpayOrderId = params.get("orderId");
-  const gateway = params.get("gateway") || "phonepe";
+  const gateway = (params.get("gateway") || "phonepe").toLowerCase();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -18,14 +18,16 @@ function PaymentSuccess() {
   const { refreshUser } = useAuth();
   const successTokenRef = useRef(null);
 
-  const normalizedStatus = (order?.status || "").toUpperCase();
-  const isSuccess = [
+  const SUCCESS_STATUSES = [
     "COMPLETED",
     "SUCCESS",
     "SUCCESSFUL",
     "PAID",
     "CONFIRMED",
-  ].includes(normalizedStatus);
+  ];
+
+  const normalizedStatus = (order?.status || "").toUpperCase();
+  const isSuccessfulStatus = SUCCESS_STATUSES.includes(normalizedStatus);
 
   useEffect(() => {
     let mounted = true;
@@ -46,14 +48,25 @@ function PaymentSuccess() {
         if (mounted) {
           if (data?.success) {
             const nextOrder = data.order || data;
-            setOrder(nextOrder);
             if (nextOrder?.successToken) {
               successTokenRef.current = nextOrder.successToken;
             }
+            setOrder(nextOrder);
+
             const chainpayToken = nextOrder?.token || nextOrder?.paymentToken;
             const status = (nextOrder?.status || "").toUpperCase();
-            if (["COMPLETED", "SUCCESS", "SUCCESSFUL", "PAID", "CONFIRMED"].includes(status)) {
+            if (SUCCESS_STATUSES.includes(status)) {
               setRedirectCountdown(5);
+              (async () => {
+                try {
+                  const result = await refreshUser();
+                  if (!result?.success) {
+                    console.warn("Failed to refresh user after ChainPay payment", result?.error);
+                  }
+                } catch (refreshError) {
+                  console.warn("Error refreshing user after ChainPay payment", refreshError);
+                }
+              })();
             } else if (
               gateway === "chainpay" &&
               nextOrder?.status === "PENDING" &&
@@ -62,11 +75,14 @@ function PaymentSuccess() {
             ) {
               confirmingRef.current = true;
               try {
-                const confirmRes = await api.post("/chainpay/confirm", {
+                const confirmPayload = {
                   orderId: chainpayOrderId,
                   token: chainpayToken,
-                  successToken: successTokenRef.current,
-                });
+                };
+                if (successTokenRef.current) {
+                  confirmPayload.successToken = successTokenRef.current;
+                }
+                const confirmRes = await api.post("/chainpay/confirm", confirmPayload);
                 if (confirmRes.data?.success && confirmRes.data.order) {
                   const confirmedOrder = confirmRes.data.order;
                   setOrder(confirmedOrder);
@@ -74,7 +90,7 @@ function PaymentSuccess() {
                     successTokenRef.current = confirmedOrder.successToken;
                   }
                   const confirmedStatus = (confirmedOrder?.status || "").toUpperCase();
-                  if (["COMPLETED", "SUCCESS", "SUCCESSFUL", "PAID", "CONFIRMED"].includes(confirmedStatus)) {
+                  if (SUCCESS_STATUSES.includes(confirmedStatus)) {
                     setRedirectCountdown(5);
                   }
                 }
@@ -103,10 +119,10 @@ function PaymentSuccess() {
     return () => {
       mounted = false;
     };
-  }, [merchantOrderId, chainpayOrderId, gateway]);
+  }, [merchantOrderId, chainpayOrderId, gateway, refreshUser]);
 
   useEffect(() => {
-    if (!isSuccess) {
+    if (!isSuccessfulStatus) {
       return undefined;
     }
 
@@ -120,8 +136,6 @@ function PaymentSuccess() {
           }
         } catch (refreshError) {
           console.warn("Error refreshing user after payment", refreshError);
-        } finally {
-          navigate("/dashboard", { replace: true });
         }
       })();
     }
@@ -136,7 +150,7 @@ function PaymentSuccess() {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [order, redirectCountdown, navigate, refreshUser, isSuccess]);
+  }, [order, redirectCountdown, navigate, refreshUser, isSuccessfulStatus]);
 
   return (
     <div className="min-h-screen bg-green-50 flex items-center justify-center p-6">
@@ -195,7 +209,7 @@ function PaymentSuccess() {
           </div>
         ) : null}
 
-        {isSuccess ? (
+        {isSuccessfulStatus ? (
           <p className="mt-6 text-sm text-gray-500">
             Redirecting you to the dashboard in {redirectCountdown}s...
           </p>

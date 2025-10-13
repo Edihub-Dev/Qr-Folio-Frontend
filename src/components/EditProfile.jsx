@@ -85,11 +85,6 @@ const EditProfile = () => {
       alert('Phone number is required');
       return;
     }
-    const hasPhoto = avatarFile || avatar || user?.profilePhoto;
-    if (!hasPhoto) {
-      alert('Profile photo is required');
-      return;
-    }
     setSaving(true);
     try {
       if (avatarFile) {
@@ -194,11 +189,9 @@ const EditProfile = () => {
               </label>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">
-                Profile Photo <span className="text-red-500">*</span>
-              </h3>
+              <h3 className="font-medium text-gray-900">Profile Photo</h3>
               <p className="text-sm text-gray-500">
-                Upload a professional photo (max 5MB). This is required for your public profile.
+                Upload a professional photo (max 5MB) to personalize your public profile.
               </p>
             </div>
           </div>

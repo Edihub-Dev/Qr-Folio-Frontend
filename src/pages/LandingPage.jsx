@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { SiGnuprivacyguard } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
@@ -64,53 +64,56 @@ const LandingPage = () => {
 
   const pricingPlans = [
     {
-      name: "Basic",
-      price: "599",
+      name: "Basic (Silver)",
+      price: "399",
       period: "Year",
       description: "Perfect for individuals",
       features: [
-        "Everything in Basic",
-        "Custom Branding",
-        "Advanced Analytics",
-        "Priority Support",
-        "Team Collaboration",
+        "Custom QR Code",
+        "Add Contact Details",
+        "Add Company Details",
+        "Add Basic Profile Details",
+        "Share Profile via QR Code",
+        "Share Profile via Link",
         "Prices Exclusive of Taxes",
       ],
       highlighted: false,
       paymentEnabled: true,
     },
     {
-      name: "Professional",
-      price: "1",
+      name: "Standard (Gold)",
+      price: "599",
       period: "Year",
       description: "Best for professionals",
       features: [
         "Everything in Basic",
-        "Custom Branding",
-        "Advanced Analytics",
-        "Priority Support",
-        "Team Collaboration",
+        "Add Custom Links",
+        "Limited Media Storage",
+        "Add Advanced Profile Details",
+        "Quick Share to Social Media",
+        "Publicly Accessible Profile",
         "Prices Exclusive of Taxes",
       ],
       highlighted: true,
       paymentEnabled: true,
     },
-    // {
-    //   name: "Enterprise",
-    //   price: "599",
-    //   period: "Year",
-    //   description: "For large organizations",
-    //   features: [
-    //     "Everything in Basic",
-    //     "Custom Branding",
-    //     "Advanced Analytics",
-    //     "Priority Support",
-    //     "Team Collaboration",
-    //     "Prices Exclusive of Taxes",
-    //   ],
-    //   highlighted: false,
-    //   paymentEnabled: true,
-    // },
+    {
+      name: "Premium (Platinum)",
+      price: "999",
+      period: "Year",
+      description: "For large organizations",
+      features: [
+        "Everything in Standard",
+        "Custom Branding",
+        "Team Collaboration",
+        "Personalized Support",
+        "Media Storage up to 10 files of 1GB",
+        "Get NFC Natural Card of your profile",
+        "Prices Exclusive of Taxes",
+      ],
+      highlighted: false,
+      paymentEnabled: true,
+    },
   ];
 
   const testimonials = [
@@ -181,6 +184,13 @@ const LandingPage = () => {
 
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [showPromoModal, setShowPromoModal] = useState(false);
+
+  useEffect(() => {
+    setShowPromoModal(true);
+  }, []);
+
+  const handleClosePromoModal = () => setShowPromoModal(false);
 
   const handleSubscribe = async () => {
     if (!email) {
@@ -199,6 +209,51 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      {showPromoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70 backdrop-blur-sm px-4">
+          <div className="relative w-full max-w-lg p-1">
+            <button
+              type="button"
+              onClick={handleClosePromoModal}
+              className="absolute -right-5 -top-5 flex h-10 w-10 items-center justify-center rounded-full bg-white text-lg font-semibold text-gray-500 shadow-lg transition hover:text-gray-700"
+              aria-label="Close promotional offer"
+            >
+              ×
+            </button>
+            <div className="relative overflow-hidden rounded-[32px] bg-white p-10 shadow-[0_25px_70px_rgba(15,23,42,0.18)]">
+              <div className="rounded-[24px] p-4 text-center">
+                <p className="text-[0.7rem] font-semibold tracking-[0.6em] text-gray-400">
+                  EXCLUSIVE OFFER
+                </p>
+                <p className="mt-4 text-4xl font-extrabold uppercase text-gray-900">
+                  GET <span className="text-primary-600">10% OFF*</span>
+                </p>
+                <p className="mt-3 text-base text-gray-600">on your purchase</p>
+                <p className="mt-4 text-sm text-gray-500">
+                  Use code{" "}
+                  <span className="font-semibold text-primary-600">
+                    QR10FOLIO
+                  </span>{" "}
+                  at checkout to avail this offer.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleClosePromoModal();
+                    navigate("/signup");
+                  }}
+                  className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-primary-600 px-8 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-primary-700"
+                >
+                  Get Started
+                </button>
+                <p className="mt-5 text-xs text-gray-400">
+                  *only for first 100 customers
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <nav className="bg-white border-b border-gray-100 justify-content:space-between top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -530,9 +585,7 @@ const LandingPage = () => {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Choose Your Plan
             </h2>
-            <p className="text-xl text-gray-600">
-              Start free and scale as you grow
-            </p>
+            <p className="text-xl text-gray-600">Start and scale as you grow</p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">

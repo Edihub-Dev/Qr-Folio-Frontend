@@ -141,7 +141,8 @@ const SetupRoute = ({ children }) => {
   }
 
   if (!user) return <Navigate to="/login" />;
-  if (user.hasCompletedSetup || user.isPaid) return <Navigate to="/dashboard" />;
+  if (user.hasCompletedSetup || user.isPaid)
+    return <Navigate to="/dashboard" />;
   return children;
 };
 
