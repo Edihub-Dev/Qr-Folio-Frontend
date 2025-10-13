@@ -105,7 +105,7 @@ const PaymentForm = () => {
     () => ({
       starter: {
         name: "Basic (Silver) - 45.560376 MSTC",
-        price: 399,
+        price: 394.2,
         // currency: "INR",
         description: "Start accepting crypto payments with INR billing",
         features: [
@@ -120,7 +120,7 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Standard (Gold) - 68.3976581 MSTC",
-        price: 625,
+        price: 620,
         // currency: "INR",
         description: "Premium tools with annual INR billing",
         features: [
