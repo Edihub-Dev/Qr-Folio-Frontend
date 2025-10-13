@@ -55,24 +55,34 @@ function PaymentSuccess() {
             setOrder(nextOrder);
 
             const chainpayToken = nextOrder?.token || nextOrder?.paymentToken;
-            const status = (nextOrder?.status || "").toUpperCase();
-            if (SUCCESS_STATUSES.includes(status)) {
+            const rawStatus = nextOrder?.status || "";
+            const status = rawStatus.toUpperCase();
+
+            const triggerRedirect = async () => {
               setRedirectCountdown(5);
-              (async () => {
-                try {
-                  const result = await refreshUser();
-                  if (!result?.success) {
-                    console.warn("Failed to refresh user after payment", result?.error);
-                  }
-                } catch (refreshError) {
-                  console.warn("Error refreshing user after payment", refreshError);
-                } finally {
-                  if (!hasNavigated.current) {
-                    hasNavigated.current = true;
-                    navigate("/dashboard", { replace: true });
-                  }
+              try {
+                const result = await refreshUser();
+                if (!result?.success) {
+                  console.warn(
+                    "Failed to refresh user after payment",
+                    result?.error
+                  );
                 }
-              })();
+              } catch (refreshError) {
+                console.warn(
+                  "Error refreshing user after payment",
+                  refreshError
+                );
+              } finally {
+                if (!hasNavigated.current) {
+                  hasNavigated.current = true;
+                  navigate("/dashboard", { replace: true });
+                }
+              }
+            };
+
+            if (SUCCESS_STATUSES.includes(status)) {
+              triggerRedirect();
             } else if (
               gateway === "chainpay" &&
               status === "PENDING" &&
@@ -88,27 +98,39 @@ function PaymentSuccess() {
                 if (successTokenRef.current) {
                   confirmPayload.successToken = successTokenRef.current;
                 }
-                const confirmRes = await api.post("/chainpay/confirm", confirmPayload);
+                const confirmRes = await api.post(
+                  "/chainpay/confirm",
+                  confirmPayload
+                );
                 if (confirmRes.data?.success && confirmRes.data.order) {
                   const confirmedOrder = confirmRes.data.order;
                   setOrder(confirmedOrder);
                   if (confirmedOrder?.successToken) {
                     successTokenRef.current = confirmedOrder.successToken;
                   }
-                  const confirmedStatus = (confirmedOrder?.status || "").toUpperCase();
+                  const confirmedStatus = (
+                    confirmedOrder?.status || ""
+                  ).toUpperCase();
                   if (SUCCESS_STATUSES.includes(confirmedStatus)) {
-                    setRedirectCountdown(5);
-                    if (!hasNavigated.current) {
-                      hasNavigated.current = true;
-                      navigate("/dashboard", { replace: true });
-                    }
+                    triggerRedirect();
                   }
                 }
               } catch (confirmError) {
-                console.warn("ChainPay manual confirmation failed", confirmError);
+                console.warn(
+                  "ChainPay manual confirmation failed",
+                  confirmError
+                );
               } finally {
                 confirmingRef.current = false;
               }
+            } else if (
+              gateway === "chainpay" &&
+              !SUCCESS_STATUSES.includes(status) &&
+              !rawStatus &&
+              !confirmingRef.current
+            ) {
+              // Some ChainPay redirects don’t include status immediately; poll again shortly
+              setTimeout(fetchOrder, 2000);
             }
           } else {
             setError(data?.message || "Unable to fetch order details");

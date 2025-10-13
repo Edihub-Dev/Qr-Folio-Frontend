@@ -120,7 +120,7 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Standard (Gold)",
-        price: 699,
+        price: 110,
         currency: "INR",
         description: "Premium tools with annual INR billing",
         features: [
@@ -135,7 +135,7 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: 999,
+        price: 110,
         currency: "INR",
         description: "Enterprise billing with custom crypto support",
         features: [
