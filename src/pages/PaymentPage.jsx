@@ -842,9 +842,8 @@ const PaymentForm = () => {
                       <span>Opening ChainPay...</span>
                     </div>
                   ) : (
-                    `Pay`
+                    <p>Pay With MSTC</p>
                   )}
-                  <p>(45.644444 MSTC)</p>
                 </motion.button>
 
                 {showChainpayPlans && (
@@ -888,7 +887,7 @@ const PaymentForm = () => {
                               <div className="text-2xl font-bold text-gray-900">
                                 {hasPromo ? (
                                   <>
-                                    <span className="text-base font-medium text-gray-400 line-through">
+                                    {/* <span className="text-base font-medium text-gray-400 line-through">
                                       {formatCurrencyDisplay(
                                         planPricing?.originalAmount ??
                                           plan.price,
@@ -900,7 +899,7 @@ const PaymentForm = () => {
                                         planPricing?.totalAmount ?? plan.price,
                                         plan.currency
                                       )}
-                                    </span>
+                                    </span> */}
                                   </>
                                 ) : (
                                   formatCurrencyDisplay(
