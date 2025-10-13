@@ -104,7 +104,7 @@ const PaymentForm = () => {
   const chainpayPlans = useMemo(
     () => ({
       starter: {
-        name: "Basic (Silver)",
+        name: "Basic (Silver) - 45.560376 MSTC",
         price: 399,
         // currency: "INR",
         description: "Start accepting crypto payments with INR billing",
@@ -119,9 +119,9 @@ const PaymentForm = () => {
         ],
       },
       growth: {
-        name: "Standard (Gold)",
+        name: "Standard (Gold) - 68.3976581 MSTC",
         price: 599,
-        currency: "INR",
+        // currency: "INR",
         description: "Premium tools with annual INR billing",
         features: [
           "Everything in Basic",
@@ -134,9 +134,9 @@ const PaymentForm = () => {
         ],
       },
       enterprise: {
-        name: "Premium (Platinum)",
-        price: 999,
-        currency: "INR",
+        name: "Premium (Platinum) - 114.0722212 MSTC",
+        price: 1000,
+        // currency: "INR",
         description: "Enterprise billing with custom crypto support",
         features: [
           "Everything in Standard",
@@ -893,8 +893,8 @@ const PaymentForm = () => {
                                           plan.price,
                                         plan.currency
                                       )}
-                                    </span>
-                                    <span className="ml-2">
+                                    </span> */}
+                                    {/* <span className="ml-2">
                                       {formatCurrencyDisplay(
                                         planPricing?.totalAmount ?? plan.price,
                                         plan.currency
@@ -913,7 +913,7 @@ const PaymentForm = () => {
                               </div>
                               {hasPromo && planPricing?.promoCode && (
                                 <div className="mt-1 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
-                                  {planPricing.promoCode} Applied
+                                  {/* {planPricing.promoCode} Applied */}
                                 </div>
                               )}
                               {/* <div className="text-xs text-gray-500 mt-1">
