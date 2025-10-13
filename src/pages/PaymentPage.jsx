@@ -193,7 +193,7 @@ const PaymentForm = () => {
       Object.entries(chainpayPlans).map(([key, plan]) => {
         const originalAmount = Number(plan.price || 0);
         const discountedAmount = isPromoEligible
-          ? Number((originalAmount * 0.9).toFixed(2))
+          ? Number(originalAmount.toFixed(2))
           : originalAmount;
         const promoDiscountAmount = isPromoEligible
           ? Number((originalAmount - discountedAmount).toFixed(2))
