@@ -842,7 +842,7 @@ const PaymentForm = () => {
                       <span>Opening ChainPay...</span>
                     </div>
                   ) : (
-                    `Pay ${chainpayButtonDisplay}`
+                    `Pay`
                   )}
                   <p>(45.644444 MSTC)</p>
                 </motion.button>
