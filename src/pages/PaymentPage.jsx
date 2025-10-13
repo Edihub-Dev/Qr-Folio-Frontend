@@ -120,7 +120,7 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Standard (Gold) - 68.3976581 MSTC",
-        price: 1572,
+        price: 1580,
         // currency: "INR",
         description: "Premium tools with annual INR billing",
         features: [
@@ -135,7 +135,7 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum) - 114.0722212 MSTC",
-        price: 1850,
+        price: 3160,
         // currency: "INR",
         description: "Enterprise billing with custom crypto support",
         features: [
