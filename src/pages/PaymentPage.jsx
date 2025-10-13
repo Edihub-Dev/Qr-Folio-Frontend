@@ -135,7 +135,7 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum) - 114.0722212 MSTC",
-        price: 2400,
+        price: 2370,
         // currency: "INR",
         description: "Enterprise billing with custom crypto support",
         features: [
