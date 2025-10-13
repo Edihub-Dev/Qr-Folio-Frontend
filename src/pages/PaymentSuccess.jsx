@@ -13,6 +13,7 @@ function PaymentSuccess() {
   const [error, setError] = useState("");
   const [redirectCountdown, setRedirectCountdown] = useState(5);
   const hasRefreshed = useRef(false);
+  const hasNavigated = useRef(false);
   const confirmingRef = useRef(false);
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
@@ -61,10 +62,15 @@ function PaymentSuccess() {
                 try {
                   const result = await refreshUser();
                   if (!result?.success) {
-                    console.warn("Failed to refresh user after ChainPay payment", result?.error);
+                    console.warn("Failed to refresh user after payment", result?.error);
                   }
                 } catch (refreshError) {
-                  console.warn("Error refreshing user after ChainPay payment", refreshError);
+                  console.warn("Error refreshing user after payment", refreshError);
+                } finally {
+                  if (!hasNavigated.current) {
+                    hasNavigated.current = true;
+                    navigate("/dashboard", { replace: true });
+                  }
                 }
               })();
             } else if (
@@ -92,6 +98,10 @@ function PaymentSuccess() {
                   const confirmedStatus = (confirmedOrder?.status || "").toUpperCase();
                   if (SUCCESS_STATUSES.includes(confirmedStatus)) {
                     setRedirectCountdown(5);
+                    if (!hasNavigated.current) {
+                      hasNavigated.current = true;
+                      navigate("/dashboard", { replace: true });
+                    }
                   }
                 }
               } catch (confirmError) {
@@ -136,11 +146,17 @@ function PaymentSuccess() {
           }
         } catch (refreshError) {
           console.warn("Error refreshing user after payment", refreshError);
+        } finally {
+          if (!hasNavigated.current) {
+            hasNavigated.current = true;
+            navigate("/dashboard", { replace: true });
+          }
         }
       })();
     }
 
-    if (redirectCountdown <= 0) {
+    if (redirectCountdown <= 0 && !hasNavigated.current) {
+      hasNavigated.current = true;
       navigate("/dashboard", { replace: true });
       return undefined;
     }
