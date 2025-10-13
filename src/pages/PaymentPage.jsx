@@ -105,7 +105,7 @@ const PaymentForm = () => {
     () => ({
       starter: {
         name: "Basic (Silver)",
-        price: 100,
+        price: 110,
         currency: "INR",
         description: "Start accepting crypto payments with INR billing",
         features: [
