@@ -16,6 +16,7 @@ const SignupPage = () => {
     password: "",
     confirmPassword: "",
     agreeToTerms: false,
+    couponCode: "",
   });
   const [showPasswordFields, setShowPasswordFields] = useState({
     password: false,
@@ -65,12 +66,18 @@ const SignupPage = () => {
     setLoading(true);
 
     try {
-      const { name, email, password, confirmPassword } = formData;
-      const result = await signup({ name, email, password, confirmPassword });
+      const { name, email, password, confirmPassword, couponCode } = formData;
+      const result = await signup({
+        name,
+        email,
+        password,
+        confirmPassword,
+        couponCode: couponCode?.trim() || undefined,
+      });
 
       if (result.success) {
         // Navigate to OTP page
-        navigate("/verify-otp", { state: { email, name } });
+        navigate("/verify-otp", { state: { email, name, couponCode } });
       } else {
         setErrors({ submit: result.error || "Signup failed" });
       }
@@ -171,7 +178,11 @@ const SignupPage = () => {
                 type="button"
                 onClick={() => togglePasswordVisibility("password")}
                 className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-                aria-label={showPasswordFields.password ? "Hide password" : "Show password"}
+                aria-label={
+                  showPasswordFields.password
+                    ? "Hide password"
+                    : "Show password"
+                }
               >
                 {showPasswordFields.password ? (
                   <EyeOff className="w-5 h-5" />
@@ -201,7 +212,11 @@ const SignupPage = () => {
                 type="button"
                 onClick={() => togglePasswordVisibility("confirmPassword")}
                 className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-                aria-label={showPasswordFields.confirmPassword ? "Hide confirm password" : "Show confirm password"}
+                aria-label={
+                  showPasswordFields.confirmPassword
+                    ? "Hide confirm password"
+                    : "Show confirm password"
+                }
               >
                 {showPasswordFields.confirmPassword ? (
                   <EyeOff className="w-5 h-5" />
@@ -213,6 +228,20 @@ const SignupPage = () => {
             {errors.confirmPassword && (
               <p className="text-sm text-red-600">{errors.confirmPassword}</p>
             )}
+
+            <div>
+              <input
+                type="text"
+                name="couponCode"
+                value={formData.couponCode}
+                onChange={handleInputChange}
+                placeholder="Referral or Coupon Code (optional)"
+                className="w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all border-gray-200 bg-gray-50"
+              />
+              {errors.couponCode && (
+                <p className="mt-1 text-sm text-red-600">{errors.couponCode}</p>
+              )}
+            </div>
 
             <div className="flex items-start space-x-3">
               <input

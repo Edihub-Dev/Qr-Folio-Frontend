@@ -229,7 +229,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const signup = async ({ name, email, password, confirmPassword }) => {
+  const signup = async ({ name, email, password, confirmPassword, couponCode }) => {
     try {
       setUser(null);
       setSignupData(null);
@@ -241,9 +241,10 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
         confirmPassword: confirmPassword ?? password,
+        couponCode,
       });
       if (res.data?.success) {
-        setSignupData({ name, email });
+        setSignupData({ name, email, couponCode });
         return { success: true };
       }
       return { success: false, error: res.data?.message || "Signup failed" };
@@ -276,7 +277,12 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: "Missing email for OTP verification" };
 
       console.log("Sending OTP verification request for:", userEmail);
-      const res = await api.post("/auth/verify-otp", { email: userEmail, otp });
+      const payload = { email: userEmail, otp };
+      if (signupData?.couponCode) {
+        payload.couponCode = signupData.couponCode;
+      }
+
+      const res = await api.post("/auth/verify-otp", payload);
       console.log("OTP verification response:", res.data);
 
       if (res.data?.success) {
