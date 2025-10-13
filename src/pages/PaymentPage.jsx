@@ -57,7 +57,7 @@ const PaymentForm = () => {
     () => ({
       basic: {
         name: "Basic (Silver)",
-        price: 1,
+        price: 399,
         description: "Perfect for individuals",
         features: [
           "Custom QR Code",
@@ -71,7 +71,7 @@ const PaymentForm = () => {
       },
       professional: {
         name: "Standard (Gold)",
-        price: 1,
+        price: 599,
         description: "Best for professionals",
         features: [
           "Everything in Basic",
@@ -85,7 +85,7 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: 1,
+        price: 999,
         description: "For large organizations",
         features: [
           "Everything in Standard",
@@ -105,7 +105,7 @@ const PaymentForm = () => {
     () => ({
       starter: {
         name: "Basic (Silver)",
-        price: 110,
+        price: 399,
         currency: "INR",
         description: "Start accepting crypto payments with INR billing",
         features: [
@@ -120,7 +120,7 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Standard (Gold)",
-        price: 110,
+        price: 599,
         currency: "INR",
         description: "Premium tools with annual INR billing",
         features: [
@@ -135,7 +135,7 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: 110,
+        price: 999,
         currency: "INR",
         description: "Enterprise billing with custom crypto support",
         features: [
