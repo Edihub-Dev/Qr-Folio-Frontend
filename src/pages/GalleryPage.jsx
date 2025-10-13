@@ -38,6 +38,8 @@ const GalleryPage = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState([]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [imageTitle, setImageTitle] = useState("");
+  const [imageDescription, setImageDescription] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [videoTitle, setVideoTitle] = useState("");
   const [videoDescription, setVideoDescription] = useState("");
@@ -164,8 +166,8 @@ const GalleryPage = () => {
 
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("title", "");
-        formData.append("description", "");
+        formData.append("title", imageTitle.trim());
+        formData.append("description", imageDescription.trim());
 
         try {
           updateUploadEntry(id, { progress: 70 });
@@ -178,6 +180,8 @@ const GalleryPage = () => {
           updateUploadEntry(id, { status: "success", progress: 100 });
           setItems((prev) => [result.item, ...prev]);
           toast.success(`${file.name} uploaded successfully`);
+          setImageTitle("");
+          setImageDescription("");
 
           setTimeout(() => {
             removeUploadEntry(id);
@@ -201,6 +205,8 @@ const GalleryPage = () => {
       uploadGalleryImage,
       maxImages,
       planLabel,
+      imageTitle,
+      imageDescription,
     ]
   );
 
@@ -462,6 +468,46 @@ const GalleryPage = () => {
           )}
         </div>
 
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Image Title
+              <span className="ml-1 text-xs text-gray-400">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={imageTitle}
+              onChange={(event) => setImageTitle(event.target.value)}
+              maxLength={80}
+              placeholder="Add a short title for the image"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              disabled={hasReachedImageLimit}
+            />
+            <div className="mt-1 text-xs text-gray-400 flex justify-between">
+              <span>Helps identify the image in your gallery.</span>
+              <span>{imageTitle.length}/80</span>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Image Description
+              <span className="ml-1 text-xs text-gray-400">(optional)</span>
+            </label>
+            <textarea
+              value={imageDescription}
+              onChange={(event) => setImageDescription(event.target.value)}
+              maxLength={160}
+              rows={3}
+              placeholder="Describe the context, project, or story behind this image"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              disabled={hasReachedImageLimit}
+            />
+            <div className="mt-1 text-xs text-gray-400 flex justify-end">
+              <span>{imageDescription.length}/160</span>
+            </div>
+          </div>
+        </div>
+
         <AnimatePresence>
           {uploading.length > 0 && (
             <motion.div
@@ -615,42 +661,50 @@ const GalleryPage = () => {
                         exit={{ opacity: 0, y: -20 }}
                         className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden group"
                       >
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPhoto(item)}
-                          className="block w-full"
-                        >
-                          <motion.img
-                            src={item.url}
-                            alt={item.title || "Gallery image"}
-                            className="w-full h-56 object-cover cursor-zoom-in"
-                            initial={{ scale: 1.02 }}
-                            animate={{ scale: 1 }}
-                          />
-                        </button>
-                        <div className="p-5 flex justify-between items-start gap-4">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 truncate">
-                              {item.title || "Untitled image"}
-                            </h3>
-                            {item.description && (
-                              <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
+                        <div className="relative">
                           <button
-                            onClick={() => handleDelete(item._id)}
-                            className="text-gray-400 hover:text-red-500 transition-colors"
-                            title="Delete"
+                            type="button"
+                            onClick={() => setSelectedPhoto(item)}
+                            className="block w-full"
                           >
-                            <Trash2 className="w-5 h-5" />
+                            <motion.img
+                              src={item.url}
+                              alt={item.title || "Gallery image"}
+                              className="w-full h-56 object-cover cursor-zoom-in"
+                              initial={{ scale: 1.02 }}
+                              animate={{ scale: 1 }}
+                            />
                           </button>
                         </div>
-                        <div className="px-5 pb-5">
-                          <p className="text-xs text-gray-400">
-                            {new Date(item.createdAt).toLocaleString()}
-                          </p>
+                        <div className="p-5">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 truncate">
+                                {item.title || "Untitled image"}
+                              </h3>
+                              {item.description ? (
+                                <p className="mt-1 text-sm text-gray-500 line-clamp-3">
+                                  {item.description}
+                                </p>
+                              ) : (
+                                <p className="mt-1 text-xs text-gray-400">
+                                  No description provided
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(item._id)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600"
+                              aria-label={`Delete ${item.title || "image"}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
+                            <span>{formatBytes(item.size)}</span>
+                            <span>{new Date(item.createdAt).toLocaleString()}</span>
+                          </div>
                         </div>
                       </motion.div>
                     ))}
@@ -661,7 +715,6 @@ const GalleryPage = () => {
             {videoItems.length > 0 && (
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Video Links
                 </h2>
                 <div className="text-sm text-gray-500 mb-3">{videoUsageText}</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
