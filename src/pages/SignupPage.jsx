@@ -95,7 +95,7 @@ const SignupPage = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => navigate("/")}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
+          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-3 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to home</span>
@@ -104,7 +104,7 @@ const SignupPage = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-1"
         >
           <div className="flex items-center justify-center space-x-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
@@ -235,7 +235,7 @@ const SignupPage = () => {
                 name="couponCode"
                 value={formData.couponCode}
                 onChange={handleInputChange}
-                placeholder="Referral or Coupon Code (optional)"
+                placeholder="Coupon Code (optional)"
                 className="w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all border-gray-200 bg-gray-50"
               />
               {errors.couponCode && (

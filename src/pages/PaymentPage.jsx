@@ -47,7 +47,6 @@ const PaymentForm = () => {
   const isProcessing = processingGateway !== null;
   const [selectedPlan, setSelectedPlan] = useState("professional");
   const [selectedChainpayPlan, setSelectedChainpayPlan] = useState("starter");
-  const [showChainpayPlans, setShowChainpayPlans] = useState(false);
   const [errors, setErrors] = useState({ phonepe: "", chainpay: "" });
   const [statusMessage, setStatusMessage] = useState("");
   const [chainpayStatusMessage, setChainpayStatusMessage] = useState("");
@@ -93,7 +92,7 @@ const PaymentForm = () => {
           "Team Collaboration",
           "Personalized Support",
           "Media Storage up to 10 files of 1GB",
-          "Includes an NFC-enabled profile card. NFC (Near Field Communication) is a short-range wireless technology built into the card, letting it communicate and share data with nearby NFC-enabled smartphones",
+          "Includes an NFC-enabled profile card.",
           "Prices Exclusive of Taxes",
         ],
       },
@@ -144,7 +143,7 @@ const PaymentForm = () => {
           "Team Collaboration",
           "Personalized Support",
           "Media Storage up to 10 files of 1GB",
-          "Includes an NFC-enabled profile card. NFC (Near Field Communication) is a short-range wireless technology built into the card, letting it communicate and share data with nearby NFC-enabled smartphones",
+          "Includes an NFC-enabled profile card NFC is a short-range wireless technology. ",
           "Prices Exclusive of Taxes",
         ],
       },
@@ -232,12 +231,6 @@ const PaymentForm = () => {
   };
 
   const selectedChainpayPricing = chainpayPricing[selectedChainpayPlan];
-  const chainpayButtonDisplay = formatCurrencyDisplay(
-    selectedChainpayPricing?.totalAmount ??
-      chainpayPlans[selectedChainpayPlan]?.price ??
-      0,
-    chainpayPlans[selectedChainpayPlan]?.currency
-  );
 
   useEffect(() => {
     if (user?.hasCompletedSetup || user?.isPaid) {
@@ -647,9 +640,175 @@ const PaymentForm = () => {
             animate={{ opacity: 1, x: 0 }}
             className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
           >
-            <h2 className="text-xl font-bold text-gray-900 mb-6">
-              Select Your Plan
-            </h2>
+            <div className="flex items-center space-x-2 mb-6">
+              <Shield className="w-5 h-5 text-purple-500" />
+
+              <h2 className="text-xl font-bold text-gray-900">
+                Select Your Plan (ChainPay MSTC)
+              </h2>
+            </div>
+
+            {errors.chainpay && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{errors.chainpay}</p>
+              </div>
+            )}
+
+            {chainpayStatusMessage && !errors.chainpay && (
+              <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                <p className="text-indigo-700 text-sm">
+                  {chainpayStatusMessage}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {Object.entries(chainpayPlans).map(([key, plan]) => {
+                const planPricing = chainpayPricing[key];
+                const isSelected = selectedChainpayPlan === key;
+                return (
+                  <motion.div
+                    key={key}
+                    whileHover={{ scale: isSelected ? 1 : 1.02 }}
+                    onClick={() => setSelectedChainpayPlan(key)}
+                    className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-indigo-500 bg-indigo-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          name="chainpay-plan"
+                          value={key}
+                          checked={isSelected}
+                          onChange={(e) =>
+                            setSelectedChainpayPlan(e.target.value)
+                          }
+                          className="w-4 h-4 text-indigo-600"
+                        />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">
+                            {plan.name}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {plan.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-gray-900">
+                          {/* {formatCurrencyDisplay()
+                          // planPricing?.totalAmount ?? plan.price
+                          // plan.currency
+                          } */}
+                        </div>
+                        {/* <div className="text-sm text-gray-600">
+                          {(plan.currency || "INR").toUpperCase()}
+                        </div> */}
+                      </div>
+                    </div>
+                    <ul className="text-sm text-gray-600 space-y-1 ml-7">
+                      {plan.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 text-purple-500" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <motion.button
+                      onClick={startChainpayPayment}
+                      disabled={isProcessing || user?.hasCompletedSetup}
+                      whileHover={{ scale: isProcessing ? 1 : 1.02 }}
+                      whileTap={{ scale: isProcessing ? 1 : 0.98 }}
+                      className="w-full mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold shadow-sm hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {user?.hasCompletedSetup ? (
+                        <span>Plan already active</span>
+                      ) : processingGateway === "chainpay" ? (
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Processing ChainPay...</span>
+                        </div>
+                      ) : (
+                        "Pay now with ChainPay"
+                      )}
+                    </motion.button>
+                    <div className="mt-4 text-xs text-gray-500 text-center">
+                      Payments powered by ChainPay (MSTC)
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+              {/* <h3 className="font-semibold text-gray-900 mb-2">
+                Order Summary
+              </h3> */}
+            <div className="flex justify-between items-center mb-1">
+              {/* <span className="text-gray-600">
+                  {chainpayPlans[selectedChainpayPlan].name}
+                </span> */}
+              {/* <span className="font-semibold">
+                  {formatCurrencyDisplay(
+                    selectedChainpayPricing?.totalAmount ??
+                      chainpayPlans[selectedChainpayPlan]?.price,
+                    chainpayPlans[selectedChainpayPlan]?.currency || "INR"
+                  )}
+                </span> */}
+            </div>
+            {/* <div className="flex justify-between items-center text-sm text-gray-600">
+                <span>Network / Transaction Fee</span>
+                <span>Included</span>
+              </div> */}
+            {/* </div> */}
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-700 text-sm">
+                <strong>Note:</strong> You may see some technical warnings in
+                the browser console during payment. These are from PhonePe's
+                payment system and don't affect the payment process. Your
+                payment will work normally.
+              </p>
+            </div>
+            {/* <motion.button
+              onClick={startChainpayPayment}
+              disabled={isProcessing || user?.hasCompletedSetup}
+              whileHover={{ scale: isProcessing ? 1 : 1.02 }}
+              whileTap={{ scale: isProcessing ? 1 : 0.98 }}
+              className="w-full mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold shadow-sm hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {user?.hasCompletedSetup ? (
+                <span>Plan already active</span>
+              ) : processingGateway === "chainpay" ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Processing ChainPay...</span>
+                </div>
+              ) : (
+                "Pay now with ChainPay"
+              )}
+            </motion.button> */}
+
+            {/* <div className="mt-4 text-xs text-gray-500 text-center">
+              Payments powered by ChainPay (MSTC)
+            </div> */}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
+          >
+            <div className="flex items-center space-x-2 mb-6">
+              <Shield className="w-5 h-5 text-primary-500" />
+
+              <h2 className="text-xl font-bold text-gray-900">
+                Select Your Plan (PhonePe)
+              </h2>
+            </div>
             <div className="space-y-4">
               {Object.entries(plans).map(([key, plan]) => {
                 const isSelected = selectedPlan === key;
@@ -698,6 +857,35 @@ const PaymentForm = () => {
                         </li>
                       ))}
                     </ul>
+                    <motion.button
+                      onClick={startPhonePePayment}
+                      disabled={isProcessing || user?.hasCompletedSetup}
+                      whileHover={{ scale: isProcessing ? 1 : 1.02 }}
+                      whileTap={{ scale: isProcessing ? 1 : 0.98 }}
+                      className="w-full mt-6 bg-primary-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {user?.hasCompletedSetup ? (
+                        <span>Plan already active</span>
+                      ) : processingGateway === "phonepe" ? (
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Opening PhonePe...</span>
+                        </div>
+                      ) : (
+                        `Pay ${formatINR(
+                          selectedPlanPricing.totalAmount
+                        )} / year (PhonePe)`
+                      )}
+                    </motion.button>
+
+                    <div className="mt-6 text-center">
+                      <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                        <Shield className="w-4 h-4" />
+                        <span>
+                          Your payment information is secure and encrypted
+                        </span>
+                      </div>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -742,33 +930,20 @@ const PaymentForm = () => {
                 <span>{formatINR(selectedPlanPricing.totalAmount)} / year</span>
               </div>
             </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-          >
-            <div className="flex items-center space-x-2 mb-6">
-              <Shield className="w-5 h-5 text-green-500" />
-              <h2 className="text-xl font-bold text-gray-900">
-                Secure Payment
-              </h2>
-            </div>
 
             {errors.phonepe && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-600 text-sm">{errors.phonepe}</p>
               </div>
             )}
 
             {statusMessage && !errors.phonepe && (
-              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-amber-700 text-sm">{statusMessage}</p>
               </div>
             )}
 
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-blue-700 text-sm">
                 <strong>Note:</strong> You may see some technical warnings in
                 the browser console during payment. These are from PhonePe's
@@ -777,179 +952,33 @@ const PaymentForm = () => {
               </p>
             </div>
 
-            <div className="space-y-6">
-              <motion.button
-                onClick={startPhonePePayment}
-                disabled={isProcessing || user?.hasCompletedSetup}
-                whileHover={{ scale: isProcessing ? 1 : 1.02 }}
-                whileTap={{ scale: isProcessing ? 1 : 0.98 }}
-                className="w-full bg-primary-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {user?.hasCompletedSetup ? (
-                  <span>Plan already active</span>
-                ) : processingGateway === "phonepe" ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Opening PhonePe...</span>
-                  </div>
-                ) : (
-                  `Pay ${formatINR(
-                    selectedPlanPricing.totalAmount
-                  )} / year (PhonePe)`
-                )}
-              </motion.button>
-
-              <div className="border-t border-gray-200 pt-6 mt-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <Shield className="w-5 h-5 text-purple-500" />
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Pay with MSTC (Crypto)
-                  </h3>
+            {/* <motion.button
+              onClick={startPhonePePayment}
+              disabled={isProcessing || user?.hasCompletedSetup}
+              whileHover={{ scale: isProcessing ? 1 : 1.02 }}
+              whileTap={{ scale: isProcessing ? 1 : 0.98 }}
+              className="w-full mt-6 bg-primary-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {user?.hasCompletedSetup ? (
+                <span>Plan already active</span>
+              ) : processingGateway === "phonepe" ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Opening PhonePe...</span>
                 </div>
-
-                {errors.chainpay && (
-                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-600 text-sm">{errors.chainpay}</p>
-                  </div>
-                )}
-
-                {chainpayStatusMessage && !errors.chainpay && (
-                  <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-                    <p className="text-indigo-700 text-sm">
-                      {chainpayStatusMessage}
-                    </p>
-                  </div>
-                )}
-
-                <motion.button
-                  onClick={() => {
-                    if (!showChainpayPlans) {
-                      setShowChainpayPlans(true);
-                      return;
-                    }
-                    startChainpayPayment();
-                  }}
-                  disabled={isProcessing || user?.hasCompletedSetup}
-                  whileHover={{ scale: isProcessing ? 1 : 1.02 }}
-                  whileTap={{ scale: isProcessing ? 1 : 0.98 }}
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold shadow-sm hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {user?.hasCompletedSetup ? (
-                    <span>Plan already active</span>
-                  ) : processingGateway === "chainpay" ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Opening ChainPay...</span>
-                    </div>
-                  ) : (
-                    <p>Pay With MSTC</p>
-                  )}
-                </motion.button>
-
-                {showChainpayPlans && (
-                  <div className="mt-6 space-y-4">
-                    {Object.entries(chainpayPlans).map(([key, plan]) => {
-                      const planPricing = chainpayPricing[key];
-                      const hasPromo = planPricing?.promoApplied;
-                      return (
-                        <motion.div
-                          key={key}
-                          whileHover={{ scale: 1.02 }}
-                          onClick={() => setSelectedChainpayPlan(key)}
-                          className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
-                            selectedChainpayPlan === key
-                              ? "border-indigo-500 bg-indigo-50"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center space-x-3">
-                              <input
-                                type="radio"
-                                name="chainpay-plan"
-                                value={key}
-                                checked={selectedChainpayPlan === key}
-                                onChange={(e) =>
-                                  setSelectedChainpayPlan(e.target.value)
-                                }
-                                className="w-4 h-4 text-indigo-600"
-                              />
-                              <div>
-                                <h4 className="font-semibold text-gray-900">
-                                  {plan.name}
-                                </h4>
-                                <p className="text-sm text-gray-600">
-                                  {plan.description}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-2xl font-bold text-gray-900">
-                                {hasPromo ? (
-                                  <>
-                                    {/* <span className="text-base font-medium text-gray-400 line-through">
-                                      {formatCurrencyDisplay(
-                                        planPricing?.originalAmount ??
-                                          plan.price,
-                                        plan.currency
-                                      )}
-                                    </span> */}
-                                    {/* <span className="ml-2">
-                                      {formatCurrencyDisplay(
-                                        planPricing?.totalAmount ?? plan.price,
-                                        plan.currency
-                                      )}
-                                    </span> */}
-                                  </>
-                                ) : (
-                                  formatCurrencyDisplay(
-                                    plan.price,
-                                    plan.currency
-                                  )
-                                )}
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {plan.currency}
-                              </div>
-                              {hasPromo && planPricing?.promoCode && (
-                                <div className="mt-1 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
-                                  {/* {planPricing.promoCode} Applied */}
-                                </div>
-                              )}
-                              {/* <div className="text-xs text-gray-500 mt-1">
-                              GST: {formatINR(chainpayPricing[key].gstAmount)}
-                            </div>
-                            <div className="text-sm font-semibold text-gray-900">
-                              Total:{" "}
-                              {formatINR(chainpayPricing[key].totalAmount)}
-                            </div> */}
-                            </div>
-                          </div>
-                          <ul className="text-sm text-gray-600 space-y-1 ml-7">
-                            {plan.features.map((feature, idx) => (
-                              <li
-                                key={idx}
-                                className="flex items-center space-x-2"
-                              >
-                                <CheckCircle className="w-4 h-4 text-purple-500" />
-                                <span>{feature}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
+              ) : (
+                `Pay ${formatINR(
+                  selectedPlanPricing.totalAmount
+                )} / year (PhonePe)`
+              )}
+            </motion.button>
 
             <div className="mt-6 text-center">
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
                 <Shield className="w-4 h-4" />
                 <span>Your payment information is secure and encrypted</span>
               </div>
-            </div>
+            </div> */}
           </motion.div>
         </div>
       </div>

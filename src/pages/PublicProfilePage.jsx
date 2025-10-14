@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+// import Dashboard from "../components/Dashboard";
 import {
   Mail,
   Phone,
@@ -275,7 +276,7 @@ const PublicProfilePage = () => {
 
   // User data
   const displayName = user.name || "—";
-  const displayEmail = user.email || user.companyEmail || "—";
+  const displayEmail = user.email || "—";
   const address =
     [user.address, user.city, user.state, user.zipcode, user.country]
       .filter(Boolean)
@@ -285,6 +286,26 @@ const PublicProfilePage = () => {
     .toString()
     .slice(-6)
     .padStart(6, "0");
+  const dateOfBirth = user.dateOfBirth
+    ? new Date(user.dateOfBirth).toLocaleDateString("en-GB")
+    : "—";
+
+  const companyName = user.companyName || "—";
+  const companyEmail = user.companyEmail || "—";
+  const companyPhone = user.companyPhone || "—";
+  const companyReferralCode = user.companyReferralCode || "—";
+  const companyExperience = user.companyExperience || "—";
+  const companyDescription = user.companyDescription?.trim() || "—";
+  const companyAddress = user.companyAddress?.trim() || "—";
+  const companyWebsiteRaw = user.companyWebsite?.trim() || "";
+  const companyWebsiteUrl = companyWebsiteRaw
+    ? companyWebsiteRaw.startsWith("http")
+      ? companyWebsiteRaw
+      : `https://${companyWebsiteRaw}`
+    : "";
+  const userSummary = user.description?.trim() || "";
+  const professionalSummary =
+    userSummary || (companyDescription !== "—" ? companyDescription : "");
 
   // Format dates
   const issueDate = user.createdAt
@@ -583,13 +604,13 @@ const PublicProfilePage = () => {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="relative max-w-2xl mx-auto p-4 sm:p-6 lg:p-8"
         >
-          <div className="absolute inset-0 -z-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-[0_25px_70px_rgba(15,23,42,0.35)]" />
+          <div className="absolute inset-0 -z-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-[0_5px_10px_rgba(15,23,42,0.35)]" />
           <div className="absolute inset-x-12 inset-y-8 -z-20 rounded-full bg-gradient-to-r from-cyan-400/30 via-blue-500/10 to-indigo-400/30 blur-3xl" />
 
           <div
             id="public-card-print"
             ref={cardRef}
-            className="relative bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200 max-w-3xl mx-auto"
+            className="relative rounded-xl shadow-2xl overflow-hidden border border-gray-200 max-w-3xl mx-auto"
           >
             <div className="bg-primary-600 h-16 px-6 flex items-center justify-between">
               <div className="flex items-center gap-2 text-white font-bold text-xl whitespace-nowrap">
@@ -600,11 +621,11 @@ const PublicProfilePage = () => {
             </div>
 
             <div className="p-6 grid grid-cols-12 gap-4">
-              <div className="col-span-12 sm:col-span-3 flex items-start justify-center sm:justify-start mb-2 sm:mb-0">
+              <div className="col-span-12 sm:col-span-3 flex items-start justify-center sm:justify-start mb-2 sm:mb-0 ">
                 <img
                   src={user.profilePhotoDataUri || avatar}
                   alt={displayName}
-                  className="w-28 h-28 rounded-md object-cover border shadow-sm"
+                  className="w-36  h-36 rounded-md object-cover border shadow-sm"
                   data-profile-photo="true"
                 />
               </div>
@@ -613,14 +634,15 @@ const PublicProfilePage = () => {
                 <div className="text-2xl font-bold text-gray-900 break-words">
                   {displayName}
                 </div>
-                <div className="text-sm text-gray-600 mt-1">
+                <div className="text-sm text-gray-600 mb-2 mt-1">
                   {user.designation || "—"}
                 </div>
-                <div className="mt-4 space-y-2 text-sm">
+                {/* <div className="mt-4 space-y-2 text-sm">
                   <div className="flex justify-center sm:justify-start">
                     <span className="w-28 text-gray-500">ID No :</span>
                     <span className="text-gray-900">{idNo || "—"}</span>
                   </div>
+
                   <div className="flex justify-center sm:justify-start">
                     <span className="w-28 text-gray-500">Issue Date :</span>
                     <span className="text-gray-900">{issueDate}</span>
@@ -629,16 +651,29 @@ const PublicProfilePage = () => {
                     <span className="w-28 text-gray-500">Expire Date :</span>
                     <span className="text-gray-900">{expireDate}</span>
                   </div>
+                </div> */}
+
+                <div className="flex items-start gap-2 mb-1 text-sm text-gray-700 break-words text-left">
+                  <Mail className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <span className="break-all">{user.email || "—"}</span>
+                </div>
+                <div className="flex items-start gap-2 mb-1 text-sm text-gray-700 break-words text-left">
+                  <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <span className="break-words">{address || "—"}</span>
+                </div>
+                <div className="flex items-start gap-2 mb-1 text-sm text-gray-700 break-words text-left">
+                  <Phone className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <span className="break-all">{user.phone || "—"}</span>
                 </div>
               </div>
 
               <div className="col-span-12 sm:col-span-3 flex items-start justify-center sm:justify-end">
                 <div className="border rounded p-3">
-                  <QRCodeGenerator value={profileUrl} size={100} level="M" />
+                  <QRCodeGenerator value={profileUrl} size={110} level="M" />
                 </div>
               </div>
 
-              <div className="col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
+              {/* <div className="col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
                 <div className="flex items-start gap-2 text-sm text-gray-700 break-words text-left">
                   <Mail className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
                   <span className="break-all">{user.email || "—"}</span>
@@ -651,7 +686,7 @@ const PublicProfilePage = () => {
                   <Phone className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
                   <span className="break-all">{user.phone || "—"}</span>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -670,7 +705,7 @@ const PublicProfilePage = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleShare}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded"
+              className="flex items-center justify-center bg-white space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded"
             >
               <span>Share</span>
             </motion.button>
@@ -679,7 +714,7 @@ const PublicProfilePage = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleDownloadCard}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded"
+              className="flex items-center justify-center bg-white space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded"
               title="Download card as PNG"
             >
               <span>Download Card</span>
@@ -689,7 +724,7 @@ const PublicProfilePage = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handlePrintCard}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded"
+              className="flex items-center justify-center bg-white space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded"
               title="Save as PDF (Print)"
             >
               <Printer className="w-4 h-4" />
@@ -709,6 +744,109 @@ const PublicProfilePage = () => {
           </footer>
         </motion.div>
 
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="relative max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8"
+        >
+          <div className="mt-10 backdrop-blur-sm rounded-2xl p-6 shadow-sm">
+            <div className="space-y-8">
+              <section className="border-t border-gray-200 pt-6">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Professional Details
+                </h3>
+                <div className="mt-4 space-y-6">
+                  <div className="grid md:grid-cols-4 gap-4">
+                    <div>
+                      <div className="text-xs text-gray-500">Company Name</div>
+                      <div className="text-sm text-gray-900 break-words">
+                        {companyName}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Designation</div>
+                      <div className="text-sm text-gray-900 break-words">
+                        {user.designation || "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Experience</div>
+                      <div className="text-sm text-gray-900">
+                        {companyExperience}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Referral Code</div>
+                      <div className="text-sm text-gray-900">
+                        {companyReferralCode}
+                      </div>
+                    </div>
+                  </div>
+                  {/* <div className="grid md:grid-cols-3 gap-4 border-t border-gray-200 pt-4">
+                    <div>
+                      <div className="text-xs text-gray-500">Company Email</div>
+                      <div className="text-sm text-gray-900 break-all">
+                        {companyEmail}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Company Phone</div>
+                      <div className="text-sm text-gray-900 break-all">
+                        {companyPhone}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">Website</div>
+                      <div className="text-sm text-blue-600 break-all">
+                        {companyWebsiteUrl ? (
+                          <a
+                            href={companyWebsiteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            {companyWebsiteRaw}
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+                      </div>
+                    </div>
+                  </div> */}
+                  {/* <div className="border-t border-gray-200 pt-4">
+                    <div className="text-xs text-gray-500">Company Address</div>
+                    <div className="text-sm text-gray-900 break-words">
+                      {companyAddress}
+                    </div>
+                  </div> */}
+                </div>
+              </section>
+
+              {professionalSummary && (
+                <section className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Professional Summary
+                  </h3>
+                  <p className="mt-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                    {professionalSummary}
+                  </p>
+                </section>
+              )}
+
+              {companyDescription && (
+                <section className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Company Description
+                  </h3>
+                  <p className="mt-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                    {companyDescription}
+                  </p>
+                </section>
+              )}
+            </div>
+          </div>
+        </motion.div>
         {(imageItems.length > 0 || videoItems.length > 0) && (
           <section className="py-12">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
