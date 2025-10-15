@@ -329,7 +329,7 @@ const PaymentForm = () => {
 
     const originalBaseAmount = Number(plan.price || 0);
     const discountedBaseAmount = isPromoEligible
-      ? Number(originalBaseAmount.toFixed(2))
+      ? Number((originalBaseAmount * 0.9).toFixed(2))
       : originalBaseAmount;
 
     const breakdown = calculateGstBreakdown(discountedBaseAmount);
@@ -360,7 +360,7 @@ const PaymentForm = () => {
         return [
           key,
           {
-            baseAmount: discountedAmount,
+            baseAmount: originalAmount,
             originalAmount,
             promoApplied: isPromoEligible,
             promoCode: isPromoEligible ? promoCode : null,
