@@ -350,32 +350,26 @@ const PaymentForm = () => {
     return Object.fromEntries(
       Object.entries(chainpayPlans).map(([key, plan]) => {
         const originalAmount = Number(plan.price || 0);
-        const discountedAmount = isPromoEligible
-          ? Number(originalAmount.toFixed(2))
-          : originalAmount;
-        const promoDiscountAmount = isPromoEligible
-          ? Number((originalAmount - discountedAmount).toFixed(2))
-          : 0;
 
         return [
           key,
           {
-            baseAmount: discountedAmount,
+            baseAmount: originalAmount,
             originalAmount,
-            promoApplied: isPromoEligible,
-            promoCode: isPromoEligible ? promoCode : null,
-            promoDiscountAmount,
+            promoApplied: false,
+            promoCode: null,
+            promoDiscountAmount: 0,
             gstAmount: 0,
             cgstAmount: 0,
             sgstAmount: 0,
             igstAmount: 0,
-            totalAmount: discountedAmount,
+            totalAmount: originalAmount,
             currency: plan.currency,
           },
         ];
       })
     );
-  }, [chainpayPlans, isPromoEligible, promoCode]);
+  }, [chainpayPlans]);
 
   const formatCurrencyDisplay = (amount, currency) => {
     if (typeof amount !== "number") {
@@ -720,9 +714,9 @@ const PaymentForm = () => {
         planName: plan.name,
         pricing,
         metadata: {
-          promoApplied: pricing?.promoApplied || false,
-          promoCode: pricing?.promoCode || null,
-          promoDiscountAmount: pricing?.promoDiscountAmount || 0,
+          promoApplied: false,
+          promoCode: null,
+          promoDiscountAmount: 0,
           originalAmount: pricing?.originalAmount || plan.price,
           finalAmount: pricing?.totalAmount || plan.price,
         },
@@ -857,7 +851,7 @@ const PaymentForm = () => {
                       onClick={() => setSelectedChainpayPlan(key)}
                       className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
                         isSelected
-                          ? "border-indigo-500 bg-indigo-50"
+                          ? "border-primary-500 bg-primary-50"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
@@ -913,7 +907,7 @@ const PaymentForm = () => {
                             isProcessing ||
                             selectedChainpayPlan !== key
                               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              : "bg-indigo-600 hover:bg-indigo-700"
+                              : "bg-primary-600 hover:bg-primary-700"
                           }`}
                         >
                           {processingGateway === "chainpay"
