@@ -871,17 +871,17 @@ const PaymentForm = () => {
                               {plan.description}
                             </div>
                           </div>
-                          <div className="text-right">
+                          {/* <div className="text-right">
                             <div className="text-xl font-bold text-indigo-600">
-                              {formatCurrencyDisplay(
-                                planPricing?.totalAmount ?? plan.price,
-                                planPricing?.currency || "INR"
-                              )}
+                              {formatCurrencyDisplay()
+                              // planPricing?.totalAmount ?? plan.price,
+                              // planPricing?.currency || "INR"
+                              }
                             </div>
                             <div className="text-xs text-gray-500">
                               Inclusive of offers
                             </div>
-                          </div>
+                          </div> */}
                         </div>
                         <ul className="space-y-1 text-sm text-gray-600">
                           {plan.features.map((feature) => (
