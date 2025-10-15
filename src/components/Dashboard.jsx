@@ -1,9 +1,14 @@
-import React, { useState, useRef, useMemo, useEffect } from "react";
+import React, { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Download, Edit3, Copy, Share2, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import QRCodeGenerator from "./QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
+import {
+  PLAN_LABELS,
+  PLAN_ORDER,
+  normalizePlan,
+} from "../utils/subscriptionPlan";
 
 const Dashboard = () => {
   const { user: authUser, refreshUser } = useAuth();
@@ -57,7 +62,12 @@ const Dashboard = () => {
       twitter: authUser?.twitter || "",
       whatsapp: authUser?.whatsapp || "",
       github: authUser?.github || "",
+      website: authUser?.website || "",
       companyExperience: authUser?.companyExperience || "",
+      subscriptionPlan: normalizePlan(
+        authUser?.subscriptionPlan,
+        authUser?.planName
+      ),
       profilePhoto:
         authUser?.profilePhoto ||
         "https://via.placeholder.com/200?text=Profile",
@@ -67,6 +77,31 @@ const Dashboard = () => {
     }),
     [authUser, baseClientUrl]
   );
+
+  const currentPlan = useMemo(
+    () => normalizePlan(authUser?.subscriptionPlan, authUser?.planName),
+    [authUser?.subscriptionPlan, authUser?.planName]
+  );
+  const currentPlanLabel = PLAN_LABELS[currentPlan] || PLAN_LABELS.basic;
+  const nextPlanKey = useMemo(() => {
+    const index = PLAN_ORDER.indexOf(currentPlan);
+    if (index === -1) return null;
+    return PLAN_ORDER[index + 1] || null;
+  }, [currentPlan]);
+  const nextPlanLabel = nextPlanKey
+    ? PLAN_LABELS[nextPlanKey] || nextPlanKey
+    : null;
+
+  const nextUpgradePath = useMemo(() => {
+    if (!nextPlanKey) return null;
+    const params = new URLSearchParams({ upgrade: nextPlanKey }).toString();
+    return `/payment?${params}`;
+  }, [nextPlanKey]);
+
+  const handleUpgradeClick = useCallback(() => {
+    if (!nextUpgradePath) return;
+    navigate(nextUpgradePath);
+  }, [nextUpgradePath, navigate]);
 
   const safeAvatar = useMemo(() => {
     if (authUser?.profilePhoto) return authUser.profilePhoto;
@@ -98,6 +133,15 @@ const Dashboard = () => {
 
   const socialLinks = useMemo(() => {
     const links = [];
+    const normalizeLink = (value) => {
+      if (!value) return "";
+      const trimmed = value.trim();
+      if (!trimmed) return "";
+      if (/^(https?:)?\/\//i.test(trimmed)) return trimmed;
+      if (/^(mailto:|tel:)/i.test(trimmed)) return trimmed;
+      return `https://${trimmed}`;
+    };
+
     if (user.facebook)
       links.push({
         key: "facebook",
@@ -146,6 +190,15 @@ const Dashboard = () => {
         fg: "text-gray-700",
         label: "GitHub",
       });
+    const websiteHref = normalizeLink(user.website || user.companyWebsite);
+    if (websiteHref)
+      links.push({
+        key: "website",
+        href: websiteHref,
+        bg: "bg-amber-100",
+        fg: "text-amber-700",
+        label: "Website",
+      });
     return links;
   }, [
     user.facebook,
@@ -154,6 +207,8 @@ const Dashboard = () => {
     user.twitter,
     user.whatsapp,
     user.github,
+    user.website,
+    user.companyWebsite,
   ]);
 
   const BrandIcon = ({ name, className }) => {
@@ -228,6 +283,18 @@ const Dashboard = () => {
             aria-hidden="true"
           >
             <path d="M12 .5C5.73.5.98 5.24.98 11.5c0 4.86 3.15 8.98 7.51 10.43.55.1.75-.24.75-.53 0-.26-.01-1.12-.02-2.03-3.05.66-3.69-1.3-3.69-1.3-.5-1.28-1.22-1.63-1.22-1.63-.99-.67.08-.66.08-.66 1.1.08 1.67 1.12 1.67 1.12.98 1.67 2.57 1.19 3.2.91.1-.71.38-1.19.69-1.47-2.44-.28-5.01-1.22-5.01-5.45 0-1.2.43-2.19 1.12-2.96-.11-.28-.49-1.41.11-2.94 0 0 .93-.3 3.06 1.13a10.6 10.6 0 015.57 0c2.13-1.43 3.06-1.13 3.06-1.13.6 1.53.22 2.66.11 2.94.69.77 1.12 1.76 1.12 2.96 0 4.24-2.57 5.17-5.02 5.44.39.33.73.98.73 1.98 0 1.43-.01 2.58-.01 2.93 0 .29.2.64.76.53 4.35-1.45 7.5-5.57 7.5-10.43C23.02 5.24 18.27.5 12 .5z" />
+          </svg>
+        );
+      case "website":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className={className}
+            aria-hidden="true"
+          >
+            <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.93 9h-2.18a15.6 15.6 0 00-1.03-4.14A8.03 8.03 0 0118.93 11zm-4.22 0h-4.42A13.7 13.7 0 0112 4.06 13.7 13.7 0 0114.71 11zm-6.42 2h4.42A13.7 13.7 0 0112 19.94 13.7 13.7 0 018.29 13zm6.42 0h2.18a8.03 8.03 0 01-3.21 4.14A15.6 15.6 0 0014.71 13zm-8.9-2H4.07a8.03 8.03 0 013.21-4.14A15.6 15.6 0 006.1 11zm0 2h2.18a15.6 15.6 0 001.03 4.14A8.03 8.03 0 016.1 13zM19.93 13h-2.18a15.6 15.6 0 01-1.03 4.14A8.03 8.03 0 0019.93 13z" />
           </svg>
         );
       default:
@@ -348,6 +415,9 @@ const Dashboard = () => {
               Manage your digital business card and track your networking
               success.
             </p>
+            <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-white bg-opacity-20 text-xs font-semibold uppercase tracking-wide text-white/90">
+              Current Plan: {currentPlanLabel}
+            </div>
           </div>
           <div className="hidden md:block">
             <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -361,6 +431,41 @@ const Dashboard = () => {
           </div>
         </div>
       </motion.div>
+
+      {nextPlanKey && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white border border-primary-100 rounded-xl p-6 shadow-sm"
+        >
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Upgrade to {nextPlanLabel}
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Unlock additional features and benefits available in the
+                {" "}
+                {nextPlanLabel} plan.
+              </p>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={handleUpgradeClick}
+              disabled={!nextUpgradePath}
+              className={`inline-flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-colors ${
+                nextUpgradePath
+                  ? "bg-primary-600 text-white hover:bg-primary-700"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              Upgrade Plan
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-6">
         <motion.div

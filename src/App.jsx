@@ -131,6 +131,13 @@ const PublicRoute = ({ children, authPage = false }) => {
 
 const SetupRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
+
+  const params = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+  const isUpgradeFlow = params.has("upgrade");
 
   if (loading) {
     return (
@@ -141,7 +148,7 @@ const SetupRoute = ({ children }) => {
   }
 
   if (!user) return <Navigate to="/login" />;
-  if (user.hasCompletedSetup || user.isPaid)
+  if ((user.hasCompletedSetup || user.isPaid) && !isUpgradeFlow)
     return <Navigate to="/dashboard" />;
   return children;
 };

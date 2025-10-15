@@ -51,6 +51,16 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
+  const [copied, setCopied] = useState(false);
+  const [storedChainpay, setStoredChainpay] = useState(() => {
+    try {
+      const raw = localStorage.getItem("qrfolio_chainpay");
+      return raw ? JSON.parse(raw) : null;
+    } catch (err) {
+      console.warn("Failed to parse stored ChainPay data", err);
+      return null;
+    }
+  });
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [signupData, setSignupData] = useState(null);
@@ -399,14 +409,15 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: "Amount is required" };
       }
 
-      const res = await api.post("/chainpay/create-payment", {
+      const payload = {
         amountFiat,
         currency,
         description,
         planKey,
         planName,
         pricing,
-      });
+      };
+      const res = await api.post("/chainpay/create-payment", payload);
 
       if (res.data?.success) {
         return { success: true, data: res.data };

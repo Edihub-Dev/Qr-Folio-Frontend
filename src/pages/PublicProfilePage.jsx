@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 // import Dashboard from "../components/Dashboard";
@@ -144,6 +150,73 @@ const PublicProfilePage = () => {
     `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='200' height='200' fill='%23e5e7eb'/><text x='50%' y='50%' font-family='Arial' font-size='80' text-anchor='middle' dy='.3em' fill='%236b7280'>${getInitials(
       user?.name
     )}</text></svg>`;
+
+  const normalizeLink = useCallback((value) => {
+    if (!value) return "";
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    if (/^(https?:)?\/\//i.test(trimmed)) return trimmed;
+    if (/^(mailto:|tel:)/i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  }, []);
+
+  const socialLinks = useMemo(() => {
+    const links = [];
+    const addLink = (key, raw, meta) => {
+      const href = normalizeLink(raw);
+      if (href) {
+        links.push({ key, href, ...meta });
+      }
+    };
+
+    addLink("facebook", user?.facebook, {
+      label: "Facebook",
+      bg: "bg-blue-100",
+      fg: "text-blue-600",
+    });
+    addLink("instagram", user?.instagram, {
+      label: "Instagram",
+      bg: "bg-pink-100",
+      fg: "text-pink-600",
+    });
+    addLink("twitter", user?.twitter, {
+      label: "X (Twitter)",
+      bg: "bg-slate-100",
+      fg: "text-slate-900",
+    });
+    addLink("whatsapp", user?.whatsapp, {
+      label: "WhatsApp",
+      bg: "bg-green-100",
+      fg: "text-green-700",
+    });
+    addLink("linkedin", user?.linkedin, {
+      label: "LinkedIn",
+      bg: "bg-blue-100",
+      fg: "text-blue-700",
+    });
+    addLink("github", user?.github, {
+      label: "GitHub",
+      bg: "bg-gray-100",
+      fg: "text-gray-700",
+    });
+    addLink("website", user?.website || user?.companyWebsite, {
+      label: "Website",
+      bg: "bg-amber-100",
+      fg: "text-amber-700",
+    });
+
+    return links;
+  }, [
+    normalizeLink,
+    user?.facebook,
+    user?.instagram,
+    user?.twitter,
+    user?.whatsapp,
+    user?.linkedin,
+    user?.github,
+    user?.website,
+    user?.companyWebsite,
+  ]);
 
   // Handle loading state
   if (loading) {
@@ -298,14 +371,101 @@ const PublicProfilePage = () => {
   const companyDescription = user.companyDescription?.trim() || "—";
   const companyAddress = user.companyAddress?.trim() || "—";
   const companyWebsiteRaw = user.companyWebsite?.trim() || "";
-  const companyWebsiteUrl = companyWebsiteRaw
-    ? companyWebsiteRaw.startsWith("http")
-      ? companyWebsiteRaw
-      : `https://${companyWebsiteRaw}`
-    : "";
+  const companyWebsiteUrl = normalizeLink(companyWebsiteRaw);
   const userSummary = user.description?.trim() || "";
   const professionalSummary =
     userSummary || (companyDescription !== "—" ? companyDescription : "");
+
+  const BrandIcon = ({ name, className }) => {
+    switch (name) {
+      case "facebook":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className={className}
+            aria-hidden="true"
+          >
+            <path d="M22 12.07C22 6.48 17.52 2 11.93 2S1.86 6.48 1.86 12.07c0 5 3.66 9.14 8.44 9.93v-7.02H7.9v-2.9h2.4V9.41c0-2.37 1.41-3.69 3.57-3.69 1.03 0 2.11.18 2.11.18v2.32h-1.19c-1.18 0-1.55.73-1.55 1.48v1.77h2.64l-.42 2.9h-2.22V22c4.78-.79 8.44-4.93 8.44-9.93z" />
+          </svg>
+        );
+      case "instagram":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className={className}
+            aria-hidden="true"
+          >
+            <path d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7zm10 2c1.66 0 3 1.34 3 3v10c0 1.66-1.34 3-3 3H7c-1.66 0-3-1.34-3-3V7c0-1.66 1.34-3 3-3h10zm-5 3.5A5.5 5.5 0 117 13a5.5 5.5 0 015-5.5zm0 2A3.5 3.5 0 1015.5 13 3.5 3.5 0 0012 9.5zM17.5 6A1.5 1.5 0 1116 7.5 1.5 1.5 0 0117.5 6z" />
+          </svg>
+        );
+      case "twitter":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className={className}
+            aria-hidden="true"
+          >
+            <path d="M19.5 3h-3.3l-4.2 5.98L7.8 3H4.5l6.02 8.53L4.33 21h3.3l4.5-6.38L16.68 21h3.3l-6.27-9.03L19.5 3z" />
+          </svg>
+        );
+      case "whatsapp":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className={className}
+            aria-hidden="true"
+          >
+            <path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.59-5.945C.154 5.281 5.438 0 12.057 0c3.184 0 6.167 1.24 8.413 3.488a11.82 11.82 0 013.49 8.414c-.003 6.62-5.286 11.904-11.905 11.904a11.9 11.9 0 01-5.943-1.59L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.593 5.448 0 9.886-4.434 9.889-9.885.003-5.462-4.415-9.89-9.881-9.893-5.452 0-9.887 4.434-9.889 9.885a9.8 9.8 0 001.588 5.361l-.999 3.648 3.9-.709zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.149-.173.198-.297.297-.495.099-.198.05-.372-.025-.521-.074-.149-.669-1.612-.916-2.206-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.521.074-.794.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.718 2.006-1.413.248-.694.248-1.289.173-1.413z" />
+          </svg>
+        );
+      case "linkedin":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className={className}
+            aria-hidden="true"
+          >
+            <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM.5 8.5h4V23h-4V8.5zM8.5 8.5h3.8v2h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.77 2.65 4.77 6.09V23h-4v-6.5c0-1.55-.03-3.55-2.17-3.55-2.17 0-2.5 1.69-2.5 3.43V23h-4V8.5z" />
+          </svg>
+        );
+      case "github":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className={className}
+            aria-hidden="true"
+          >
+            <path d="M12 .5C5.73.5.98 5.24.98 11.5c0 4.86 3.15 8.98 7.51 10.43.55.1.75-.24.75-.53 0-.26-.01-1.12-.02-2.03-3.05.66-3.69-1.3-3.69-1.3-.5-1.28-1.22-1.63-1.22-1.63-.99-.67.08-.66.08-.66 1.1.08 1.67 1.12 1.67 1.12.98 1.67 2.57 1.19 3.2.91.1-.71.38-1.19.69-1.47-2.44-.28-5.01-1.22-5.01-5.45 0-1.2.43-2.19 1.12-2.96-.11-.28-.49-1.41.11-2.94 0 0 .93-.3 3.06 1.13a10.6 10.6 0 015.57 0c2.13-1.43 3.06-1.13 3.06-1.13.6 1.53.22 2.66.11 2.94.69.77 1.12 1.76 1.12 2.96 0 4.24-2.57 5.17-5.02 5.44.39.33.73.98.73 1.98 0 1.43-.01 2.58-.01 2.93 0 .29.2.64.76.53 4.35-1.45 7.5-5.57 7.5-10.43C23.02 5.24 18.27.5 12 .5z" />
+          </svg>
+        );
+      case "website":
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className={className}
+            aria-hidden="true"
+          >
+            <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.93 9h-2.18a15.6 15.6 0 00-1.03-4.14A8.03 8.03 0 0118.93 11zm-4.22 0h-4.42A13.7 13.7 0 0112 4.06 13.7 13.7 0 0114.71 11zm-6.42 2h4.42A13.7 13.7 0 0112 19.94 13.7 13.7 0 018.29 13zm6.42 0h2.18a8.03 8.03 0 01-3.21 4.14A15.6 15.6 0 0014.71 13zm-8.9-2H4.07a8.03 8.03 0 013.21-4.14A15.6 15.6 0 006.1 11zm0 2h2.18a15.6 15.6 0 001.03 4.14A8.03 8.03 0 016.1 13zM19.93 13h-2.18a15.6 15.6 0 01-1.03 4.14A8.03 8.03 0 0019.93 13z" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
 
   // Format dates
   const issueDate = user.createdAt
@@ -822,6 +982,29 @@ const PublicProfilePage = () => {
                   </div> */}
                 </div>
               </section>
+
+              {socialLinks.length > 0 && (
+                <section className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Social Profiles
+                  </h3>
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    {socialLinks.map((link) => (
+                      <a
+                        key={link.key}
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={link.label}
+                        className={`w-10 h-10 rounded-full ${link.bg} ${link.fg} flex items-center justify-center transition-transform hover:scale-105`}
+                      >
+                        <BrandIcon name={link.key} className="w-5 h-5" />
+                        <span className="sr-only">{link.label}</span>
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {professionalSummary && (
                 <section className="border-t border-gray-200 pt-6">
