@@ -353,6 +353,9 @@ const PaymentForm = () => {
         const discountedAmount = isPromoEligible
           ? Number(originalAmount.toFixed(2))
           : originalAmount;
+        const promoDiscountAmount = isPromoEligible
+          ? Number((originalAmount - discountedAmount).toFixed(2))
+          : 0;
 
         return [
           key,
