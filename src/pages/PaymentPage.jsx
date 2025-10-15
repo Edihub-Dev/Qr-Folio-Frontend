@@ -329,7 +329,7 @@ const PaymentForm = () => {
 
     const originalBaseAmount = Number(plan.price || 0);
     const discountedBaseAmount = isPromoEligible
-      ? Number((originalBaseAmount * 0.9).toFixed(2))
+      ? Number(originalBaseAmount.toFixed(2))
       : originalBaseAmount;
 
     const breakdown = calculateGstBreakdown(discountedBaseAmount);
@@ -492,7 +492,7 @@ const PaymentForm = () => {
   const pollPaymentStatus = useCallback(
     async (merchantTransactionId) => {
       const maxAttempts = 15;
-      const delayMs = 4000;
+      const delayMs = 2000;
 
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         const result = await verifyPayment(
