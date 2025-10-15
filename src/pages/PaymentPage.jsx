@@ -350,11 +350,14 @@ const PaymentForm = () => {
     return Object.fromEntries(
       Object.entries(chainpayPlans).map(([key, plan]) => {
         const originalAmount = Number(plan.price || 0);
+        const discountedAmount = isPromoEligible
+          ? Number(originalAmount.toFixed(2))
+          : originalAmount;
 
         return [
           key,
           {
-            baseAmount: originalAmount,
+            baseAmount: discountedAmount,
             originalAmount,
             promoApplied: isPromoEligible,
             promoCode: isPromoEligible ? promoCode : null,
@@ -363,7 +366,7 @@ const PaymentForm = () => {
             cgstAmount: 0,
             sgstAmount: 0,
             igstAmount: 0,
-            totalAmount: originalAmount,
+            totalAmount: discountedAmount,
             currency: plan.currency,
           },
         ];
