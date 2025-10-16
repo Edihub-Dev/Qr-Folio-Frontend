@@ -62,7 +62,7 @@ const PaymentForm = () => {
     () => ({
       basic: {
         name: "Basic (Silver)",
-        price: 399,
+        price: 1,
         description: "Perfect for individuals",
         features: [
           "Custom QR Code",
@@ -76,7 +76,7 @@ const PaymentForm = () => {
       },
       professional: {
         name: "Standard (Gold)",
-        price: 599,
+        price: 1,
         description: "Best for professionals",
         features: [
           "Everything in Basic",

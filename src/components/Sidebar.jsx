@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   Menu,
   Image,
+  ShieldCheck,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -24,8 +25,8 @@ const Sidebar = ({
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const menuDefinitions = useMemo(
-    () => [
+  const menuDefinitions = useMemo(() => {
+    const definitions = [
       {
         id: "dashboard",
         label: "Dashboard",
@@ -61,9 +62,20 @@ const Sidebar = ({
         path: "/dashboard/qrcode",
         minPlan: "standard",
       },
-    ],
-    []
-  );
+    ];
+
+    if (user?.role === "admin") {
+      definitions.unshift({
+        id: "admin",
+        label: "Admin",
+        icon: ShieldCheck,
+        path: "/admin",
+        minPlan: "basic",
+      });
+    }
+
+    return definitions;
+  }, [user?.role]);
 
   const menuItems = useMemo(() => {
     const plan = (user?.subscriptionPlan || "basic").toLowerCase();

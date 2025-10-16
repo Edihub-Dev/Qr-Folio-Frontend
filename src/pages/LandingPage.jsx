@@ -918,15 +918,24 @@ const LandingPage = () => {
               </p>
             </div>
             <div className="flex space-x-4">
-              {/* <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors">
+              <a
+                href="https://x.com/qrfolio?t=49XZqhZy-vmd9u_cQ8NPVA&s=09"
+                className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
+              >
                 <Twitter className="w-5 h-5 text-gray-400" />
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors">
+              <a
+                href="#"
+                className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
+              >
                 <Facebook className="w-5 h-5 text-gray-400" />
               </a>
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors">
+              <a
+                href="https://www.instagram.com/_qrfolio?igsh=MWlsNjdxcWt3d2dsNw=="
+                className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
+              >
                 <Instagram className="w-5 h-5 text-gray-400" />
-              </a> */}
+              </a>
             </div>
           </div>
         </div>

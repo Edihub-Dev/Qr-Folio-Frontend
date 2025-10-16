@@ -1,4 +1,10 @@
-import React, { useState, useRef, useMemo, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useMemo,
+  useEffect,
+  useCallback,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { Download, Edit3, Copy, Share2, Eye } from "lucide-react";
 import { motion } from "framer-motion";
@@ -445,8 +451,7 @@ const Dashboard = () => {
                 Upgrade to {nextPlanLabel}
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                Unlock additional features and benefits available in the
-                {" "}
+                Unlock additional features and benefits available in the{" "}
                 {nextPlanLabel} plan.
               </p>
             </div>
@@ -764,10 +769,8 @@ const Dashboard = () => {
               <Download className="w-5 h-5 text-orange-600" />
             </div>
             <div className="text-left">
-              <div className="font-medium text-gray-900">Export Data</div>
-              <div className="text-sm text-gray-500">
-                Download your profile information
-              </div>
+              <div className="font-medium text-gray-900"></div>
+              <div className="text-sm text-gray-500"></div>
             </div>
           </motion.button>
         </div>

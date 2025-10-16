@@ -17,6 +17,11 @@ import VerifyOTPPage from "./pages/VerifyOTPPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import DashboardLayout from "./pages/DashboardLayout";
 import PublicProfilePage from "./pages/PublicProfilePage";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminExportsPage from "./pages/admin/AdminExportsPage";
+import AdminInvoicesPage from "./pages/admin/AdminInvoicesPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import RefundPolicy from "./pages/RefundPolicy";
@@ -25,7 +30,7 @@ import PaymentStatusPage from "./pages/PaymentStatusPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailure from "./pages/PaymentFailure";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -48,14 +53,20 @@ const ProtectedRoute = ({ children }) => {
       }
       return "/login";
     }
-    if (!user.isPaid) {
+    if (requireAdmin) {
+      if (user.role !== "admin") {
+        return "/";
+      }
+    }
+
+    if (!user.isPaid && !requireAdmin) {
       if (location.pathname === "/payment") {
         return null;
       }
       return "/payment";
     }
     return null;
-  }, [loading, user, currentPath, location.pathname]);
+  }, [loading, user, currentPath, location.pathname, requireAdmin]);
 
   useEffect(() => {
     if (!loading && redirectPath && currentPath !== redirectPath) {
@@ -223,6 +234,20 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="users" element={<AdminUsersPage />} />
+              <Route path="exports" element={<AdminExportsPage />} />
+              <Route path="invoices" element={<AdminInvoicesPage />} />
+            </Route>
 
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>

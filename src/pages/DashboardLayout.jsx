@@ -29,22 +29,23 @@ const DashboardLayout = () => {
     [user?.subscriptionPlan]
   );
   const planLabel = PLAN_LABELS[plan] || PLAN_LABELS.basic;
-  const isStandardOrHigher =
-    getPlanRank(plan) >= getPlanRank("standard");
+  const isStandardOrHigher = getPlanRank(plan) >= getPlanRank("standard");
 
   const renderRestrictedFeature = (featureName, requiredPlan = "standard") => {
     const requiredPlanLabel =
       PLAN_LABELS[requiredPlan] || PLAN_LABELS.standard || "Standard";
 
     return (
-      <div className="max-w-3xl mx-auto mt-16 p-10 bg-white border border-gray-200 rounded-3xl shadow-lg text-center">
+      <div className="max-w-3x1  mx-auto mt-16 p-10 bg-white border border-gray-200 rounded-3xl shadow-lg text-center">
         <div className="text-2xl font-semibold text-gray-900">
           Upgrade to access {featureName}
         </div>
         <p className="mt-4 text-gray-600">
-          Your current plan (<span className="font-medium text-primary-600">{planLabel}</span>)
-          includes Dashboard, Edit Profile, and Company Details. To unlock the {featureName} feature,
-          upgrade to at least the <span className="font-medium">{requiredPlanLabel}</span> plan.
+          Your current plan (
+          <span className="font-medium text-primary-600">{planLabel}</span>)
+          includes Dashboard, Edit Profile, and Company Details. To unlock the{" "}
+          {featureName} feature, upgrade to at least the{" "}
+          <span className="font-medium">{requiredPlanLabel}</span> plan.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row sm:justify-center sm:items-center gap-3">
           <button
@@ -98,13 +99,17 @@ const DashboardLayout = () => {
       case "company":
         return <CompanyDetails />;
       case "gallery":
-        return isStandardOrHigher
-          ? <GalleryPage />
-          : renderRestrictedFeature("Gallery");
+        return isStandardOrHigher ? (
+          <GalleryPage />
+        ) : (
+          renderRestrictedFeature("Gallery")
+        );
       case "qrcode":
-        return isStandardOrHigher
-          ? <MyQRCode />
-          : renderRestrictedFeature("My QR Code");
+        return isStandardOrHigher ? (
+          <MyQRCode />
+        ) : (
+          renderRestrictedFeature("My QR Code")
+        );
       default:
         return <Dashboard />;
     }
@@ -185,17 +190,21 @@ const DashboardLayout = () => {
                 <Route
                   path="gallery"
                   element={
-                    isStandardOrHigher
-                      ? <GalleryPage />
-                      : renderRestrictedFeature("Gallery")
+                    isStandardOrHigher ? (
+                      <GalleryPage />
+                    ) : (
+                      renderRestrictedFeature("Gallery")
+                    )
                   }
                 />
                 <Route
                   path="qrcode"
                   element={
-                    isStandardOrHigher
-                      ? <MyQRCode />
-                      : renderRestrictedFeature("My QR Code")
+                    isStandardOrHigher ? (
+                      <MyQRCode />
+                    ) : (
+                      renderRestrictedFeature("My QR Code")
+                    )
                   }
                 />
                 <Route path="*" element={<Navigate to="/dashboard" />} />

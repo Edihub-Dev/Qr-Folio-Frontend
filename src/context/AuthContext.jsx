@@ -202,6 +202,14 @@ export const AuthProvider = ({ children }) => {
               const paymentComplete = hasPaymentFlag(parsed);
               const normalized = {
                 ...parsed,
+                role: parsed?.role || 'user',
+                isBlocked: Boolean(parsed?.isBlocked),
+                paymentStatus:
+                  parsed?.paymentStatus || (paymentComplete ? 'paid' : 'pending'),
+                paymentMethod: parsed?.paymentMethod || 'none',
+                totalAmountPaid: Number(parsed?.totalAmountPaid || 0),
+                lastPaymentAt: parsed?.lastPaymentAt || null,
+                paymentReference: parsed?.paymentReference || null,
                 isPaid: paymentComplete,
                 hasCompletedSetup: paymentComplete,
                 phonepePaymentId: parsed.phonepePaymentId,
@@ -568,6 +576,13 @@ export const AuthProvider = ({ children }) => {
         const normalized = {
           ...u,
           email: u?.email || normalizedEmail,
+          role: u?.role || 'user',
+          isBlocked: Boolean(u?.isBlocked),
+          paymentStatus: u?.paymentStatus || (hasPaymentFlag(u) ? 'paid' : 'pending'),
+          paymentMethod: u?.paymentMethod || 'none',
+          totalAmountPaid: Number(u?.totalAmountPaid || 0),
+          lastPaymentAt: u?.lastPaymentAt || null,
+          paymentReference: u?.paymentReference || null,
           isPaid: hasPaymentFlag(u),
           hasCompletedSetup: hasPaymentFlag(u),
           isVerified: u?.isVerified || false,
@@ -612,6 +627,13 @@ export const AuthProvider = ({ children }) => {
         console.log("💳 Payment required response received");
         const normalized = {
           ...data.user,
+          role: data.user?.role || 'user',
+          isBlocked: Boolean(data.user?.isBlocked),
+          paymentStatus: data.user?.paymentStatus || (hasPaymentFlag(data.user) ? 'paid' : 'pending'),
+          paymentMethod: data.user?.paymentMethod || 'none',
+          totalAmountPaid: Number(data.user?.totalAmountPaid || 0),
+          lastPaymentAt: data.user?.lastPaymentAt || null,
+          paymentReference: data.user?.paymentReference || null,
           isPaid: hasPaymentFlag(data.user),
           hasCompletedSetup: hasPaymentFlag(data.user),
           isVerified: data.user?.isVerified || true,
