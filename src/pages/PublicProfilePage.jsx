@@ -945,34 +945,38 @@ const PublicProfilePage = () => {
                 </div>
               </section>
 
-              <section className="grid gap-10 rounded-3xl pt-12   p-10 backdrop-blur lg:grid-cols-[minmax(0,380px),1fr]">
+              <section className="grid gap-10 rounded-3xl pt-12 p-10 backdrop-blur lg:grid-cols-[minmax(0,380px),1fr]">
+                {/* Professional Details */}
                 <div className="space-y-5">
                   <h2 className="text-2xl font-semibold text-[#1532CB]">
                     Professional Details
                   </h2>
-                  <div className="grid h-[200px] grid-cols-1 md:grid-cols-2 gap-4 justify-center ">
-                    <div className="flex flex-col shadow-[rgba(0,0,0,0.46)] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
+                  <div className="grid min-h-0 grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Company Name Card */}
+                    <div className="flex flex-col h-[200px] shadow-[rgba(0,0,0,0.46)] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-[#1E1E1E] shadow-inner">
                         <Building2 className="h-6 w-6" />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 w-full">
                         <p className="text-xs font-semibold uppercase tracking-wide text-[#1E1E1E]">
                           Company Name
                         </p>
-                        <p className="mt-2 truncate text-base font-semibold text-indigo-600">
+                        <p className="mt-2 break-words text-base font-semibold text-indigo-600">
                           {companyName}
                         </p>
                       </div>
                     </div>
-                    <div className="flex flex-col items-center gap-3 shadow-[rgba(0,0,0,0.46)] rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
+
+                    {/* Designation Card */}
+                    <div className="flex h-[200px] flex-col items-center gap-3 shadow-[rgba(0,0,0,0.46)] rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-[#1E1E1E] shadow-inner">
                         <Briefcase className="h-6 w-6" />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 w-full">
                         <p className="text-xs font-semibold uppercase tracking-wide text-[#1E1E1E]">
                           Designation
                         </p>
-                        <p className="mt-2 truncate text-base font-semibold text-indigo-600">
+                        <p className="mt-2 break-words text-base font-semibold text-indigo-600">
                           {user.designation || "—"}
                         </p>
                       </div>
@@ -980,71 +984,73 @@ const PublicProfilePage = () => {
                   </div>
                 </div>
 
+                {/* Company Description */}
                 <div className="space-y-5">
                   <div className="space-y-4">
                     <h2 className="text-2xl text-[#1532CB] font-semibold">
                       Company Description
                     </h2>
-                    <p className="text-base leading-relaxed text-slate-600">
+                    <p className="text-base leading-relaxed text-slate-600 break-words">
                       {companyDescription !== "—"
                         ? companyDescription
                         : "We create visually stunning and engaging content."}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-3">
-                    <div className="inline-flex overflow-hidden rounded-full text-sm font-semibold shadow-[0_12px_24px_-16px_rgba(37,99,235,0.55)]">
-                      <span className="bg-gradient-to-r from-[#4338CA] to-[#2563EB] px-5 py-2 text-white">
-                        Experience:&nbsp;
-                        <span className="font-semibold">
-                          {companyExperience || "—"}
-                        </span>
+
+                  {/* Experience & Referral */}
+                  <div className="flex flex-nowrap">
+                    <div className="inline-flex items-center rounded-l-full bg-gradient-to-r from-[#4338CA] to-[#2563EB] px-4 py-2 text-sm font-medium text-white">
+                      <span>Experience:</span>
+                      <span className="ml-1 font-semibold">
+                        {companyExperience || "—"}
                       </span>
-                      <span className="bg-white px-5 py-2 text-slate-800">
-                        Referral Code:&nbsp;
-                        <span className="text-indigo-600">
-                          {companyReferralCode || "—"}
-                        </span>
+                    </div>
+                    <div className="inline-flex items-center rounded-r-full bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 -ml-1">
+                      <span>Referral Code:</span>
+                      <span className="ml-1 font-semibold text-indigo-600">
+                        {companyReferralCode || "—"}
                       </span>
                     </div>
                   </div>
 
+                  {/* Commented out contact information */}
                   {/* <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                      <Mail className="h-5 w-5 text-indigo-500" />
-                      <span className="break-all text-sm font-medium text-slate-700">
-                        {companyEmail}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                      <Phone className="h-5 w-5 text-indigo-500" />
-                      <span className="break-all text-sm font-medium text-slate-700">
-                        {companyPhone}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:col-span-2">
-                      <Globe className="h-5 w-5 text-indigo-500" />
-                      <span className="break-all text-sm font-medium text-blue-600">
-                        {companyWebsiteUrl ? (
-                          <a
-                            href={companyWebsiteUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            {companyWebsiteRaw || companyWebsiteUrl}
-                          </a>
-                        ) : (
-                          "—"
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:col-span-2">
-                      <MapPin className="mt-1 h-5 w-5 text-indigo-500" />
-                      <span className="text-sm font-medium text-slate-700">
-                        {companyAddress}
-                      </span>
-                    </div>
-                  </div> */}
+      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <Mail className="h-5 w-5 text-indigo-500" />
+        <span className="break-all text-sm font-medium text-slate-700">
+          {companyEmail}
+        </span>
+      </div>
+      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <Phone className="h-5 w-5 text-indigo-500" />
+        <span className="break-all text-sm font-medium text-slate-700">
+          {companyPhone}
+        </span>
+      </div>
+      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:col-span-2">
+        <Globe className="h-5 w-5 text-indigo-500" />
+        <span className="break-all text-sm font-medium text-blue-600">
+          {companyWebsiteUrl ? (
+            <a
+              href={companyWebsiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              {companyWebsiteRaw || companyWebsiteUrl}
+            </a>
+          ) : (
+            "—"
+          )}
+        </span>
+      </div>
+      <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:col-span-2">
+        <MapPin className="mt-1 h-5 w-5 text-indigo-500" />
+        <span className="text-sm font-medium text-slate-700">
+          {companyAddress}
+        </span>
+      </div>
+    </div> */}
                 </div>
               </section>
 
