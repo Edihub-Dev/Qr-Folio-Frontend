@@ -9,6 +9,7 @@ import {
   Menu,
   Image,
   ShieldCheck,
+  Share2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -62,6 +63,13 @@ const Sidebar = ({
         path: "/dashboard/qrcode",
         minPlan: "standard",
       },
+      // {
+      //   id: "refer",
+      //   label: "Refer & Earn",
+      //   icon: Share2,
+      //   path: "/dashboard/refer",
+      //   minPlan: "basic",
+      // },
     ];
 
     if (user?.role === "admin") {

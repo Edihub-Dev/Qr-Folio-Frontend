@@ -1,15 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink, useLocation, Route, Routes } from "react-router-dom";
 import {
   Menu,
   Users,
   BarChart3,
   FileText,
+  Share2,
   X,
   LogOut,
   ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import AdminDashboardPage from "./AdminDashboardPage";
+import AdminUsersPage from "./AdminUsersPage";
+import AdminExportsPage from "./AdminExportsPage";
+import AdminInvoicesPage from "./AdminInvoicesPage";
+import AdminReferralsPage from "./AdminReferralsPage";
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();
@@ -19,17 +25,22 @@ const AdminLayout = () => {
     () => location.pathname.startsWith("/admin/invoices"),
     [location.pathname]
   );
+  const isReferRoute = useMemo(
+    () => location.pathname.startsWith("/admin/refer"),
+    [location.pathname]
+  );
 
   useEffect(() => {
-    if (isInvoiceRoute) {
+    if (isInvoiceRoute || isReferRoute) {
       setSidebarOpen(false);
     }
-  }, [isInvoiceRoute]);
+  }, [isInvoiceRoute, isReferRoute]);
   const navItems = useMemo(
     () => [
       { to: "/admin", label: "Dashboard", icon: BarChart3, exact: true },
       { to: "/admin/users", label: "Users", icon: Users },
       { to: "/admin/invoices", label: "Invoices", icon: FileText },
+      { to: "/admin/refer", label: "Referrals", icon: Share2 },
       {
         to: "/dashboard",
         label: "User Dashboard",

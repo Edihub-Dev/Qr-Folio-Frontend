@@ -12,10 +12,11 @@ import {
   Mail,
   Phone,
   MapPin,
-  Download,
   QrCode,
-  Printer,
   X,
+  Building2,
+  Briefcase,
+  Globe,
 } from "lucide-react";
 import QRCodeGenerator from "../components/QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
@@ -750,215 +751,279 @@ const PublicProfilePage = () => {
     return url;
   };
 
+  const skills = Array.isArray(user.skills)
+    ? user.skills.map((skill) => `${skill}`.trim()).filter(Boolean)
+    : [];
+  const featuredGallery = [...imageItems];
+
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 animate-gradient bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.35),_rgba(99,102,241,0.2)_35%,_rgba(15,118,110,0.15)_65%,_rgba(15,23,42,0.9))]" />
-      <div className="pointer-events-none absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526498460520-4c246339dccb?auto=format&fit=crop&w=1600&q=80')] opacity-20 mix-blend-overlay" />
-      <div className="pointer-events-none absolute -top-32 -left-40 w-80 h-80 bg-cyan-500/30 blur-3xl rounded-full animate-pulse-slow" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-500/25 blur-3xl rounded-full animate-pulse-slow" />
+    <div className="relative min-h-screen overflow-hidden bg-[#B2C8FF]">
+      <div className="pointer-events-none absolute bg-[#B2C8FF] inset-0 opacity-80">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_#dbeafe_0%,_#eef2ff_45%,_#f8fafc_100%)]" />
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526498460520-4c246339dccb?auto=format&fit=crop&w=2000&q=80')] opacity-25 mix-blend-overlay" />
+      </div>
 
-      <div className="relative z-10 flex min-h-screen flex-col overflow-y-auto">
+      <div className="relative z-10 flex min-h-screen flex-col">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative max-w-2xl mx-auto p-4 sm:p-6 lg:p-8"
+          className="w-full"
         >
-          <div className="absolute inset-0 -z-10 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-[0_5px_10px_rgba(15,23,42,0.35)]" />
-          <div className="absolute inset-x-12 inset-y-8 -z-20 rounded-full bg-gradient-to-r from-cyan-400/30 via-blue-500/10 to-indigo-400/30 blur-3xl" />
-
-          <div
-            id="public-card-print"
-            ref={cardRef}
-            className="relative rounded-xl shadow-2xl overflow-hidden border border-gray-200 max-w-3xl mx-auto"
-          >
-            <div className="bg-primary-600 h-16 px-6 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-white font-bold text-xl whitespace-nowrap">
-                <QrCode className="w-6 h-6" />
-                <span className="whitespace-nowrap">QR Folio</span>
-              </div>
-              <div className="text-xs text-white">QR Folio ID Card</div>
-            </div>
-
-            <div className="p-6 grid grid-cols-12 gap-4">
-              <div className="col-span-12 sm:col-span-3 flex items-start justify-center sm:justify-start mb-2 sm:mb-0 ">
-                <img
-                  src={user.profilePhotoDataUri || avatar}
-                  alt={displayName}
-                  className="w-36  h-36 rounded-md object-cover border shadow-sm"
-                  data-profile-photo="true"
-                />
-              </div>
-
-              <div className="col-span-12 sm:col-span-6 text-center sm:text-left min-w-0">
-                <div className="text-2xl font-bold text-gray-900 break-words">
-                  {displayName}
-                </div>
-                <div className="text-sm text-gray-600 mb-2 mt-1">
-                  {user.designation || "—"}
-                </div>
-                {/* <div className="mt-4 space-y-2 text-sm">
-                  <div className="flex justify-center sm:justify-start">
-                    <span className="w-28 text-gray-500">ID No :</span>
-                    <span className="text-gray-900">{idNo || "—"}</span>
-                  </div>
-
-                  <div className="flex justify-center sm:justify-start">
-                    <span className="w-28 text-gray-500">Issue Date :</span>
-                    <span className="text-gray-900">{issueDate}</span>
-                  </div>
-                  <div className="flex justify-center sm:justify-start">
-                    <span className="w-28 text-gray-500">Expire Date :</span>
-                    <span className="text-gray-900">{expireDate}</span>
-                  </div>
-                </div> */}
-
-                <div className="flex items-start gap-2 mb-1 text-sm text-gray-700 break-words text-left">
-                  <Mail className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                  <span className="break-all">{user.email || "—"}</span>
-                </div>
-                <div className="flex items-start gap-2 mb-1 text-sm text-gray-700 break-words text-left">
-                  <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                  <span className="break-words">{address || "—"}</span>
-                </div>
-                <div className="flex items-start gap-2 mb-1 text-sm text-gray-700 break-words text-left">
-                  <Phone className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                  <span className="break-all">{user.phone || "—"}</span>
-                </div>
-              </div>
-
-              <div className="col-span-12 sm:col-span-3 flex items-start justify-center sm:justify-end">
-                <div className="border rounded p-3">
-                  <QRCodeGenerator value={profileUrl} size={110} level="M" />
-                </div>
-              </div>
-
-              {/* <div className="col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
-                <div className="flex items-start gap-2 text-sm text-gray-700 break-words text-left">
-                  <Mail className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                  <span className="break-all">{user.email || "—"}</span>
-                </div>
-                <div className="flex items-start gap-2 text-sm text-gray-700 break-words text-left">
-                  <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                  <span className="break-words">{address || "—"}</span>
-                </div>
-                <div className="flex items-start gap-2 text-sm text-gray-700 break-words text-left">
-                  <Phone className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                  <span className="break-all">{user.phone || "—"}</span>
-                </div>
-              </div> */}
-            </div>
-          </div>
-
-          <div className="mt-4 flex gap-3 flex-wrap justify-center no-export no-print">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSaveContact}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded"
-            >
-              <Download className="w-4 h-4" />
-              <span>Save Contact</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleShare}
-              className="flex items-center justify-center bg-white space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded"
-            >
-              <span>Share</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleDownloadCard}
-              className="flex items-center justify-center bg-white space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded"
-              title="Download card as PNG"
-            >
-              <span>Download Card</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handlePrintCard}
-              className="flex items-center justify-center bg-white space-x-2 px-4 py-2 bg-gray-100 text-gray-800 rounded"
-              title="Save as PDF (Print)"
-            >
-              <Printer className="w-4 h-4" />
-              <span>Save as PDF</span>
-            </motion.button>
-          </div>
-
-          <footer className="text-center mt-8">
-            <button
-              type="button"
-              onClick={handlePoweredByClick}
-              className="inline-flex items-center space-x-2 text-black hover:text-primary-600 transition-colors"
-            >
-              <QrCode className="w-5 h-5" />
-              <span className="font-semibold">Powered by QR Folio</span>
-            </button>
-          </footer>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8"
-        >
-          <div className="mt-10 backdrop-blur-sm rounded-2xl p-6 shadow-sm">
-            <div className="space-y-8">
-              <section className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Professional Details
-                </h3>
-                <div className="mt-4 space-y-6">
-                  <div className="grid md:grid-cols-4 gap-4">
-                    <div>
-                      <div className="text-xs text-gray-500">Company Name</div>
-                      <div className="text-sm text-gray-900 break-words">
-                        {companyName}
+          <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-14 px-6 pb-20 pt-14 lg:flex-row lg:gap-20 xl:px-14">
+            <aside className="w-full max-w-[360px] space-y-6">
+              <div id="public-card-print" ref={cardRef} className="space-y-6">
+                <div className="rounded-[32px] bg-white p-8 shadow-[0_32px_60px_-20px_rgba(79,70,229,0.4)]">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="h-40 w-40 overflow-hidden  rounded-full border-4 border-[#1532CB] shadow-[0_18px_36px_rgba(79,70,229,0.18)]">
+                      <img
+                        src={user.profilePhotoDataUri || avatar}
+                        alt={displayName}
+                        className="h-full w-full object-cover"
+                        data-profile-photo="true"
+                      />
+                    </div>
+                    <div className="mt-6 space-y-2">
+                      <h1 className="text-2xl text-[#1532CB] font-semibold text-slate-900">
+                        {displayName}
+                      </h1>
+                      <div className="text-sm font-medium text-slate-500">
+                        {user.designation || "—"} at{" "}
+                        <span className="font-semibold text-[#1532CB]">
+                          {companyName !== "—" ? companyName : "Company"}
+                        </span>
                       </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-gray-500">Designation</div>
-                      <div className="text-sm text-gray-900 break-words">
-                        {user.designation || "—"}
+                    {socialLinks.length > 0 && (
+                      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                        {socialLinks.map((link) => (
+                          <a
+                            key={link.key}
+                            href={link.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={link.label}
+                            className={`flex h-8 w-8 items-center justify-center rounded-full ${link.bg} ${link.fg} text-[15px] shadow transition hover:-translate-y-1 hover:shadow-md`}
+                          >
+                            <BrandIcon name={link.key} className="h-4 w-4" />
+                            <span className="sr-only">{link.label}</span>
+                          </a>
+                        ))}
                       </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">Experience</div>
-                      <div className="text-sm text-gray-900">
-                        {companyExperience}
+                    )}
+                    <div className="mt-6 w-full space-y-3 text-left text-sm text-slate-600">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-500">
+                          <Mail className="h-4 w-4" />
+                        </span>
+                        <span className="break-all">{displayEmail}</span>
                       </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">Referral Code</div>
-                      <div className="text-sm text-gray-900">
-                        {companyReferralCode}
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-500">
+                          <Phone className="h-4 w-4" />
+                        </span>
+                        <span className="break-all">{user.phone || "—"}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-500">
+                          <MapPin className="h-4 w-4" />
+                        </span>
+                        <span className="break-words">{address}</span>
                       </div>
                     </div>
                   </div>
-                  {/* <div className="grid md:grid-cols-3 gap-4 border-t border-gray-200 pt-4">
-                    <div>
-                      <div className="text-xs text-gray-500">Company Email</div>
-                      <div className="text-sm text-gray-900 break-all">
+                </div>
+
+                <div
+                  className="relative overflow-hidden rounded-[32px] p-20 text-white"
+                  style={{
+                    backgroundImage: "url(/assets/card.png)",
+                    backgroundSize: "cover",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                  }}
+                >
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.35),_transparent_70%)]" />
+                  <div className="relative flex flex-col items-center text-center">
+                    <div className="rounded-2xl bg-white/92 p-3 shadow-[0_32px_60px_-20px_rgba(79,70,229,0.46)]">
+                      <QRCodeGenerator
+                        value={profileUrl}
+                        size={175}
+                        level="M"
+                      />
+                    </div>
+                    <div className="mt-6 text-xs font-semibold uppercase tracking-[0.28em] text-white">
+                      Powered by
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handlePoweredByClick}
+                      className="mt-2 inline-flex items-center gap-2 text-white/90 transition hover:text-white"
+                    >
+                      <QrCode className="h-4 w-4" />
+                      QR Folio
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleShare}
+                  className="no-print inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#4338ca] to-[#2563eb] px-8 py-3 text-sm font-semibold text-white shadow-lg"
+                >
+                  Connect Now &gt;
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handlePrintCard}
+                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-200 bg-white px-8 py-3 text-sm font-semibold text-indigo-600 shadow"
+                >
+                  Download Card PDF
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleDownloadCard}
+                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-200 bg-white px-8 py-3 text-sm font-semibold text-indigo-600 shadow"
+                >
+                  Download Card Image
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSaveContact}
+                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-200 bg-white px-8 py-3 text-sm font-semibold text-indigo-600 shadow"
+                >
+                  Save Contact
+                </motion.button>
+              </div>
+              <div className="text-center text-xs font-semibold text-slate-500">
+                <button
+                  type="button"
+                  onClick={handlePoweredByClick}
+                  className="mt-2 inline-flex items-center gap-2 text-[#1E1E1E] transition hover:text-[#4338ca]"
+                >
+                  <QrCode className="h-4 w-4" />
+                  Powered by QR Folio
+                </button>
+              </div>
+            </aside>
+
+            <main className="flex-1 space-y-1">
+              <section className="rounded-3xl p-10   backdrop-blur">
+                <div className="space-y-8">
+                  <div className="max-w-3xl space-y-4">
+                    <h2 className="text-2xl text-[#1532CB] font-semibold">
+                      About Me
+                    </h2>
+                    <p className="text-base leading-relaxed text-slate-600">
+                      {professionalSummary || "—"}
+                    </p>
+                  </div>
+                  {featuredGallery.length > 0 && (
+                    <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-4">
+                      {featuredGallery.map((item) => (
+                        <button
+                          key={item._id || item.id}
+                          type="button"
+                          onClick={() => setSelectedPhoto(item)}
+                          className=" flex flex-col items-center gap-3 shadow-[rgba(0,0,0,0.46)] rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg"
+                        >
+                          <img
+                            src={item.url}
+                            alt={item.title || "Gallery image"}
+                            className="h-full w-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="grid gap-10 rounded-3xl pt-12   p-10 backdrop-blur lg:grid-cols-[minmax(0,380px),1fr]">
+                <div className="space-y-5">
+                  <h2 className="text-2xl font-semibold text-[#1532CB]">
+                    Professional Details
+                  </h2>
+                  <div className="grid h-[200px] grid-cols-1 md:grid-cols-2 gap-4 justify-center ">
+                    <div className="flex flex-col shadow-[rgba(0,0,0,0.46)] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-[#1E1E1E] shadow-inner">
+                        <Building2 className="h-6 w-6" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[#1E1E1E]">
+                          Company Name
+                        </p>
+                        <p className="mt-2 truncate text-base font-semibold text-indigo-600">
+                          {companyName}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-center gap-3 shadow-[rgba(0,0,0,0.46)] rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-[#1E1E1E] shadow-inner">
+                        <Briefcase className="h-6 w-6" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[#1E1E1E]">
+                          Designation
+                        </p>
+                        <p className="mt-2 truncate text-base font-semibold text-indigo-600">
+                          {user.designation || "—"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  <div className="space-y-4">
+                    <h2 className="text-2xl text-[#1532CB] font-semibold">
+                      Company Description
+                    </h2>
+                    <p className="text-base leading-relaxed text-slate-600">
+                      {companyDescription !== "—"
+                        ? companyDescription
+                        : "We create visually stunning and engaging content."}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <div className="inline-flex overflow-hidden rounded-full text-sm font-semibold shadow-[0_12px_24px_-16px_rgba(37,99,235,0.55)]">
+                      <span className="bg-gradient-to-r from-[#4338CA] to-[#2563EB] px-5 py-2 text-white">
+                        Experience:&nbsp;
+                        <span className="font-semibold">
+                          {companyExperience || "—"}
+                        </span>
+                      </span>
+                      <span className="bg-white px-5 py-2 text-slate-800">
+                        Referral Code:&nbsp;
+                        <span className="text-indigo-600">
+                          {companyReferralCode || "—"}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                      <Mail className="h-5 w-5 text-indigo-500" />
+                      <span className="break-all text-sm font-medium text-slate-700">
                         {companyEmail}
-                      </div>
+                      </span>
                     </div>
-                    <div>
-                      <div className="text-xs text-gray-500">Company Phone</div>
-                      <div className="text-sm text-gray-900 break-all">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                      <Phone className="h-5 w-5 text-indigo-500" />
+                      <span className="break-all text-sm font-medium text-slate-700">
                         {companyPhone}
-                      </div>
+                      </span>
                     </div>
-                    <div>
-                      <div className="text-xs text-gray-500">Website</div>
-                      <div className="text-sm text-blue-600 break-all">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:col-span-2">
+                      <Globe className="h-5 w-5 text-indigo-500" />
+                      <span className="break-all text-sm font-medium text-blue-600">
                         {companyWebsiteUrl ? (
                           <a
                             href={companyWebsiteUrl}
@@ -966,140 +1031,57 @@ const PublicProfilePage = () => {
                             rel="noopener noreferrer"
                             className="hover:underline"
                           >
-                            {companyWebsiteRaw}
+                            {companyWebsiteRaw || companyWebsiteUrl}
                           </a>
                         ) : (
                           "—"
                         )}
-                      </div>
+                      </span>
                     </div>
-                  </div> */}
-                  {/* <div className="border-t border-gray-200 pt-4">
-                    <div className="text-xs text-gray-500">Company Address</div>
-                    <div className="text-sm text-gray-900 break-words">
-                      {companyAddress}
+                    <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:col-span-2">
+                      <MapPin className="mt-1 h-5 w-5 text-indigo-500" />
+                      <span className="text-sm font-medium text-slate-700">
+                        {companyAddress}
+                      </span>
                     </div>
                   </div> */}
                 </div>
               </section>
 
-              {socialLinks.length > 0 && (
-                <section className="border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Social Profiles
-                  </h3>
-                  <div className="mt-3 flex flex-wrap items-center gap-3">
-                    {socialLinks.map((link) => (
-                      <a
-                        key={link.key}
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={link.label}
-                        className={`w-10 h-10 rounded-full ${link.bg} ${link.fg} flex items-center justify-center transition-transform hover:scale-105`}
-                      >
-                        <BrandIcon name={link.key} className="w-5 h-5" />
-                        <span className="sr-only">{link.label}</span>
-                      </a>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {professionalSummary && (
-                <section className="border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Professional Summary
-                  </h3>
-                  <p className="mt-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                    {professionalSummary}
-                  </p>
-                </section>
-              )}
-
-              {companyDescription && (
-                <section className="border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Company Description
-                  </h3>
-                  <p className="mt-3 text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                    {companyDescription}
-                  </p>
-                </section>
-              )}
-            </div>
-          </div>
-        </motion.div>
-        {(imageItems.length > 0 || videoItems.length > 0) && (
-          <section className="py-12">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-              {imageItems.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-bold mb-6">Photos</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {imageItems.map((item) => (
-                      <div
-                        key={item._id || item.id}
-                        className="bg-white rounded-lg shadow-md overflow-hidden"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPhoto(item)}
-                          className="block w-full"
-                        >
-                          <img
-                            src={item.url}
-                            alt={item.title || "Gallery image"}
-                            className="w-full h-48 object-cover cursor-zoom-in"
-                          />
-                        </button>
-                        <div className="p-4">
-                          <h3 className="font-medium text-gray-900">
-                            {item.title || "Image"}
-                          </h3>
-                          {item.description && (
-                            <p className="text-sm text-gray-500 mt-1">
-                              {item.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
               {videoItems.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-bold mb-6">Video Links</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <section className="rounded-3xl p-10 backdrop-blur">
+                  <h2 className="text-2xl text-[#1532CB] font-semibold text-slate-900">
+                    Videos
+                  </h2>
+                  <div className="mt-6 grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                     {videoItems.map((item) => (
                       <div
                         key={item._id || item.id}
-                        className="bg-white rounded-lg shadow-md overflow-hidden"
+                        className="overflow-hidden rounded-3xl bg-slate-900 shadow-lg w-full"
                       >
-                        <div className="relative w-full h-48 bg-black flex items-center justify-center overflow-hidden">
+                        <div className="relative h-40 w-full">
                           {renderVideoEmbed(item.url) || (
-                            <div className="text-center px-6 text-white">
-                              <p className="font-semibold truncate">
+                            <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-white">
+                              <p className="text-sm font-semibold">
                                 {item.title || "Video"}
                               </p>
                               <a
                                 href={item.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm text-primary-200 underline mt-2 block truncate"
+                                className="text-xs font-semibold text-white/80 underline"
                               >
                                 Watch video
                               </a>
                             </div>
                           )}
                         </div>
-                        <div className="p-4">
-                          <h3 className="font-medium text-gray-900">
+                        <div className="space-y-1 bg-white p-4">
+                          <h3 className="font-semibold text-slate-900">
                             {item.title || "Video"}
                           </h3>
                           {item.description && (
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-slate-500">
                               {item.description}
                             </p>
                           )}
@@ -1107,61 +1089,61 @@ const PublicProfilePage = () => {
                       </div>
                     ))}
                   </div>
-                </div>
+                </section>
               )}
-            </div>
-          </section>
-        )}
-      </div>
+            </main>
+          </div>
+        </motion.div>
 
-      <AnimatePresence>
-        {selectedPhoto && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedPhoto(null)}
-          >
+        <AnimatePresence>
+          {selectedPhoto && (
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-              className="relative max-w-4xl w-full"
-              onClick={(event) => event.stopPropagation()}
+              className="fixed inset-0 z-50  flex items-center justify-center bg-black/80 p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedPhoto(null)}
             >
-              <button
-                type="button"
-                aria-label="Close image preview"
-                onClick={() => setSelectedPhoto(null)}
-                className="absolute -top-4 -right-4 rounded-full bg-white text-gray-700 shadow-lg p-2 hover:text-gray-900"
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                className="relative w-full max-w-4xl "
+                onClick={(event) => event.stopPropagation()}
               >
-                <X className="w-5 h-5" />
-              </button>
-              <img
-                src={selectedPhoto.url}
-                alt={selectedPhoto.title || "Gallery image"}
-                className="w-full max-h-[80vh] object-contain rounded-2xl bg-black"
-              />
-              {(selectedPhoto.title || selectedPhoto.description) && (
-                <div className="mt-4 text-center text-white">
-                  {selectedPhoto.title && (
-                    <h3 className="text-lg font-semibold">
-                      {selectedPhoto.title}
-                    </h3>
-                  )}
-                  {selectedPhoto.description && (
-                    <p className="text-sm text-gray-200 mt-1">
-                      {selectedPhoto.description}
-                    </p>
-                  )}
-                </div>
-              )}
+                <button
+                  type="button"
+                  aria-label="Close image preview"
+                  onClick={() => setSelectedPhoto(null)}
+                  className="absolute -top-4 -right-4 rounded-full bg-white p-2 text-gray-700 shadow-lg hover:text-gray-900"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+                <img
+                  src={selectedPhoto.url}
+                  alt={selectedPhoto.title || "Gallery image"}
+                  className="max-h-[80vh] w-full rounded-2xl bg-black object-contain"
+                />
+                {(selectedPhoto.title || selectedPhoto.description) && (
+                  <div className="mt-4 text-center text-white">
+                    {selectedPhoto.title && (
+                      <h3 className="text-lg font-semibold">
+                        {selectedPhoto.title}
+                      </h3>
+                    )}
+                    {selectedPhoto.description && (
+                      <p className="mt-1 text-sm text-gray-200">
+                        {selectedPhoto.description}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

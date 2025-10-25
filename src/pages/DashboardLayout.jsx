@@ -13,6 +13,7 @@ import Dashboard from "../components/Dashboard";
 import EditProfile from "../components/EditProfile";
 import CompanyDetails from "../components/CompanyDetails";
 import MyQRCode from "../components/MyQRCode";
+import ReferPage from "./ReferPage";
 import GalleryPage from "./GalleryPage";
 import { PLAN_LABELS, getPlanRank } from "../utils/subscriptionPlan";
 
@@ -88,6 +89,7 @@ const DashboardLayout = () => {
     else if (path.includes("/dashboard/profile")) setActiveTab("profile");
     else if (path.includes("/dashboard/company")) setActiveTab("company");
     else if (path.includes("/dashboard/qrcode")) setActiveTab("qrcode");
+    else if (path.includes("/dashboard/refer")) setActiveTab("refer");
   }, [location.pathname]);
 
   const renderContent = () => {
@@ -110,6 +112,8 @@ const DashboardLayout = () => {
         ) : (
           renderRestrictedFeature("My QR Code")
         );
+      case "refer":
+        return <ReferPage />;
       default:
         return <Dashboard />;
     }
@@ -207,6 +211,7 @@ const DashboardLayout = () => {
                     )
                   }
                 />
+                <Route path="refer" element={<ReferPage />} />
                 <Route path="*" element={<Navigate to="/dashboard" />} />
               </Routes>
             </motion.div>

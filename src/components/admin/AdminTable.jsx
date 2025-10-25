@@ -19,7 +19,7 @@ const AdminTable = ({
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-600 bg-white">
+    <div className="overflow-scroll rounded-xl  border border-gray-600 bg-white">
       <table className="min-w-full divide-y  divide-gray-600">
         <thead className="bg-gray-50">
           <tr>

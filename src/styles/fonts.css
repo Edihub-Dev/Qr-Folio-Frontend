@@ -1,10 +1,11 @@
 /* System Font Stack as Primary */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 /* Fallback Font Stack */
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-inter: 'Inter', var(--font-sans);
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-inter: "Inter", var(--font-sans);
 }
 
 /* Apply the font stack to the body */
@@ -13,8 +14,9 @@ body {
 }
 
 /* If you still want to use Plus Jakarta Sans when available */
-@supports (font-family: 'Plus Jakarta Sans', sans-serif) {
+@supports (font-family: "Plus Jakarta Sans", sans-serif) {
   :root {
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 }
