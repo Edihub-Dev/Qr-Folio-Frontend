@@ -12,8 +12,8 @@ const MaintenancePage = () => {
           We&rsquo;re polishing things up
         </h1>
         <p className="mt-5 text-lg text-slate-200/80">
-          Our site is currently undergoing scheduled maintenance to bring you new features and improvements.
-          Please check back in a little while.
+          Our site is currently undergoing scheduled maintenance to bring you
+          new features and improvements. Please check back in a little while.
         </p>
         <div className="mt-10 inline-flex items-center gap-3 rounded-2xl border border-orange-500/40 bg-orange-500/10 px-6 py-3 text-sm uppercase tracking-[0.25em] text-orange-200">
           <Clock className="h-4 w-4" />
@@ -21,8 +21,11 @@ const MaintenancePage = () => {
         </div>
         <p className="mt-10 text-sm text-slate-300/60">
           If you need urgent assistance, contact us at
-          <a href="mailto:support@qrfolio.net" className="ml-1 text-orange-200 underline">
-            support@qrfolio.net
+          <a
+            href="mailto:support@qrfolio.net"
+            className="ml-1 text-orange-200 underline"
+          >
+            tech.qrfolio@gmail.com
           </a>
         </p>
       </div>
