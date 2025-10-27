@@ -202,11 +202,12 @@ export const AuthProvider = ({ children }) => {
               const paymentComplete = hasPaymentFlag(parsed);
               const normalized = {
                 ...parsed,
-                role: parsed?.role || 'user',
+                role: parsed?.role || "user",
                 isBlocked: Boolean(parsed?.isBlocked),
                 paymentStatus:
-                  parsed?.paymentStatus || (paymentComplete ? 'paid' : 'pending'),
-                paymentMethod: parsed?.paymentMethod || 'none',
+                  parsed?.paymentStatus ||
+                  (paymentComplete ? "paid" : "pending"),
+                paymentMethod: parsed?.paymentMethod || "none",
                 totalAmountPaid: Number(parsed?.totalAmountPaid || 0),
                 lastPaymentAt: parsed?.lastPaymentAt || null,
                 paymentReference: parsed?.paymentReference || null,
@@ -215,7 +216,10 @@ export const AuthProvider = ({ children }) => {
                 phonepePaymentId: parsed.phonepePaymentId,
                 phonepeMerchantTransactionId:
                   parsed.phonepeMerchantTransactionId,
-                subscriptionPlan: normalizePlan(parsed.subscriptionPlan, parsed.planName),
+                subscriptionPlan: normalizePlan(
+                  parsed.subscriptionPlan,
+                  parsed.planName
+                ),
               };
               setUser(normalized);
             }
@@ -247,7 +251,13 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const signup = async ({ name, email, password, confirmPassword, couponCode }) => {
+  const signup = async ({
+    name,
+    email,
+    password,
+    confirmPassword,
+    couponCode,
+  }) => {
     try {
       setUser(null);
       setSignupData(null);
@@ -576,10 +586,11 @@ export const AuthProvider = ({ children }) => {
         const normalized = {
           ...u,
           email: u?.email || normalizedEmail,
-          role: u?.role || 'user',
+          role: u?.role || "user",
           isBlocked: Boolean(u?.isBlocked),
-          paymentStatus: u?.paymentStatus || (hasPaymentFlag(u) ? 'paid' : 'pending'),
-          paymentMethod: u?.paymentMethod || 'none',
+          paymentStatus:
+            u?.paymentStatus || (hasPaymentFlag(u) ? "paid" : "pending"),
+          paymentMethod: u?.paymentMethod || "none",
           totalAmountPaid: Number(u?.totalAmountPaid || 0),
           lastPaymentAt: u?.lastPaymentAt || null,
           paymentReference: u?.paymentReference || null,
@@ -627,10 +638,12 @@ export const AuthProvider = ({ children }) => {
         console.log("💳 Payment required response received");
         const normalized = {
           ...data.user,
-          role: data.user?.role || 'user',
+          role: data.user?.role || "user",
           isBlocked: Boolean(data.user?.isBlocked),
-          paymentStatus: data.user?.paymentStatus || (hasPaymentFlag(data.user) ? 'paid' : 'pending'),
-          paymentMethod: data.user?.paymentMethod || 'none',
+          paymentStatus:
+            data.user?.paymentStatus ||
+            (hasPaymentFlag(data.user) ? "paid" : "pending"),
+          paymentMethod: data.user?.paymentMethod || "none",
           totalAmountPaid: Number(data.user?.totalAmountPaid || 0),
           lastPaymentAt: data.user?.lastPaymentAt || null,
           paymentReference: data.user?.paymentReference || null,
@@ -640,7 +653,10 @@ export const AuthProvider = ({ children }) => {
           promoCodeEligible: Boolean(data.user.promoCodeEligible),
           promoCodeUsed: Boolean(data.user.promoCodeUsed),
           promoCode: data.user.promoCode || null,
-          subscriptionPlan: normalizePlan(data.user.subscriptionPlan, data.user.planName),
+          subscriptionPlan: normalizePlan(
+            data.user.subscriptionPlan,
+            data.user.planName
+          ),
         };
 
         console.log("User needs to complete payment:", normalized);
@@ -744,8 +760,10 @@ export const AuthProvider = ({ children }) => {
       };
 
       const normalizedPlan =
-        normalizePlan(merged.subscriptionPlan, merged.planName || merged.planKey) ||
-        "basic";
+        normalizePlan(
+          merged.subscriptionPlan,
+          merged.planName || merged.planKey
+        ) || "basic";
 
       const hasCompletedSetupValue =
         typeof merged.hasCompletedSetup === "boolean"
@@ -885,12 +903,16 @@ export const AuthProvider = ({ children }) => {
       }
       return {
         success: false,
-        error: res.data?.error || res.data?.message || "Failed to fetch gallery",
+        error:
+          res.data?.error || res.data?.message || "Failed to fetch gallery",
       };
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to fetch gallery",
+        error:
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to fetch gallery",
       };
     }
   }, []);
@@ -914,7 +936,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to upload image",
+        error:
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to upload image",
       };
     }
   }, []);
@@ -933,7 +958,8 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to add video",
+        error:
+          error.response?.data?.error || error.message || "Failed to add video",
       };
     }
   }, []);
@@ -951,7 +977,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || error.message || "Failed to delete item",
+        error:
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to delete item",
       };
     }
   }, []);

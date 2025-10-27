@@ -30,6 +30,7 @@ import PhonePeDemoPage from "./pages/PhonePeDemoPage";
 import PaymentStatusPage from "./pages/PaymentStatusPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailure from "./pages/PaymentFailure";
+import MaintenancePage from "./pages/MaintenancePage";
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { user, loading } = useAuth();
@@ -171,88 +172,98 @@ function App() {
     return cleanup;
   }, []);
 
+  const maintenanceMode =
+    (import.meta.env?.VITE_MAINTENANCE_MODE ?? "false").toString().toLowerCase() ===
+    "true";
+
   return (
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-gray-50 font-sans">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <PublicRoute>
-                  <LandingPage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/login"
-              element={
-                <PublicRoute authPage>
-                  <LoginPage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/forgot-password"
-              element={
-                <PublicRoute>
-                  <ForgotPasswordPage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <PublicRoute authPage>
-                  <SignupPage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/payment"
-              element={
-                <SetupRoute>
-                  <PaymentPage />
-                </SetupRoute>
-              }
-            />
-            <Route path="/phonepe-demo" element={<PhonePeDemoPage />} />
-            <Route path="/payment-status" element={<PaymentStatusPage />} />
-            <Route path="/success" element={<PaymentSuccess />} />
-            <Route path="/failure" element={<PaymentFailure />} />
-            <Route path="/verify-otp" element={<VerifyOTPPage />} />
-            <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
-            <Route path="/RefundPolicy" element={<RefundPolicy />} />
-            <Route path="/terms" element={<TermsConditions />} />
+          {maintenanceMode ? (
+            <Routes>
+              <Route path="*" element={<MaintenancePage />} />
+            </Routes>
+          ) : (
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <PublicRoute>
+                    <LandingPage />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/login"
+                element={
+                  <PublicRoute authPage>
+                    <LoginPage />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/forgot-password"
+                element={
+                  <PublicRoute>
+                    <ForgotPasswordPage />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/signup"
+                element={
+                  <PublicRoute authPage>
+                    <SignupPage />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/payment"
+                element={
+                  <SetupRoute>
+                    <PaymentPage />
+                  </SetupRoute>
+                }
+              />
+              <Route path="/phonepe-demo" element={<PhonePeDemoPage />} />
+              <Route path="/payment-status" element={<PaymentStatusPage />} />
+              <Route path="/success" element={<PaymentSuccess />} />
+              <Route path="/failure" element={<PaymentFailure />} />
+              <Route path="/verify-otp" element={<VerifyOTPPage />} />
+              <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
+              <Route path="/RefundPolicy" element={<RefundPolicy />} />
+              <Route path="/terms" element={<TermsConditions />} />
 
-            <Route path="/profile/:id" element={<PublicProfilePage />} />
+              <Route path="/profile/:id" element={<PublicProfilePage />} />
 
-            <Route
-              path="/dashboard/*"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/dashboard/*"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requireAdmin>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboardPage />} />
-              <Route path="users" element={<AdminUsersPage />} />
-              <Route path="exports" element={<AdminExportsPage />} />
-              <Route path="invoices" element={<AdminInvoicesPage />} />
-              <Route path="refer" element={<AdminReferralsPage />} />
-            </Route>
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboardPage />} />
+                <Route path="users" element={<AdminUsersPage />} />
+                <Route path="exports" element={<AdminExportsPage />} />
+                <Route path="invoices" element={<AdminInvoicesPage />} />
+                <Route path="refer" element={<AdminReferralsPage />} />
+              </Route>
 
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          )}
         </div>
       </Router>
     </AuthProvider>

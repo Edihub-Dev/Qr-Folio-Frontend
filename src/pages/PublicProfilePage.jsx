@@ -34,6 +34,21 @@ const PublicProfilePage = () => {
   const [imageItems, setImageItems] = useState([]);
   const [videoItems, setVideoItems] = useState([]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
+  const [isGalleryTransitionEnabled, setIsGalleryTransitionEnabled] =
+    useState(true);
+  const [visibleGalleryCount, setVisibleGalleryCount] = useState(3);
+
+  const featuredGallery = useMemo(() => [...imageItems], [imageItems]);
+  const effectiveVisibleCount =
+    featuredGallery.length > 0
+      ? Math.min(featuredGallery.length, visibleGalleryCount)
+      : 1;
+  const extendedGallery = useMemo(() => {
+    if (!featuredGallery.length) return [];
+    const loopCount = Math.min(featuredGallery.length, visibleGalleryCount);
+    return [...featuredGallery, ...featuredGallery.slice(0, loopCount)];
+  }, [featuredGallery, visibleGalleryCount]);
 
   const fetchUser = useCallback(async () => {
     if (!id) return;
@@ -111,6 +126,77 @@ const PublicProfilePage = () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedPhoto]);
+
+  useEffect(() => {
+    const updateVisibleCount = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setVisibleGalleryCount(1);
+      } else if (width < 1024) {
+        setVisibleGalleryCount(2);
+      } else {
+        setVisibleGalleryCount(3);
+      }
+    };
+
+    updateVisibleCount();
+    window.addEventListener("resize", updateVisibleCount);
+    return () => window.removeEventListener("resize", updateVisibleCount);
+  }, []);
+
+  useEffect(() => {
+    if (!featuredGallery.length) {
+      setActiveGalleryIndex(0);
+      return;
+    }
+
+    if (featuredGallery.length <= visibleGalleryCount) {
+      setActiveGalleryIndex(0);
+      return;
+    }
+
+    const maxIndex = featuredGallery.length - visibleGalleryCount;
+    setActiveGalleryIndex((prev) => Math.min(prev, maxIndex));
+  }, [featuredGallery.length, visibleGalleryCount]);
+
+  useEffect(() => {
+    if (selectedPhoto || featuredGallery.length <= visibleGalleryCount) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveGalleryIndex((prev) => prev + 1);
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [featuredGallery.length, selectedPhoto, visibleGalleryCount]);
+
+  useEffect(() => {
+    if (featuredGallery.length <= visibleGalleryCount) {
+      setIsGalleryTransitionEnabled(true);
+      return;
+    }
+
+    if (activeGalleryIndex === featuredGallery.length) {
+      const timeout = window.setTimeout(() => {
+        setIsGalleryTransitionEnabled(false);
+        setActiveGalleryIndex(0);
+      }, 700);
+      return () => window.clearTimeout(timeout);
+    }
+
+    setIsGalleryTransitionEnabled(true);
+  }, [activeGalleryIndex, featuredGallery.length, visibleGalleryCount]);
+
+  useEffect(() => {
+    if (!isGalleryTransitionEnabled) {
+      const raf = window.requestAnimationFrame(() => {
+        setIsGalleryTransitionEnabled(true);
+      });
+      return () => window.cancelAnimationFrame(raf);
+    }
+    return undefined;
+  }, [isGalleryTransitionEnabled]);
 
   const handlePoweredByClick = useCallback(() => {
     if (authLoading) return;
@@ -754,13 +840,12 @@ const PublicProfilePage = () => {
   const skills = Array.isArray(user.skills)
     ? user.skills.map((skill) => `${skill}`.trim()).filter(Boolean)
     : [];
-  const featuredGallery = [...imageItems];
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#B2C8FF]">
       <div className="pointer-events-none absolute bg-[#B2C8FF] inset-0 opacity-80">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_#dbeafe_0%,_#eef2ff_45%,_#f8fafc_100%)]" />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526498460520-4c246339dccb?auto=format&fit=crop&w=2000&q=80')] opacity-25 mix-blend-overlay" />
+        <div className="absolute inset-0 bg-[url('/assets/publicprofilebackground.jpg')] bg-cover bg-center opacity-30 mix-blend-overlay" />
       </div>
 
       <div className="relative z-10 flex min-h-screen flex-col">
@@ -924,22 +1009,51 @@ const PublicProfilePage = () => {
                       {professionalSummary || "—"}
                     </p>
                   </div>
-                  {featuredGallery.length > 0 && (
-                    <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-4">
-                      {featuredGallery.map((item) => (
-                        <button
-                          key={item._id || item.id}
-                          type="button"
-                          onClick={() => setSelectedPhoto(item)}
-                          className=" flex flex-col items-center gap-3 shadow-[rgba(0,0,0,0.46)] rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg"
-                        >
-                          <img
-                            src={item.url}
-                            alt={item.title || "Gallery image"}
-                            className="h-full w-full object-cover"
-                          />
-                        </button>
-                      ))}
+                  {extendedGallery.length > 0 && (
+                    <div className="relative overflow-hidden rounded-3xl border p-3 sm:p-4">
+                      <div
+                        className="flex"
+                        style={{
+                          transform: `translateX(-${
+                            activeGalleryIndex * (100 / effectiveVisibleCount)
+                          }%)`,
+                          transition: isGalleryTransitionEnabled
+                            ? "transform 0.7s ease-out"
+                            : "none",
+                        }}
+                      >
+                        {extendedGallery.map((item, index) => {
+                          const basis = 100 / effectiveVisibleCount;
+
+                          return (
+                            <button
+                              key={`${item._id || item.id || index}-${index}`}
+                              type="button"
+                              onClick={() => setSelectedPhoto(item)}
+                              className="flex-shrink-0 px-1 sm:px-2"
+                              style={{
+                                flexBasis: `${basis}%`,
+                                maxWidth: `${basis}%`,
+                              }}
+                            >
+                              <div className="relative h-[200px] sm:h-[240px] w-full overflow-hidden rounded-2xl border border-slate-200 shadow-sm transition hover:shadow-lg">
+                                <img
+                                  src={item.url}
+                                  alt={item.title || "Gallery image"}
+                                  className="h-full w-full object-cover"
+                                />
+                                {item.title && (
+                                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pb-3 pt-8 text-left">
+                                    <p className="text-sm font-medium text-white">
+                                      {item.title}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -953,8 +1067,8 @@ const PublicProfilePage = () => {
                   </h2>
                   <div className="grid min-h-0 grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Company Name Card */}
-                    <div className="flex flex-col h-[200px] shadow-[rgba(0,0,0,0.46)] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-[#1E1E1E] shadow-inner">
+                    <div className="flex flex-col  h-[200px] shadow-[rgba(0,0,0,0.46)] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
+                      <div className="flex h-12 w-12 m-5 items-center justify-center rounded-2xl bg-indigo-100 text-[#1E1E1E] shadow-inner">
                         <Building2 className="h-6 w-6" />
                       </div>
                       <div className="min-w-0 w-full">
@@ -969,7 +1083,7 @@ const PublicProfilePage = () => {
 
                     {/* Designation Card */}
                     <div className="flex h-[200px] flex-col items-center gap-3 shadow-[rgba(0,0,0,0.46)] rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-[#1E1E1E] shadow-inner">
+                      <div className="flex h-12 w-12 m-5 items-center justify-center rounded-2xl bg-blue-100 text-[#1E1E1E] shadow-inner">
                         <Briefcase className="h-6 w-6" />
                       </div>
                       <div className="min-w-0 w-full">
@@ -1012,90 +1126,67 @@ const PublicProfilePage = () => {
                       </span>
                     </div>
                   </div>
-
-                  {/* Commented out contact information */}
-                  {/* <div className="grid gap-4 sm:grid-cols-2">
-      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-        <Mail className="h-5 w-5 text-indigo-500" />
-        <span className="break-all text-sm font-medium text-slate-700">
-          {companyEmail}
-        </span>
-      </div>
-      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-        <Phone className="h-5 w-5 text-indigo-500" />
-        <span className="break-all text-sm font-medium text-slate-700">
-          {companyPhone}
-        </span>
-      </div>
-      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:col-span-2">
-        <Globe className="h-5 w-5 text-indigo-500" />
-        <span className="break-all text-sm font-medium text-blue-600">
-          {companyWebsiteUrl ? (
-            <a
-              href={companyWebsiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-            >
-              {companyWebsiteRaw || companyWebsiteUrl}
-            </a>
-          ) : (
-            "—"
-          )}
-        </span>
-      </div>
-      <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:col-span-2">
-        <MapPin className="mt-1 h-5 w-5 text-indigo-500" />
-        <span className="text-sm font-medium text-slate-700">
-          {companyAddress}
-        </span>
-      </div>
-    </div> */}
                 </div>
               </section>
 
               {videoItems.length > 0 && (
-                <section className="rounded-3xl p-10 backdrop-blur">
-                  <h2 className="text-2xl text-[#1532CB] font-semibold text-slate-900">
-                    Videos
+                <div>
+                  <h2 className="text-xl font-semibold text-[#1532CB] mb-4">
+                    Work Videos
                   </h2>
-                  <div className="mt-6 grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                    {videoItems.map((item) => (
-                      <div
-                        key={item._id || item.id}
-                        className="overflow-hidden rounded-3xl bg-slate-900 shadow-lg w-full"
-                      >
-                        <div className="relative h-40 w-full">
-                          {renderVideoEmbed(item.url) || (
-                            <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center text-white">
-                              <p className="text-sm font-semibold">
-                                {item.title || "Video"}
-                              </p>
-                              <a
-                                href={item.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs font-semibold text-white/80 underline"
+                  {/* <div className="text-sm text-gray-500 mb-3">
+                    Explore the latest videos shared on this profile.
+                  </div> */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <AnimatePresence>
+                      {videoItems.map((item) => (
+                        <motion.div
+                          key={item._id}
+                          layout
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          className="bg-[#e5ecff] hover:text-white hover:shadow-[rgba(0,0,0,0.46)] rounded-2xl shadow-md border border-gray-100 overflow-hidden group"
+                        >
+                          <div className="relative w-full h-60 bg-black flex items-center justify-center overflow-hidden">
+                            {renderVideoEmbed(item.url) || (
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-center px-6 text-[#1532CB]"
                               >
-                                Watch video
-                              </a>
+                                <Link2 className="w-10 h-10 mx-auto mb-3" />
+                                <p className="font-semibold truncate">
+                                  {item.title}
+                                </p>
+                                <a
+                                  href={item.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-primary-200 underline mt-2 block truncate"
+                                >
+                                  Open video
+                                </a>
+                              </motion.div>
+                            )}
+                          </div>
+                          <div className="p-2 mt-0.5 bg-[#e5ecff] flex items-start gap-4">
+                            <div className="flex min-w-0">
+                              <h3 className="font-semibold text-sm text-black truncate">
+                                {item.title}
+                                {item.description && (
+                                  <p className="text-xs text-black mt-1 line-clamp-2">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </h3>
                             </div>
-                          )}
-                        </div>
-                        <div className="space-y-1 bg-white p-4">
-                          <h3 className="font-semibold text-slate-900">
-                            {item.title || "Video"}
-                          </h3>
-                          {item.description && (
-                            <p className="text-sm text-slate-500">
-                              {item.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </div>
-                </section>
+                </div>
               )}
             </main>
           </div>
@@ -1139,7 +1230,7 @@ const PublicProfilePage = () => {
                       </h3>
                     )}
                     {selectedPhoto.description && (
-                      <p className="mt-1 text-sm text-gray-200">
+                      <p className="mt-1 text-sm text-white">
                         {selectedPhoto.description}
                       </p>
                     )}
