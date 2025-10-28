@@ -106,44 +106,12 @@ const PaymentForm = () => {
     []
   );
 
-  const CHAINPAY_MSTC_CONFIG = Object.freeze({
-    starter: { coins: 100 },
-    growth: { coins: 200 },
-    enterprise: { coins: 300 },
-  });
-
-  const resolveMstcInrRate = () => {
-    const raw = Number(import.meta.env?.VITE_CHAINPAY_MSTC_INR_RATE);
-    if (Number.isFinite(raw) && raw > 0) {
-      return raw;
-    }
-    const fallback = Number(
-      import.meta.env?.VITE_MSTC_INR_RATE ||
-        import.meta.env?.VITE_MSTC_PRICE_INR
-    );
-    if (Number.isFinite(fallback) && fallback > 0) {
-      return fallback;
-    }
-    return 0.1;
-  };
-
-  const computeInrFromMstc = (coins) => {
-    const rate = resolveMstcInrRate();
-    const normalizedCoins = Number(coins);
-    if (!Number.isFinite(normalizedCoins) || normalizedCoins <= 0) {
-      return null;
-    }
-    const amount = normalizedCoins * rate;
-    return Number.isFinite(amount) ? Number(amount.toFixed(2)) : null;
-  };
-
   const chainpayPlans = useMemo(
     () => ({
       starter: {
         name: "Basic (Silver)",
-        price: computeInrFromMstc(CHAINPAY_MSTC_CONFIG.starter.coins),
+        price: 399,
         currency: "INR",
-        coins: CHAINPAY_MSTC_CONFIG.starter.coins,
         description: "Start accepting crypto payments.",
         features: [
           "Custom QR Code",
@@ -157,9 +125,8 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Standard (Gold)",
-        price: computeInrFromMstc(CHAINPAY_MSTC_CONFIG.growth.coins),
+        price: 599,
         currency: "INR",
-        coins: CHAINPAY_MSTC_CONFIG.growth.coins,
         description: "Premium tools with annual billing.",
         features: [
           "Everything in Basic",
@@ -173,9 +140,8 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: computeInrFromMstc(CHAINPAY_MSTC_CONFIG.enterprise.coins),
+        price: 999,
         currency: "INR",
-        coins: CHAINPAY_MSTC_CONFIG.enterprise.coins,
         description: "Enterprise billing.",
         features: [
           "Everything in Standard",
@@ -363,14 +329,12 @@ const PaymentForm = () => {
     return Object.fromEntries(
       Object.entries(chainpayPlans).map(([key, plan]) => {
         const originalAmount = Number(plan.price || 0);
-        const mstcCoins = Number(plan.coins || 0);
 
         return [
           key,
           {
             baseAmount: originalAmount,
             originalAmount,
-            mstcCoins,
             gstAmount: 0,
             cgstAmount: 0,
             sgstAmount: 0,
@@ -583,27 +547,8 @@ const PaymentForm = () => {
       return;
     }
 
-    if (!user?.name?.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        phonepe:
-          "Please update your name in your profile before making a payment.",
-      }));
-      return;
-    }
-
-    if (!selectedPlan || !plans[selectedPlan]) {
-      setErrors((prev) => ({
-        ...prev,
-        phonepe: "Please select an upgrade plan to continue.",
-      }));
-      return;
-    }
-
     setProcessingGateway("phonepe");
     setErrors((prev) => ({ ...prev, phonepe: "" }));
-    setStatusMessage("");
-    setChainpayStatusMessage("");
 
     try {
       const amountPaise = Math.round(selectedPlanPricing.totalAmount * 100);
@@ -693,15 +638,6 @@ const PaymentForm = () => {
       return;
     }
 
-    if (!user?.name?.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        chainpay:
-          "Please update your name in your profile before making a payment.",
-      }));
-      return;
-    }
-
     if (!selectedChainpayPlan || !chainpayPlans[selectedChainpayPlan]) {
       setErrors((prev) => ({
         ...prev,
@@ -725,11 +661,6 @@ const PaymentForm = () => {
         planKey: selectedChainpayPlan,
         planName: plan.name,
         pricing,
-        metadata: {
-          originalAmount: pricing?.originalAmount || plan.price,
-          finalAmount: pricing?.totalAmount || plan.price,
-          mstcCoins: pricing?.mstcCoins || plan.coins,
-        },
       });
 
       if (!paymentRes.success) {
@@ -826,7 +757,7 @@ const PaymentForm = () => {
               <Shield className="w-5 h-5 text-purple-500" />
 
               <h2 className="text-xl font-bold text-gray-900">
-                Select Your Plan (ChainPay MSTC)
+                Select Your Plan (ChainPay)
               </h2>
             </div>
 
@@ -877,13 +808,13 @@ const PaymentForm = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-xl font-bold text-indigo-600">
-                              {`${planPricing?.mstcCoins ?? plan.coins} MSTC`}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {/* {`≈ ${formatCurrencyDisplay(
+                              {formatCurrencyDisplay(
                                 planPricing?.totalAmount ?? plan.price,
                                 planPricing?.currency || "INR"
-                              )}`} */}
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Charged in INR via ChainPay
                             </div>
                           </div>
                         </div>
@@ -934,7 +865,7 @@ const PaymentForm = () => {
             </div>
 
             <div className="mt-4 text-xs text-gray-500 text-center">
-              Payments powered by ChainPay (MSTC)
+              Payments processed securely by ChainPay Checkout
             </div>
           </motion.div>
 
