@@ -107,9 +107,9 @@ const PaymentForm = () => {
   );
 
   const CHAINPAY_PLAN_INR = Object.freeze({
-    starter: 399,
-    growth: 599,
-    enterprise: 999,
+    starter: 9.7,
+    growth: 19.4,
+    enterprise: 29.1,
   });
 
   const resolveMstcInrRate = () => {
@@ -149,7 +149,7 @@ const PaymentForm = () => {
       starter: {
         name: "Basic (Silver)",
         price: CHAINPAY_PLAN_INR.starter,
-        currency: "INR",
+        // currency: "INR",
         coins: computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.starter),
         description: "Start accepting crypto payments.",
         features: [
@@ -165,7 +165,7 @@ const PaymentForm = () => {
       growth: {
         name: "Standard (Gold)",
         price: CHAINPAY_PLAN_INR.growth,
-        currency: "INR",
+        // currency: "INR",
         coins: computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.growth),
         description: "Premium tools with annual billing.",
         features: [
@@ -181,7 +181,7 @@ const PaymentForm = () => {
       enterprise: {
         name: "Premium (Platinum)",
         price: CHAINPAY_PLAN_INR.enterprise,
-        currency: "INR",
+        // currency: "INR",
         coins: computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.enterprise),
         description: "Enterprise billing.",
         features: [
@@ -395,11 +395,11 @@ const PaymentForm = () => {
       return "-";
     }
 
-    if ((currency || "").toUpperCase() === "INR") {
+    if ((currency || "").toUpperCase()) {
       return formatINR(amount);
     }
 
-    return `${amount.toFixed(2)} ${currency || ""}`.trim();
+    return `${amount.toFixed(2)} || ""}`.trim();
   };
 
   const selectedChainpayPricing = selectedChainpayPlan
@@ -727,7 +727,7 @@ const PaymentForm = () => {
     try {
       const paymentRes = await createChainpayPayment({
         amountFiat: pricing?.totalAmount || plan.price,
-        currency: plan.currency || "INR",
+        // currency: plan.currency || "INR",
         description: `${plan.name} plan purchase`,
         planKey: selectedChainpayPlan,
         planName: plan.name,
