@@ -120,6 +120,10 @@ function PaymentSuccess() {
                   "ChainPay manual confirmation failed",
                   confirmError
                 );
+                const apiMessage =
+                  confirmError?.response?.data?.message ||
+                  "Payment still pending on ChainPay. Please complete the transfer and wait for confirmation.";
+                setError(apiMessage);
               } finally {
                 confirmingRef.current = false;
               }

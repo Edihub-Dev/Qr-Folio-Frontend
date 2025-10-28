@@ -216,10 +216,6 @@ export const AuthProvider = ({ children }) => {
                 phonepePaymentId: parsed.phonepePaymentId,
                 phonepeMerchantTransactionId:
                   parsed.phonepeMerchantTransactionId,
-                subscriptionPlan: normalizePlan(
-                  parsed.subscriptionPlan,
-                  parsed.planName
-                ),
               };
               setUser(normalized);
             }
@@ -334,10 +330,10 @@ export const AuthProvider = ({ children }) => {
           hasCompletedSetup: paymentComplete,
           phonepePaymentId: userData.phonepePaymentId,
           phonepeMerchantTransactionId: userData.phonepeMerchantTransactionId,
-          promoCodeEligible: Boolean(userData.promoCodeEligible),
-          promoCodeUsed: Boolean(userData.promoCodeUsed),
-          promoCode: userData.promoCode || null,
-          ...userData,
+          subscriptionPlan: normalizePlan(
+            userData.subscriptionPlan,
+            userData.planName
+          ),
         };
 
         console.log("Setting user state:", verifiedUser);
@@ -597,9 +593,6 @@ export const AuthProvider = ({ children }) => {
           isPaid: hasPaymentFlag(u),
           hasCompletedSetup: hasPaymentFlag(u),
           isVerified: u?.isVerified || false,
-          promoCodeEligible: Boolean(u?.promoCodeEligible),
-          promoCodeUsed: Boolean(u?.promoCodeUsed),
-          promoCode: u?.promoCode || null,
           subscriptionPlan: normalizePlan(u?.subscriptionPlan, u?.planName),
         };
 
@@ -650,9 +643,6 @@ export const AuthProvider = ({ children }) => {
           isPaid: hasPaymentFlag(data.user),
           hasCompletedSetup: hasPaymentFlag(data.user),
           isVerified: data.user?.isVerified || true,
-          promoCodeEligible: Boolean(data.user.promoCodeEligible),
-          promoCodeUsed: Boolean(data.user.promoCodeUsed),
-          promoCode: data.user.promoCode || null,
           subscriptionPlan: normalizePlan(
             data.user.subscriptionPlan,
             data.user.planName

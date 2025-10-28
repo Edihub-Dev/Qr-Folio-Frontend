@@ -118,7 +118,8 @@ const PaymentForm = () => {
       return raw;
     }
     const fallback = Number(
-      import.meta.env?.VITE_MSTC_INR_RATE || import.meta.env?.VITE_MSTC_PRICE_INR
+      import.meta.env?.VITE_MSTC_INR_RATE ||
+        import.meta.env?.VITE_MSTC_PRICE_INR
     );
     if (Number.isFinite(fallback) && fallback > 0) {
       return fallback;
@@ -143,7 +144,7 @@ const PaymentForm = () => {
         price: computeInrFromMstc(CHAINPAY_MSTC_CONFIG.starter.coins),
         currency: "INR",
         coins: CHAINPAY_MSTC_CONFIG.starter.coins,
-        description: "Start accepting crypto payments with INR billing",
+        description: "Start accepting crypto payments.",
         features: [
           "Custom QR Code",
           "Add Contact Details",
@@ -159,7 +160,7 @@ const PaymentForm = () => {
         price: computeInrFromMstc(CHAINPAY_MSTC_CONFIG.growth.coins),
         currency: "INR",
         coins: CHAINPAY_MSTC_CONFIG.growth.coins,
-        description: "Premium tools with annual INR billing",
+        description: "Premium tools with annual billing.",
         features: [
           "Everything in Basic",
           "Add Custom Links",
@@ -175,7 +176,7 @@ const PaymentForm = () => {
         price: computeInrFromMstc(CHAINPAY_MSTC_CONFIG.enterprise.coins),
         currency: "INR",
         coins: CHAINPAY_MSTC_CONFIG.enterprise.coins,
-        description: "Enterprise billing with custom crypto support",
+        description: "Enterprise billing.",
         features: [
           "Everything in Standard",
           "Custom Branding",
@@ -188,11 +189,6 @@ const PaymentForm = () => {
       },
     }),
     []
-  );
-
-  const promoCode = (user?.promoCode || "").toUpperCase();
-  const isPromoEligible = Boolean(
-    user?.promoCodeEligible && !user?.promoCodeUsed && promoCode === "QR10FOLIO"
   );
 
   const rawRequestedUpgrade = useMemo(() => {
@@ -343,9 +339,6 @@ const PaymentForm = () => {
       return {
         ...calculateGstBreakdown(0),
         originalBaseAmount: 0,
-        promoApplied: false,
-        promoCode: null,
-        promoDiscountAmount: 0,
       };
     }
 
@@ -354,30 +347,17 @@ const PaymentForm = () => {
       return {
         ...calculateGstBreakdown(0),
         originalBaseAmount: 0,
-        promoApplied: false,
-        promoCode: null,
-        promoDiscountAmount: 0,
       };
     }
 
     const originalBaseAmount = Number(plan.price || 0);
-    const discountedBaseAmount = isPromoEligible
-      ? Number((originalBaseAmount * 0.9).toFixed(2))
-      : originalBaseAmount;
-
-    const breakdown = calculateGstBreakdown(discountedBaseAmount);
-    const promoDiscountAmount = isPromoEligible
-      ? Number((originalBaseAmount - discountedBaseAmount).toFixed(2))
-      : 0;
+    const breakdown = calculateGstBreakdown(originalBaseAmount);
 
     return {
       ...breakdown,
       originalBaseAmount,
-      promoApplied: isPromoEligible,
-      promoCode: isPromoEligible ? promoCode : null,
-      promoDiscountAmount,
     };
-  }, [plans, selectedPlan, isPromoEligible, promoCode]);
+  }, [plans, selectedPlan]);
 
   const chainpayPricing = useMemo(() => {
     return Object.fromEntries(
@@ -391,9 +371,6 @@ const PaymentForm = () => {
             baseAmount: originalAmount,
             originalAmount,
             mstcCoins,
-            promoApplied: false,
-            promoCode: null,
-            promoDiscountAmount: 0,
             gstAmount: 0,
             cgstAmount: 0,
             sgstAmount: 0,
@@ -749,9 +726,6 @@ const PaymentForm = () => {
         planName: plan.name,
         pricing,
         metadata: {
-          promoApplied: false,
-          promoCode: null,
-          promoDiscountAmount: 0,
           originalAmount: pricing?.originalAmount || plan.price,
           finalAmount: pricing?.totalAmount || plan.price,
           mstcCoins: pricing?.mstcCoins || plan.coins,
@@ -906,10 +880,10 @@ const PaymentForm = () => {
                               {`${planPricing?.mstcCoins ?? plan.coins} MSTC`}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {`≈ ${formatCurrencyDisplay(
+                              {/* {`≈ ${formatCurrencyDisplay(
                                 planPricing?.totalAmount ?? plan.price,
                                 planPricing?.currency || "INR"
-                              )}`}
+                              )}`} */}
                             </div>
                           </div>
                         </div>
@@ -1076,27 +1050,13 @@ const PaymentForm = () => {
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-gray-600">
                       {plans[selectedPlan].name}
-                      {selectedPlanPricing.promoApplied &&
-                        selectedPlanPricing.originalBaseAmount > 0 && (
-                          <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
-                            {selectedPlanPricing.promoCode} Applied
-                          </span>
-                        )}
                     </span>
+
                     <span className="font-semibold">
                       {formatINR(selectedPlanPricing.baseAmount)} / year
                     </span>
                   </div>
-                  {selectedPlanPricing.promoApplied && (
-                    <div className="flex justify-between items-center text-sm text-green-600">
-                      <span>
-                        Promo Discount ({selectedPlanPricing.promoCode})
-                      </span>
-                      <span>
-                        -{formatINR(selectedPlanPricing.promoDiscountAmount)}
-                      </span>
-                    </div>
-                  )}
+
                   <div className="flex justify-between items-center text-sm text-gray-600">
                     <span>Transaction Fee</span>
                     <span>0%</span>
