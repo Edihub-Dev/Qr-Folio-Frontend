@@ -112,17 +112,6 @@ const PaymentForm = () => {
     enterprise: 999,
   });
 
-  const resolveUsdInrRate = () => {
-    const raw = Number(
-      import.meta.env?.VITE_CHAINPAY_USD_INR_RATE ||
-        import.meta.env?.VITE_USD_INR_RATE
-    );
-    if (Number.isFinite(raw) && raw > 0) {
-      return raw;
-    }
-    return 83;
-  };
-
   const resolveMstcInrRate = () => {
     const raw = Number(
       import.meta.env?.VITE_CHAINPAY_MSTC_INR_RATE ||
@@ -141,18 +130,12 @@ const PaymentForm = () => {
       return null;
     }
 
-    const usdInrRate = resolveUsdInrRate();
     const mstcInrRate = resolveMstcInrRate();
-    if (!Number.isFinite(usdInrRate) || usdInrRate <= 0) {
-      return null;
-    }
     if (!Number.isFinite(mstcInrRate) || mstcInrRate <= 0) {
       return null;
     }
 
-    const coinsPerUsd = usdInrRate / mstcInrRate;
-    const amountUsd = normalizedAmount / usdInrRate;
-    const coins = amountUsd * coinsPerUsd;
+    const coins = normalizedAmount / mstcInrRate;
 
     if (!Number.isFinite(coins) || coins <= 0) {
       return null;
