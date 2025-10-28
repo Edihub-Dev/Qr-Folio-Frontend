@@ -121,7 +121,7 @@ const PaymentForm = () => {
     if (Number.isFinite(raw) && raw > 0) {
       return raw;
     }
-    return 0.1;
+    return;
   };
 
   const computeMstcCoinsFromInr = (amountInr) => {
