@@ -703,9 +703,9 @@ export const AuthProvider = ({ children }) => {
         } else if (apiError.response.status === 403) {
           errorMessage = "You don't have permission to access this resource.";
         } else if (apiError.response.status === 404) {
-          errorMessage = "User not registered with this email.";
+          errorMessage = "Please change your password.";
         } else if (apiError.response.status >= 500) {
-          errorMessage = "A server error occurred. Please try again later.";
+          errorMessage = "Please change your password.";
         }
       } else if (apiError.request) {
         // Request was made but no response received
