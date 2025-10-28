@@ -106,12 +106,19 @@ const PaymentForm = () => {
     []
   );
 
+  const CHAINPAY_MSTC_CONFIG = Object.freeze({
+    starter: { coins: 100, amountInr: 399 },
+    growth: { coins: 200, amountInr: 599 },
+    enterprise: { coins: 300, amountInr: 999 },
+  });
+
   const chainpayPlans = useMemo(
     () => ({
       starter: {
-        name: "Basic (Silver) - 100 MSTC",
-        price: 10,
-        // currency: "INR",
+        name: "Basic (Silver)",
+        price: CHAINPAY_MSTC_CONFIG.starter.amountInr,
+        currency: "INR",
+        coins: CHAINPAY_MSTC_CONFIG.starter.coins,
         description: "Start accepting crypto payments with INR billing",
         features: [
           "Custom QR Code",
@@ -124,9 +131,10 @@ const PaymentForm = () => {
         ],
       },
       growth: {
-        name: "Standard (Gold) - 200 MSTC",
-        price: 20,
-        // currency: "INR",
+        name: "Standard (Gold)",
+        price: CHAINPAY_MSTC_CONFIG.growth.amountInr,
+        currency: "INR",
+        coins: CHAINPAY_MSTC_CONFIG.growth.coins,
         description: "Premium tools with annual INR billing",
         features: [
           "Everything in Basic",
@@ -139,9 +147,10 @@ const PaymentForm = () => {
         ],
       },
       enterprise: {
-        name: "Premium (Platinum) - 300 MSTC",
-        price: 30,
-        // currency: "INR",
+        name: "Premium (Platinum)",
+        price: CHAINPAY_MSTC_CONFIG.enterprise.amountInr,
+        currency: "INR",
+        coins: CHAINPAY_MSTC_CONFIG.enterprise.coins,
         description: "Enterprise billing with custom crypto support",
         features: [
           "Everything in Standard",
@@ -149,7 +158,7 @@ const PaymentForm = () => {
           "Team Collaboration",
           "Personalized Support",
           "Media Storage up to 10 files of 1GB",
-          "Includes an NFC-enabled profile card NFC is a short-range wireless technology. ",
+          "Includes an NFC-enabled profile card.",
           "Prices Exclusive of Taxes",
         ],
       },
@@ -350,12 +359,14 @@ const PaymentForm = () => {
     return Object.fromEntries(
       Object.entries(chainpayPlans).map(([key, plan]) => {
         const originalAmount = Number(plan.price || 0);
+        const mstcCoins = Number(plan.coins || 0);
 
         return [
           key,
           {
             baseAmount: originalAmount,
             originalAmount,
+            mstcCoins,
             promoApplied: false,
             promoCode: null,
             promoDiscountAmount: 0,
@@ -719,6 +730,7 @@ const PaymentForm = () => {
           promoDiscountAmount: 0,
           originalAmount: pricing?.originalAmount || plan.price,
           finalAmount: pricing?.totalAmount || plan.price,
+          mstcCoins: pricing?.mstcCoins || plan.coins,
         },
       });
 
@@ -865,17 +877,17 @@ const PaymentForm = () => {
                               {plan.description}
                             </div>
                           </div>
-                          {/* <div className="text-right">
+                          <div className="text-right">
                             <div className="text-xl font-bold text-indigo-600">
-                              {formatCurrencyDisplay(
-                                planPricing?.totalAmount ?? plan.price,
-                                planPricing?.currency || "INR"
-                              )}
+                              {`${planPricing?.mstcCoins ?? plan.coins} MSTC`}
                             </div>
                             <div className="text-xs text-gray-500">
-                              Inclusive of offers
+                              {`≈ ${formatCurrencyDisplay(
+                                planPricing?.totalAmount ?? plan.price,
+                                planPricing?.currency || "INR"
+                              )}`}
                             </div>
-                          </div> */}
+                          </div>
                         </div>
                         <ul className="space-y-1 text-sm text-gray-600">
                           {plan.features.map((feature) => (
