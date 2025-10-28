@@ -107,16 +107,40 @@ const PaymentForm = () => {
   );
 
   const CHAINPAY_MSTC_CONFIG = Object.freeze({
-    starter: { coins: 100, amountInr: 399 },
-    growth: { coins: 200, amountInr: 599 },
-    enterprise: { coins: 300, amountInr: 999 },
+    starter: { coins: 100 },
+    growth: { coins: 200 },
+    enterprise: { coins: 300 },
   });
+
+  const resolveMstcInrRate = () => {
+    const raw = Number(import.meta.env?.VITE_CHAINPAY_MSTC_INR_RATE);
+    if (Number.isFinite(raw) && raw > 0) {
+      return raw;
+    }
+    const fallback = Number(
+      import.meta.env?.VITE_MSTC_INR_RATE || import.meta.env?.VITE_MSTC_PRICE_INR
+    );
+    if (Number.isFinite(fallback) && fallback > 0) {
+      return fallback;
+    }
+    return 0.1;
+  };
+
+  const computeInrFromMstc = (coins) => {
+    const rate = resolveMstcInrRate();
+    const normalizedCoins = Number(coins);
+    if (!Number.isFinite(normalizedCoins) || normalizedCoins <= 0) {
+      return null;
+    }
+    const amount = normalizedCoins * rate;
+    return Number.isFinite(amount) ? Number(amount.toFixed(2)) : null;
+  };
 
   const chainpayPlans = useMemo(
     () => ({
       starter: {
         name: "Basic (Silver)",
-        price: CHAINPAY_MSTC_CONFIG.starter.amountInr,
+        price: computeInrFromMstc(CHAINPAY_MSTC_CONFIG.starter.coins),
         currency: "INR",
         coins: CHAINPAY_MSTC_CONFIG.starter.coins,
         description: "Start accepting crypto payments with INR billing",
@@ -132,7 +156,7 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Standard (Gold)",
-        price: CHAINPAY_MSTC_CONFIG.growth.amountInr,
+        price: computeInrFromMstc(CHAINPAY_MSTC_CONFIG.growth.coins),
         currency: "INR",
         coins: CHAINPAY_MSTC_CONFIG.growth.coins,
         description: "Premium tools with annual INR billing",
@@ -148,7 +172,7 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: CHAINPAY_MSTC_CONFIG.enterprise.amountInr,
+        price: computeInrFromMstc(CHAINPAY_MSTC_CONFIG.enterprise.coins),
         currency: "INR",
         coins: CHAINPAY_MSTC_CONFIG.enterprise.coins,
         description: "Enterprise billing with custom crypto support",
