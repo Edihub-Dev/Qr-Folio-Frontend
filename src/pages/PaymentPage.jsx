@@ -6,14 +6,9 @@ import React, {
   useState,
 } from "react";
 import { motion } from "framer-motion";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Shield, ArrowLeft, CheckCircle, QrCode } from "lucide-react";
-import {
-  normalizePlan,
-  getPlanRank,
-  PLAN_LABELS,
-} from "../utils/subscriptionPlan";
 
 const GST_RATE = 0.18;
 
@@ -48,11 +43,11 @@ const PaymentForm = () => {
     refreshUser,
     logout,
   } = useAuth();
-  const location = useLocation();
   const [processingGateway, setProcessingGateway] = useState(null);
   const isProcessing = processingGateway !== null;
   const [selectedPlan, setSelectedPlan] = useState("professional");
   const [selectedChainpayPlan, setSelectedChainpayPlan] = useState("starter");
+  const [showChainpayPlans, setShowChainpayPlans] = useState(false);
   const [errors, setErrors] = useState({ phonepe: "", chainpay: "" });
   const [statusMessage, setStatusMessage] = useState("");
   const [chainpayStatusMessage, setChainpayStatusMessage] = useState("");
@@ -98,7 +93,7 @@ const PaymentForm = () => {
           "Team Collaboration",
           "Personalized Support",
           "Media Storage up to 10 files of 1GB",
-          "Includes an NFC-enabled profile card.",
+          "Includes an NFC-enabled profile card. NFC (Near Field Communication) is a short-range wireless technology built into the card, letting it communicate and share data with nearby NFC-enabled smartphones",
           "Prices Exclusive of Taxes",
         ],
       },
@@ -106,60 +101,13 @@ const PaymentForm = () => {
     []
   );
 
-  const CHAINPAY_PLAN_INR = Object.freeze({
-    starter: 400,
-    growth: 800,
-    enterprise: 1200,
-  });
-
-  const CHAINPAY_PLAN_MSTC = Object.freeze({
-    starter: 100,
-    growth: 200,
-    enterprise: 300,
-  });
-
-  const resolveMstcInrRate = () => {
-    const raw = Number(
-      import.meta.env?.VITE_CHAINPAY_MSTC_INR_RATE ||
-        import.meta.env?.VITE_MSTC_INR_RATE ||
-        import.meta.env?.VITE_MSTC_PRICE_INR
-    );
-    if (Number.isFinite(raw) && raw > 0) {
-      return raw;
-    }
-    return 0.1;
-  };
-
-  const computeMstcCoinsFromInr = (amountInr) => {
-    const normalizedAmount = Number(amountInr);
-    if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
-      return null;
-    }
-
-    const mstcInrRate = resolveMstcInrRate();
-    if (!Number.isFinite(mstcInrRate) || mstcInrRate <= 0) {
-      return null;
-    }
-
-    const coins = normalizedAmount / mstcInrRate;
-
-    if (!Number.isFinite(coins) || coins <= 0) {
-      return null;
-    }
-
-    return Number(coins.toFixed(2));
-  };
-
   const chainpayPlans = useMemo(
     () => ({
       starter: {
         name: "Basic (Silver)",
-        price: CHAINPAY_PLAN_INR.starter,
+        price: 399,
         currency: "INR",
-        coins:
-          CHAINPAY_PLAN_MSTC.starter ??
-          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.starter),
-        description: "Start accepting crypto payments.",
+        description: "Start accepting crypto payments with INR billing",
         features: [
           "Custom QR Code",
           "Add Contact Details",
@@ -172,12 +120,9 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Standard (Gold)",
-        price: CHAINPAY_PLAN_INR.growth,
+        price: 599,
         currency: "INR",
-        coins:
-          CHAINPAY_PLAN_MSTC.growth ??
-          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.growth),
-        description: "Premium tools with annual billing.",
+        description: "Premium tools with annual INR billing",
         features: [
           "Everything in Basic",
           "Add Custom Links",
@@ -190,19 +135,16 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: CHAINPAY_PLAN_INR.enterprise,
+        price: 999,
         currency: "INR",
-        coins:
-          CHAINPAY_PLAN_MSTC.enterprise ??
-          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.enterprise),
-        description: "Enterprise billing.",
+        description: "Enterprise billing with custom crypto support",
         features: [
           "Everything in Standard",
           "Custom Branding",
           "Team Collaboration",
           "Personalized Support",
           "Media Storage up to 10 files of 1GB",
-          "Includes an NFC-enabled profile card.",
+          "Includes an NFC-enabled profile card. NFC (Near Field Communication) is a short-range wireless technology built into the card, letting it communicate and share data with nearby NFC-enabled smartphones",
           "Prices Exclusive of Taxes",
         ],
       },
@@ -210,197 +152,72 @@ const PaymentForm = () => {
     []
   );
 
-  const rawRequestedUpgrade = useMemo(() => {
-    const params = new URLSearchParams(location.search);
-    return params.get("upgrade");
-  }, [location.search]);
-
-  const currentPlan = useMemo(
-    () => normalizePlan(user?.subscriptionPlan, user?.planName),
-    [user?.subscriptionPlan, user?.planName]
+  const promoCode = (user?.promoCode || "").toUpperCase();
+  const isPromoEligible = Boolean(
+    user?.promoCodeEligible && !user?.promoCodeUsed && promoCode === "QR10FOLIO"
   );
-  const currentPlanRank = useMemo(
-    () => getPlanRank(currentPlan),
-    [currentPlan]
-  );
-
-  const requestedUpgradeTier = useMemo(() => {
-    if (!rawRequestedUpgrade) return null;
-    return normalizePlan(rawRequestedUpgrade);
-  }, [rawRequestedUpgrade]);
-
-  const PHONEPE_PLAN_TIERS = useMemo(
-    () => ({
-      basic: "basic",
-      professional: "standard",
-      enterprise: "premium",
-    }),
-    []
-  );
-
-  const CHAINPAY_PLAN_TIERS = useMemo(
-    () => ({
-      starter: "basic",
-      growth: "standard",
-      enterprise: "premium",
-    }),
-    []
-  );
-
-  const applicableUpgradeTier = useMemo(() => {
-    if (!requestedUpgradeTier) return null;
-    return getPlanRank(requestedUpgradeTier) > currentPlanRank
-      ? requestedUpgradeTier
-      : null;
-  }, [requestedUpgradeTier, currentPlanRank]);
-
-  const isUpgradeExperience = useMemo(() => {
-    if (applicableUpgradeTier) {
-      return true;
-    }
-    if (!user) {
-      return false;
-    }
-    return Boolean(user.isPaid);
-  }, [applicableUpgradeTier, user]);
-
-  const getPreferredPlanKey = useCallback(
-    (availableKeys, tierMap) => {
-      if (!availableKeys?.length) {
-        return null;
-      }
-
-      if (applicableUpgradeTier) {
-        const requestedKey = availableKeys.find(
-          (key) => tierMap[key] === applicableUpgradeTier
-        );
-        if (requestedKey) {
-          return requestedKey;
-        }
-      }
-
-      return availableKeys[0];
-    },
-    [applicableUpgradeTier]
-  );
-
-  const availablePhonePePlanKeys = useMemo(() => {
-    const entries = Object.entries(PHONEPE_PLAN_TIERS);
-    const filtered = isUpgradeExperience
-      ? entries.filter(([, tier]) => getPlanRank(tier) > currentPlanRank)
-      : entries;
-    return filtered.map(([key]) => key);
-  }, [PHONEPE_PLAN_TIERS, currentPlanRank, isUpgradeExperience]);
-
-  const availableChainpayPlanKeys = useMemo(() => {
-    const entries = Object.entries(CHAINPAY_PLAN_TIERS);
-    const filtered = isUpgradeExperience
-      ? entries.filter(([, tier]) => getPlanRank(tier) > currentPlanRank)
-      : entries;
-    return filtered.map(([key]) => key);
-  }, [CHAINPAY_PLAN_TIERS, currentPlanRank, isUpgradeExperience]);
-
-  useEffect(() => {
-    if (availablePhonePePlanKeys.length === 0) {
-      setSelectedPlan(null);
-      return;
-    }
-
-    setSelectedPlan((prev) => {
-      if (
-        prev &&
-        availablePhonePePlanKeys.includes(prev) &&
-        (!applicableUpgradeTier ||
-          PHONEPE_PLAN_TIERS[prev] === applicableUpgradeTier)
-      ) {
-        return prev;
-      }
-
-      return getPreferredPlanKey(availablePhonePePlanKeys, PHONEPE_PLAN_TIERS);
-    });
-  }, [
-    availablePhonePePlanKeys,
-    getPreferredPlanKey,
-    applicableUpgradeTier,
-    PHONEPE_PLAN_TIERS,
-  ]);
-
-  useEffect(() => {
-    if (availableChainpayPlanKeys.length === 0) {
-      setSelectedChainpayPlan(null);
-      return;
-    }
-
-    setSelectedChainpayPlan((prev) => {
-      if (
-        prev &&
-        availableChainpayPlanKeys.includes(prev) &&
-        (!applicableUpgradeTier ||
-          CHAINPAY_PLAN_TIERS[prev] === applicableUpgradeTier)
-      ) {
-        return prev;
-      }
-
-      return getPreferredPlanKey(
-        availableChainpayPlanKeys,
-        CHAINPAY_PLAN_TIERS
-      );
-    });
-  }, [
-    availableChainpayPlanKeys,
-    getPreferredPlanKey,
-    applicableUpgradeTier,
-    CHAINPAY_PLAN_TIERS,
-  ]);
 
   const selectedPlanPricing = useMemo(() => {
-    if (!selectedPlan) {
-      return {
-        ...calculateGstBreakdown(0),
-        originalBaseAmount: 0,
-      };
-    }
-
     const plan = plans[selectedPlan];
     if (!plan) {
       return {
         ...calculateGstBreakdown(0),
         originalBaseAmount: 0,
+        promoApplied: false,
+        promoCode: null,
+        promoDiscountAmount: 0,
       };
     }
 
     const originalBaseAmount = Number(plan.price || 0);
-    const breakdown = calculateGstBreakdown(originalBaseAmount);
+    const discountedBaseAmount = isPromoEligible
+      ? Number((originalBaseAmount * 0.9).toFixed(2))
+      : originalBaseAmount;
+
+    const breakdown = calculateGstBreakdown(discountedBaseAmount);
+    const promoDiscountAmount = isPromoEligible
+      ? Number((originalBaseAmount - discountedBaseAmount).toFixed(2))
+      : 0;
 
     return {
       ...breakdown,
       originalBaseAmount,
+      promoApplied: isPromoEligible,
+      promoCode: isPromoEligible ? promoCode : null,
+      promoDiscountAmount,
     };
-  }, [plans, selectedPlan]);
+  }, [plans, selectedPlan, isPromoEligible, promoCode]);
 
   const chainpayPricing = useMemo(() => {
     return Object.fromEntries(
       Object.entries(chainpayPlans).map(([key, plan]) => {
         const originalAmount = Number(plan.price || 0);
-        const mstcCoins = Number(plan.coins || 0);
+        const discountedAmount = isPromoEligible
+          ? Number((originalAmount * 0.9).toFixed(2))
+          : originalAmount;
+        const promoDiscountAmount = isPromoEligible
+          ? Number((originalAmount - discountedAmount).toFixed(2))
+          : 0;
 
         return [
           key,
           {
-            baseAmount: originalAmount,
+            baseAmount: discountedAmount,
             originalAmount,
-            mstcCoins,
+            promoApplied: isPromoEligible,
+            promoCode: isPromoEligible ? promoCode : null,
+            promoDiscountAmount,
             gstAmount: 0,
             cgstAmount: 0,
             sgstAmount: 0,
             igstAmount: 0,
-            totalAmount: originalAmount,
+            totalAmount: discountedAmount,
             currency: plan.currency,
           },
         ];
       })
     );
-  }, [chainpayPlans]);
+  }, [chainpayPlans, isPromoEligible, promoCode]);
 
   const formatCurrencyDisplay = (amount, currency) => {
     if (typeof amount !== "number") {
@@ -414,20 +231,16 @@ const PaymentForm = () => {
     return `${amount.toFixed(2)} ${currency || ""}`.trim();
   };
 
-  const selectedChainpayPricing = selectedChainpayPlan
-    ? chainpayPricing[selectedChainpayPlan]
-    : null;
+  const selectedChainpayPricing = chainpayPricing[selectedChainpayPlan];
+  const chainpayButtonDisplay = formatCurrencyDisplay(
+    selectedChainpayPricing?.totalAmount ??
+      chainpayPlans[selectedChainpayPlan]?.price ??
+      0,
+    chainpayPlans[selectedChainpayPlan]?.currency
+  );
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    const normalizedPlan = normalizePlan(user.subscriptionPlan, user.planName);
-    const hasUpgradeOptions =
-      getPlanRank(normalizedPlan) < getPlanRank("premium");
-
-    if (user?.hasCompletedSetup && user?.isPaid && !hasUpgradeOptions) {
+    if (user?.hasCompletedSetup || user?.isPaid) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, navigate]);
@@ -517,7 +330,7 @@ const PaymentForm = () => {
   const pollPaymentStatus = useCallback(
     async (merchantTransactionId) => {
       const maxAttempts = 15;
-      const delayMs = 2000;
+      const delayMs = 4000;
 
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         const result = await verifyPayment(
@@ -598,7 +411,8 @@ const PaymentForm = () => {
   }, []);
 
   const startPhonePePayment = useCallback(async () => {
-    if (isProcessing) {
+    if (user?.hasCompletedSetup || user?.isPaid) {
+      navigate("/dashboard", { replace: true });
       return;
     }
 
@@ -607,14 +421,6 @@ const PaymentForm = () => {
         ...prev,
         phonepe:
           "Please update your name in your profile before making a payment.",
-      }));
-      return;
-    }
-
-    if (!selectedPlan || !plans[selectedPlan]) {
-      setErrors((prev) => ({
-        ...prev,
-        phonepe: "Please select an upgrade plan to continue.",
       }));
       return;
     }
@@ -712,6 +518,11 @@ const PaymentForm = () => {
       return;
     }
 
+    if (user?.hasCompletedSetup || user?.isPaid) {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
     if (!user?.name?.trim()) {
       setErrors((prev) => ({
         ...prev,
@@ -721,15 +532,15 @@ const PaymentForm = () => {
       return;
     }
 
-    if (!selectedChainpayPlan || !chainpayPlans[selectedChainpayPlan]) {
+    const plan = chainpayPlans[selectedChainpayPlan];
+    if (!plan) {
       setErrors((prev) => ({
         ...prev,
-        chainpay: "Please select an upgrade plan.",
+        chainpay: "Please select a ChainPay plan.",
       }));
       return;
     }
 
-    const plan = chainpayPlans[selectedChainpayPlan];
     const pricing = chainpayPricing[selectedChainpayPlan];
 
     setProcessingGateway("chainpay");
@@ -745,10 +556,11 @@ const PaymentForm = () => {
         planName: plan.name,
         pricing,
         metadata: {
+          promoApplied: pricing?.promoApplied || false,
+          promoCode: pricing?.promoCode || null,
+          promoDiscountAmount: pricing?.promoDiscountAmount || 0,
           originalAmount: pricing?.originalAmount || plan.price,
           finalAmount: pricing?.totalAmount || plan.price,
-          mstcCoins: pricing?.mstcCoins || plan.coins,
-          planLabel: plan.name,
         },
       });
 
@@ -790,9 +602,6 @@ const PaymentForm = () => {
     chainpayPricing,
   ]);
 
-  const hasUpgradeOptions =
-    availablePhonePePlanKeys.length > 0 || availableChainpayPlanKeys.length > 0;
-
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -828,11 +637,7 @@ const PaymentForm = () => {
             Complete Your Purchase
           </h1>
           <p className="text-gray-600">
-            {hasUpgradeOptions
-              ? `Choose the plan you would like to upgrade to. Your current plan is ${
-                  PLAN_LABELS[currentPlan] || PLAN_LABELS.basic
-                }.`
-              : "You already have access to the highest available plan."}
+            Choose your plan and enter payment details
           </p>
         </motion.div>
 
@@ -842,119 +647,100 @@ const PaymentForm = () => {
             animate={{ opacity: 1, x: 0 }}
             className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
           >
-            <div className="flex items-center space-x-2 mb-6">
-              <Shield className="w-5 h-5 text-purple-500" />
-
-              <h2 className="text-xl font-bold text-gray-900">
-                Select Your Plan (ChainPay MSTC)
-              </h2>
-            </div>
-
-            {errors.chainpay && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm">{errors.chainpay}</p>
-              </div>
-            )}
-
-            {chainpayStatusMessage && !errors.chainpay && (
-              <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-                <p className="text-indigo-700 text-sm">
-                  {chainpayStatusMessage}
-                </p>
-              </div>
-            )}
-
+            <h2 className="text-xl font-bold text-gray-900 mb-6">
+              Select Your Plan
+            </h2>
             <div className="space-y-4">
-              {availableChainpayPlanKeys.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 text-center">
-                  No ChainPay upgrade options available.
-                </div>
-              ) : (
-                availableChainpayPlanKeys.map((key) => {
-                  const plan = chainpayPlans[key];
-                  const planPricing = chainpayPricing[key];
-                  const isSelected = selectedChainpayPlan === key;
-                  return (
-                    <motion.div
-                      key={key}
-                      whileHover={{ scale: isSelected ? 1 : 1.02 }}
-                      onClick={() => setSelectedChainpayPlan(key)}
-                      className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
-                        isSelected
-                          ? "border-primary-500 bg-primary-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <div className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-lg font-semibold text-gray-900">
-                              {plan.name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {plan.description}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-xl font-bold text-indigo-600">
-                              {`${planPricing?.mstcCoins ?? plan.coins} MSTC`}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {/* {`≈ ${formatCurrencyDisplay(
-                                planPricing?.totalAmount ?? plan.price,
-                                planPricing?.currency || "INR"
-                              )}`} */}
-                            </div>
-                          </div>
+              {Object.entries(plans).map(([key, plan]) => {
+                const isSelected = selectedPlan === key;
+                return (
+                  <motion.div
+                    key={key}
+                    whileHover={{ scale: isSelected ? 1 : 1.02 }}
+                    onClick={() => setSelectedPlan(key)}
+                    className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-primary-500 bg-primary-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          name="plan"
+                          value={key}
+                          checked={isSelected}
+                          onChange={(e) => setSelectedPlan(e.target.value)}
+                          className="w-4 h-4 text-primary-600"
+                        />
+                        <div>
+                          <h3 className="font-semibold text-gray-900">
+                            {plan.name}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            {plan.description}
+                          </p>
                         </div>
-                        <ul className="space-y-1 text-sm text-gray-600">
-                          {plan.features.map((feature) => (
-                            <li
-                              key={feature}
-                              className="flex items-start space-x-2"
-                            >
-                              <CheckCircle className="w-4 h-4 text-indigo-500 mt-0.5" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <motion.button
-                          type="button"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setSelectedChainpayPlan(key);
-                            startChainpayPayment();
-                          }}
-                          disabled={
-                            processingGateway === "chainpay" ||
-                            isProcessing ||
-                            selectedChainpayPlan !== key
-                          }
-                          className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
-                            processingGateway === "chainpay" ||
-                            isProcessing ||
-                            selectedChainpayPlan !== key
-                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              : "bg-primary-600 hover:bg-primary-700"
-                          }`}
-                        >
-                          {processingGateway === "chainpay"
-                            ? "Processing..."
-                            : isSelected
-                            ? "Pay with ChainPay"
-                            : "Select Plan to Pay"}
-                        </motion.button>
                       </div>
-                    </motion.div>
-                  );
-                })
-              )}
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-gray-900">
+                          ₹{plan.price}
+                        </div>
+                        <div className="text-sm text-gray-600">/year</div>
+                      </div>
+                    </div>
+                    <ul className="text-sm space-y-1 ml-7 text-gray-600">
+                      {plan.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 flex-shrink-0 text-green-500" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                );
+              })}
             </div>
 
-            <div className="mt-4 text-xs text-gray-500 text-center">
-              Payments powered by ChainPay (MSTC)
+            <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Order Summary
+              </h3>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-gray-600">
+                  {plans[selectedPlan].name}
+                  {selectedPlanPricing.promoApplied &&
+                    selectedPlanPricing.originalBaseAmount > 0 && (
+                      <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                        {selectedPlanPricing.promoCode} Applied
+                      </span>
+                    )}
+                </span>
+                <span className="font-semibold">
+                  {formatINR(selectedPlanPricing.baseAmount)} / year
+                </span>
+              </div>
+              {selectedPlanPricing.promoApplied && (
+                <div className="flex justify-between items-center text-sm text-green-600">
+                  <span>Promo Discount ({selectedPlanPricing.promoCode})</span>
+                  <span>
+                    -{formatINR(selectedPlanPricing.promoDiscountAmount)}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <span>Transaction Fee</span>
+                <span>0%</span>
+              </div>
+              <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+                <span>GST (18%)</span>
+                <span>{formatINR(selectedPlanPricing.gstAmount)}</span>
+              </div>
+              <div className="flex justify-between items-center text-lg font-bold text-gray-900 border-t border-gray-200 pt-2">
+                <span>Total</span>
+                <span>{formatINR(selectedPlanPricing.totalAmount)} / year</span>
+              </div>
             </div>
           </motion.div>
 
@@ -964,188 +750,205 @@ const PaymentForm = () => {
             className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
           >
             <div className="flex items-center space-x-2 mb-6">
-              <Shield className="w-5 h-5 text-primary-500" />
-
+              <Shield className="w-5 h-5 text-green-500" />
               <h2 className="text-xl font-bold text-gray-900">
-                Select Your Plan (PhonePe)
+                Secure Payment
               </h2>
-            </div>
-            <div className="space-y-4">
-              {availablePhonePePlanKeys.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 text-center">
-                  No PhonePe upgrade options available.
-                </div>
-              ) : (
-                availablePhonePePlanKeys.map((key) => {
-                  const plan = plans[key];
-                  const isSelected = selectedPlan === key;
-                  const breakdown = isSelected
-                    ? selectedPlanPricing
-                    : calculateGstBreakdown(plan.price);
-                  return (
-                    <motion.div
-                      key={key}
-                      whileHover={{ scale: isSelected ? 1 : 1.02 }}
-                      onClick={() => setSelectedPlan(key)}
-                      className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
-                        isSelected
-                          ? "border-primary-500 bg-primary-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <div className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-lg font-semibold text-gray-900">
-                              {plan.name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {plan.description}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-xl font-bold text-primary-600">
-                              {formatCurrencyDisplay(
-                                breakdown.totalAmount,
-                                "INR"
-                              )}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              Inclusive of GST
-                            </div>
-                          </div>
-                        </div>
-                        <ul className="space-y-1 text-sm text-gray-600">
-                          {plan.features.map((feature) => (
-                            <li
-                              key={feature}
-                              className="flex items-start space-x-2"
-                            >
-                              <CheckCircle className="w-4 h-4 text-primary-500 mt-0.5" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <motion.button
-                          type="button"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setSelectedPlan(key);
-                            startPhonePePayment();
-                          }}
-                          disabled={
-                            processingGateway === "phonepe" ||
-                            isProcessing ||
-                            selectedPlan !== key
-                          }
-                          className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
-                            processingGateway === "phonepe" ||
-                            isProcessing ||
-                            selectedPlan !== key
-                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              : "bg-primary-600 hover:bg-primary-700"
-                          }`}
-                        >
-                          {processingGateway === "phonepe"
-                            ? "Processing..."
-                            : isSelected
-                            ? "Pay with PhonePe"
-                            : "Select Plan to Pay"}
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  );
-                })
-              )}
-            </div>
-
-            <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-              <h3 className="font-semibold text-gray-900 mb-2">
-                Order Summary
-              </h3>
-              {selectedPlan && plans[selectedPlan] ? (
-                <>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-gray-600">
-                      {plans[selectedPlan].name}
-                    </span>
-
-                    <span className="font-semibold">
-                      {formatINR(selectedPlanPricing.baseAmount)} / year
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-sm text-gray-600">
-                    <span>Transaction Fee</span>
-                    <span>0%</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
-                    <span>GST (18%)</span>
-                    <span>{formatINR(selectedPlanPricing.gstAmount)}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-lg font-bold text-gray-900 border-t border-gray-200 pt-2">
-                    <span>Total</span>
-                    <span>
-                      {formatINR(selectedPlanPricing.totalAmount)} / year
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  No active PhonePe upgrade selection.
-                </p>
-              )}
             </div>
 
             {errors.phonepe && (
-              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-600 text-sm">{errors.phonepe}</p>
               </div>
             )}
 
             {statusMessage && !errors.phonepe && (
-              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-amber-700 text-sm">{statusMessage}</p>
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={startPhonePePayment}
-              disabled={
-                processingGateway === "phonepe" || isProcessing || !selectedPlan
-              }
-              className={`w-full mt-6 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-white transition-colors ${
-                processingGateway === "phonepe" || isProcessing || !selectedPlan
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-primary-600 hover:bg-primary-700"
-              }`}
-            >
-              {processingGateway === "phonepe" ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Processing PhonePe...</span>
-                </>
-              ) : (
-                <span>
-                  {selectedPlan && plans[selectedPlan]
-                    ? `Pay ${formatINR(
-                        selectedPlanPricing.totalAmount
-                      )} / year (PhonePe)`
-                    : "Select a plan to continue"}
-                </span>
-              )}
-            </button>
-
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-blue-700 text-sm">
                 <strong>Note:</strong> You may see some technical warnings in
                 the browser console during payment. These are from PhonePe's
                 payment system and don't affect the payment process. Your
                 payment will work normally.
               </p>
+            </div>
+
+            <div className="space-y-6">
+              <motion.button
+                onClick={startPhonePePayment}
+                disabled={isProcessing || user?.hasCompletedSetup}
+                whileHover={{ scale: isProcessing ? 1 : 1.02 }}
+                whileTap={{ scale: isProcessing ? 1 : 0.98 }}
+                className="w-full bg-primary-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {user?.hasCompletedSetup ? (
+                  <span>Plan already active</span>
+                ) : processingGateway === "phonepe" ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Opening PhonePe...</span>
+                  </div>
+                ) : (
+                  `Pay ${formatINR(
+                    selectedPlanPricing.totalAmount
+                  )} / year (PhonePe)`
+                )}
+              </motion.button>
+
+              <div className="border-t border-gray-200 pt-6 mt-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Shield className="w-5 h-5 text-purple-500" />
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Pay with MSTC (Crypto)
+                  </h3>
+                </div>
+
+                {errors.chainpay && (
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-600 text-sm">{errors.chainpay}</p>
+                  </div>
+                )}
+
+                {chainpayStatusMessage && !errors.chainpay && (
+                  <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                    <p className="text-indigo-700 text-sm">
+                      {chainpayStatusMessage}
+                    </p>
+                  </div>
+                )}
+
+                <motion.button
+                  onClick={() => {
+                    if (!showChainpayPlans) {
+                      setShowChainpayPlans(true);
+                      return;
+                    }
+                    startChainpayPayment();
+                  }}
+                  disabled={isProcessing || user?.hasCompletedSetup}
+                  whileHover={{ scale: isProcessing ? 1 : 1.02 }}
+                  whileTap={{ scale: isProcessing ? 1 : 0.98 }}
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold shadow-sm hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {user?.hasCompletedSetup ? (
+                    <span>Plan already active</span>
+                  ) : processingGateway === "chainpay" ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Opening ChainPay...</span>
+                    </div>
+                  ) : (
+                    `Pay ${chainpayButtonDisplay}`
+                  )}
+                </motion.button>
+
+                {showChainpayPlans && (
+                  <div className="mt-6 space-y-4">
+                    {Object.entries(chainpayPlans).map(([key, plan]) => {
+                      const planPricing = chainpayPricing[key];
+                      const hasPromo = planPricing?.promoApplied;
+                      return (
+                        <motion.div
+                          key={key}
+                          whileHover={{ scale: 1.02 }}
+                          onClick={() => setSelectedChainpayPlan(key)}
+                          className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
+                            selectedChainpayPlan === key
+                              ? "border-indigo-500 bg-indigo-50"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-3">
+                              <input
+                                type="radio"
+                                name="chainpay-plan"
+                                value={key}
+                                checked={selectedChainpayPlan === key}
+                                onChange={(e) =>
+                                  setSelectedChainpayPlan(e.target.value)
+                                }
+                                className="w-4 h-4 text-indigo-600"
+                              />
+                              <div>
+                                <h4 className="font-semibold text-gray-900">
+                                  {plan.name}
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                  {plan.description}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-gray-900">
+                                {hasPromo ? (
+                                  <>
+                                    <span className="text-base font-medium text-gray-400 line-through">
+                                      {formatCurrencyDisplay(
+                                        planPricing?.originalAmount ??
+                                          plan.price,
+                                        plan.currency
+                                      )}
+                                    </span>
+                                    <span className="ml-2">
+                                      {formatCurrencyDisplay(
+                                        planPricing?.totalAmount ?? plan.price,
+                                        plan.currency
+                                      )}
+                                    </span>
+                                  </>
+                                ) : (
+                                  formatCurrencyDisplay(
+                                    plan.price,
+                                    plan.currency
+                                  )
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {plan.currency}
+                              </div>
+                              {hasPromo && planPricing?.promoCode && (
+                                <div className="mt-1 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                                  {planPricing.promoCode} Applied
+                                </div>
+                              )}
+                              {/* <div className="text-xs text-gray-500 mt-1">
+                              GST: {formatINR(chainpayPricing[key].gstAmount)}
+                            </div>
+                            <div className="text-sm font-semibold text-gray-900">
+                              Total:{" "}
+                              {formatINR(chainpayPricing[key].totalAmount)}
+                            </div> */}
+                            </div>
+                          </div>
+                          <ul className="text-sm text-gray-600 space-y-1 ml-7">
+                            {plan.features.map((feature, idx) => (
+                              <li
+                                key={idx}
+                                className="flex items-center space-x-2"
+                              >
+                                <CheckCircle className="w-4 h-4 text-purple-500" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 text-center">
+              <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                <Shield className="w-4 h-4" />
+                <span>Your payment information is secure and encrypted</span>
+              </div>
             </div>
           </motion.div>
         </div>
