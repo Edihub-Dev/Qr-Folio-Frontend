@@ -900,9 +900,10 @@ const PaymentForm = () => {
                               {`${planPricing?.mstcCoins ?? plan.coins} MSTC`}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {`${formatINR(
-                                planPricing?.totalAmount ?? plan.price
-                              )} = ${planPricing?.mstcCoins ?? plan.coins} MSTC`}
+                              {/* {`≈ ${formatCurrencyDisplay(
+                                planPricing?.totalAmount ?? plan.price,
+                                planPricing?.currency || "INR"
+                              )}`} */}
                             </div>
                           </div>
                         </div>
