@@ -739,7 +739,7 @@ const PaymentForm = () => {
     try {
       const paymentRes = await createChainpayPayment({
         amountFiat: pricing?.totalAmount || plan.price,
-        // currency: plan.currency || "INR",
+        currency: plan.currency || "INR",
         description: `${plan.name} plan purchase`,
         planKey: selectedChainpayPlan,
         planName: plan.name,
@@ -748,6 +748,7 @@ const PaymentForm = () => {
           originalAmount: pricing?.originalAmount || plan.price,
           finalAmount: pricing?.totalAmount || plan.price,
           mstcCoins: pricing?.mstcCoins || plan.coins,
+          planLabel: plan.name,
         },
       });
 
