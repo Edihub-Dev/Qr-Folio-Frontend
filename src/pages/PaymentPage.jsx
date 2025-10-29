@@ -57,7 +57,7 @@ const PaymentForm = () => {
     () => ({
       basic: {
         name: "Basic (Silver)",
-        price: 399,
+        price: 1,
         description: "Perfect for individuals",
         features: [
           "Custom QR Code",
@@ -71,7 +71,7 @@ const PaymentForm = () => {
       },
       professional: {
         name: "Standard (Gold)",
-        price: 599,
+        price: 1,
         description: "Best for professionals",
         features: [
           "Everything in Basic",
@@ -85,7 +85,7 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: 999,
+        price: 1,
         description: "For large organizations",
         features: [
           "Everything in Standard",
@@ -93,7 +93,7 @@ const PaymentForm = () => {
           "Team Collaboration",
           "Personalized Support",
           "Media Storage up to 10 files of 1GB",
-          "Includes an NFC-enabled profile card. NFC (Near Field Communication) is a short-range wireless technology built into the card, letting it communicate and share data with nearby NFC-enabled smartphones",
+          "Includes an NFC-enabled profile card for tap-to-share on smartphones",
           "Prices Exclusive of Taxes",
         ],
       },
@@ -105,7 +105,7 @@ const PaymentForm = () => {
     () => ({
       starter: {
         name: "Basic (Silver)",
-        price: 399,
+        price: 100,
         currency: "INR",
         description: "Start accepting crypto payments with INR billing",
         features: [
@@ -120,7 +120,7 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Standard (Gold)",
-        price: 599,
+        price: 699,
         currency: "INR",
         description: "Premium tools with annual INR billing",
         features: [
@@ -144,7 +144,7 @@ const PaymentForm = () => {
           "Team Collaboration",
           "Personalized Support",
           "Media Storage up to 10 files of 1GB",
-          "Includes an NFC-enabled profile card. NFC (Near Field Communication) is a short-range wireless technology built into the card, letting it communicate and share data with nearby NFC-enabled smartphones",
+          "Includes an NFC-enabled profile card for tap-to-share on smartphones",
           "Prices Exclusive of Taxes",
         ],
       },
