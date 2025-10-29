@@ -106,12 +106,6 @@ const PaymentForm = () => {
     []
   );
 
-  const CHAINPAY_PLAN_INR = Object.freeze({
-    starter: 400,
-    growth: 800,
-    enterprise: 1200,
-  });
-
   const CHAINPAY_PLAN_MSTC = Object.freeze({
     starter: 100,
     growth: 200,
@@ -131,49 +125,20 @@ const PaymentForm = () => {
     return 0.1;
   };
 
-  const resolveUsdInrRate = () => {
-    const raw = Number(
-      import.meta.env?.VITE_CHAINPAY_USD_INR_RATE ||
-        import.meta.env?.VITE_USD_INR_RATE
-    );
-    if (Number.isFinite(raw) && raw > 0) {
-      return raw;
-    }
-    return 80;
-  };
-
   const computeMstcCoinsFromInr = (amountInr) => {
     const normalizedAmount = Number(amountInr);
     if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
       return null;
     }
 
-    const usdInrRate = resolveUsdInrRate();
     const mstcInrRate = resolveMstcInrRate();
-
-    if (
-      Number.isFinite(usdInrRate) &&
-      usdInrRate > 0 &&
-      Number.isFinite(mstcInrRate) &&
-      mstcInrRate > 0
-    ) {
-      const amountUsd = normalizedAmount / usdInrRate;
-      const mstcPerUsd = usdInrRate / mstcInrRate;
-      const coins = amountUsd * mstcPerUsd;
-
-      if (!Number.isFinite(coins) || coins <= 0) {
-        return null;
-      }
-
-      return Number(coins.toFixed(8));
-    }
 
     if (Number.isFinite(mstcInrRate) && mstcInrRate > 0) {
       const coins = normalizedAmount / mstcInrRate;
       if (!Number.isFinite(coins) || coins <= 0) {
         return null;
       }
-      return Number(coins.toFixed(8));
+      return Number(coins.toFixed(4));
     }
 
     return null;
