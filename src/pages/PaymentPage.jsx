@@ -112,6 +112,12 @@ const PaymentForm = () => {
     enterprise: 1200,
   });
 
+  const CHAINPAY_PLAN_MSTC = Object.freeze({
+    starter: 100,
+    growth: 200,
+    enterprise: 300,
+  });
+
   const resolveMstcInrRate = () => {
     const raw = Number(
       import.meta.env?.VITE_CHAINPAY_MSTC_PRICE_INR ||
@@ -179,7 +185,9 @@ const PaymentForm = () => {
         name: "Basic (Silver)",
         price: CHAINPAY_PLAN_INR.starter,
         currency: "INR",
-        coins: computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.starter),
+        coins:
+          CHAINPAY_PLAN_MSTC.starter ??
+          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.starter),
         description: "Start accepting crypto payments.",
         features: [
           "Custom QR Code",
@@ -195,7 +203,9 @@ const PaymentForm = () => {
         name: "Standard (Gold)",
         price: CHAINPAY_PLAN_INR.growth,
         currency: "INR",
-        coins: computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.growth),
+        coins:
+          CHAINPAY_PLAN_MSTC.growth ??
+          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.growth),
         description: "Premium tools with annual billing.",
         features: [
           "Everything in Basic",
@@ -211,7 +221,9 @@ const PaymentForm = () => {
         name: "Premium (Platinum)",
         price: CHAINPAY_PLAN_INR.enterprise,
         currency: "INR",
-        coins: computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.enterprise),
+        coins:
+          CHAINPAY_PLAN_MSTC.enterprise ??
+          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.enterprise),
         description: "Enterprise billing.",
         features: [
           "Everything in Standard",
