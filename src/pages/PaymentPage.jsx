@@ -112,22 +112,28 @@ const PaymentForm = () => {
     enterprise: 1200,
   });
 
-  const CHAINPAY_PLAN_MSTC = Object.freeze({
-    starter: 100,
-    growth: 200,
-    enterprise: 300,
-  });
-
   const resolveMstcInrRate = () => {
     const raw = Number(
-      import.meta.env?.VITE_CHAINPAY_MSTC_INR_RATE ||
-        import.meta.env?.VITE_MSTC_INR_RATE ||
-        import.meta.env?.VITE_MSTC_PRICE_INR
+      import.meta.env?.VITE_CHAINPAY_MSTC_PRICE_INR ||
+        import.meta.env?.VITE_MSTC_PRICE_INR ||
+        import.meta.env?.VITE_CHAINPAY_MSTC_INR_RATE ||
+        import.meta.env?.VITE_MSTC_INR_RATE
     );
     if (Number.isFinite(raw) && raw > 0) {
       return raw;
     }
     return 0.1;
+  };
+
+  const resolveUsdInrRate = () => {
+    const raw = Number(
+      import.meta.env?.VITE_CHAINPAY_USD_INR_RATE ||
+        import.meta.env?.VITE_USD_INR_RATE
+    );
+    if (Number.isFinite(raw) && raw > 0) {
+      return raw;
+    }
+    return 80;
   };
 
   const computeMstcCoinsFromInr = (amountInr) => {
@@ -136,18 +142,35 @@ const PaymentForm = () => {
       return null;
     }
 
+    const usdInrRate = resolveUsdInrRate();
     const mstcInrRate = resolveMstcInrRate();
-    if (!Number.isFinite(mstcInrRate) || mstcInrRate <= 0) {
-      return null;
+
+    if (
+      Number.isFinite(usdInrRate) &&
+      usdInrRate > 0 &&
+      Number.isFinite(mstcInrRate) &&
+      mstcInrRate > 0
+    ) {
+      const amountUsd = normalizedAmount / usdInrRate;
+      const mstcPerUsd = usdInrRate / mstcInrRate;
+      const coins = amountUsd * mstcPerUsd;
+
+      if (!Number.isFinite(coins) || coins <= 0) {
+        return null;
+      }
+
+      return Number(coins.toFixed(8));
     }
 
-    const coins = normalizedAmount / mstcInrRate;
-
-    if (!Number.isFinite(coins) || coins <= 0) {
-      return null;
+    if (Number.isFinite(mstcInrRate) && mstcInrRate > 0) {
+      const coins = normalizedAmount / mstcInrRate;
+      if (!Number.isFinite(coins) || coins <= 0) {
+        return null;
+      }
+      return Number(coins.toFixed(8));
     }
 
-    return Number(coins.toFixed(2));
+    return null;
   };
 
   const chainpayPlans = useMemo(
@@ -156,9 +179,7 @@ const PaymentForm = () => {
         name: "Basic (Silver)",
         price: CHAINPAY_PLAN_INR.starter,
         currency: "INR",
-        coins:
-          CHAINPAY_PLAN_MSTC.starter ??
-          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.starter),
+        coins: computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.starter),
         description: "Start accepting crypto payments.",
         features: [
           "Custom QR Code",
@@ -174,9 +195,7 @@ const PaymentForm = () => {
         name: "Standard (Gold)",
         price: CHAINPAY_PLAN_INR.growth,
         currency: "INR",
-        coins:
-          CHAINPAY_PLAN_MSTC.growth ??
-          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.growth),
+        coins: computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.growth),
         description: "Premium tools with annual billing.",
         features: [
           "Everything in Basic",
@@ -192,9 +211,7 @@ const PaymentForm = () => {
         name: "Premium (Platinum)",
         price: CHAINPAY_PLAN_INR.enterprise,
         currency: "INR",
-        coins:
-          CHAINPAY_PLAN_MSTC.enterprise ??
-          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.enterprise),
+        coins: computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.enterprise),
         description: "Enterprise billing.",
         features: [
           "Everything in Standard",
