@@ -107,9 +107,9 @@ const PaymentForm = () => {
   );
 
   const CHAINPAY_PLAN_INR = Object.freeze({
-    starter: 9.7,
-    growth: 19.4,
-    enterprise: 29.1,
+    starter: 400,
+    growth: 800,
+    enterprise: 1200,
   });
 
   const resolveMstcInrRate = () => {
