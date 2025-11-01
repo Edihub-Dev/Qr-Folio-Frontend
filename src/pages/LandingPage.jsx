@@ -108,7 +108,7 @@ const LandingPage = () => {
         "Team Collaboration",
         "Personalized Support",
         "Media Storage up to 10 files of 1GB",
-        "Get NFC Natural Card of your profile",
+        "Get NFC Card of your profile",
         "Prices Exclusive of Taxes",
       ],
       highlighted: false,
