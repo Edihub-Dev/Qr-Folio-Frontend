@@ -106,59 +106,24 @@ const PaymentForm = () => {
     []
   );
 
-  const CHAINPAY_PLAN_INR = Object.freeze({
-    starter: 400,
-    growth: 800,
-    enterprise: 1200,
-  });
-
-  const CHAINPAY_PLAN_MSTC = Object.freeze({
+  const CHAINPAY_PLAN_MSTC_DISPLAY = Object.freeze({
     starter: 100,
     growth: 200,
     enterprise: 300,
   });
 
-  const resolveMstcInrRate = () => {
-    const raw = Number(
-      import.meta.env?.VITE_CHAINPAY_MSTC_PRICE_INR ||
-        import.meta.env?.VITE_MSTC_PRICE_INR ||
-        import.meta.env?.VITE_CHAINPAY_MSTC_INR_RATE ||
-        import.meta.env?.VITE_MSTC_INR_RATE
-    );
-    if (Number.isFinite(raw) && raw > 0) {
-      return raw;
-    }
-    return 0.1;
-  };
-
-  const computeMstcCoinsFromInr = (amountInr) => {
-    const normalizedAmount = Number(amountInr);
-    if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
-      return null;
-    }
-
-    const mstcInrRate = resolveMstcInrRate();
-
-    if (Number.isFinite(mstcInrRate) && mstcInrRate > 0) {
-      const coins = normalizedAmount / mstcInrRate;
-      if (!Number.isFinite(coins) || coins <= 0) {
-        return null;
-      }
-      return Number(coins.toFixed(4));
-    }
-
-    return null;
-  };
+  const CHAINPAY_NETWORK_MSTC = Object.freeze({
+    starter: 10,
+    growth: 20,
+    enterprise: 30,
+  });
 
   const chainpayPlans = useMemo(
     () => ({
       starter: {
         name: "Basic (Silver)",
-        price: CHAINPAY_PLAN_INR.starter,
-        currency: "INR",
-        coins:
-          CHAINPAY_PLAN_MSTC.starter ??
-          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.starter),
+        coins: CHAINPAY_PLAN_MSTC_DISPLAY.starter,
+        networkCoins: CHAINPAY_NETWORK_MSTC.starter,
         description: "Start accepting crypto payments.",
         features: [
           "Custom QR Code",
@@ -172,11 +137,8 @@ const PaymentForm = () => {
       },
       growth: {
         name: "Standard (Gold)",
-        price: CHAINPAY_PLAN_INR.growth,
-        currency: "INR",
-        coins:
-          CHAINPAY_PLAN_MSTC.growth ??
-          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.growth),
+        coins: CHAINPAY_PLAN_MSTC_DISPLAY.growth,
+        networkCoins: CHAINPAY_NETWORK_MSTC.growth,
         description: "Premium tools with annual billing.",
         features: [
           "Everything in Basic",
@@ -190,11 +152,8 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: CHAINPAY_PLAN_INR.enterprise,
-        currency: "INR",
-        coins:
-          CHAINPAY_PLAN_MSTC.enterprise ??
-          computeMstcCoinsFromInr(CHAINPAY_PLAN_INR.enterprise),
+        coins: CHAINPAY_PLAN_MSTC_DISPLAY.enterprise,
+        networkCoins: CHAINPAY_NETWORK_MSTC.enterprise,
         description: "Enterprise billing.",
         features: [
           "Everything in Standard",
@@ -381,21 +340,17 @@ const PaymentForm = () => {
   const chainpayPricing = useMemo(() => {
     return Object.fromEntries(
       Object.entries(chainpayPlans).map(([key, plan]) => {
-        const originalAmount = Number(plan.price || 0);
         const mstcCoins = Number(plan.coins || 0);
 
         return [
           key,
           {
-            baseAmount: originalAmount,
-            originalAmount,
             mstcCoins,
             gstAmount: 0,
             cgstAmount: 0,
             sgstAmount: 0,
             igstAmount: 0,
-            totalAmount: originalAmount,
-            currency: plan.currency,
+            currency: "MSTC",
           },
         ];
       })
@@ -731,6 +686,7 @@ const PaymentForm = () => {
 
     const plan = chainpayPlans[selectedChainpayPlan];
     const pricing = chainpayPricing[selectedChainpayPlan];
+    const mstcCoins = Number(pricing?.mstcCoins ?? plan.coins ?? 0);
 
     setProcessingGateway("chainpay");
     setErrors((prev) => ({ ...prev, chainpay: "" }));
@@ -738,16 +694,15 @@ const PaymentForm = () => {
 
     try {
       const paymentRes = await createChainpayPayment({
-        amountFiat: pricing?.totalAmount || plan.price,
-        currency: plan.currency || "INR",
         description: `${plan.name} plan purchase`,
         planKey: selectedChainpayPlan,
         planName: plan.name,
-        pricing,
+        pricing: {
+          ...(pricing || {}),
+          mstcCoins,
+        },
         metadata: {
-          originalAmount: pricing?.originalAmount || plan.price,
-          finalAmount: pricing?.totalAmount || plan.price,
-          mstcCoins: pricing?.mstcCoins || plan.coins,
+          mstcCoins,
           planLabel: plan.name,
         },
       });
@@ -758,19 +713,36 @@ const PaymentForm = () => {
         );
       }
 
-      const { paymentUrl } = paymentRes.data || {};
-      if (!paymentUrl) {
-        throw new Error("Missing ChainPay payment URL.");
+      const {
+        orderId: createdOrderId,
+        token: paymentToken,
+        paymentUrl,
+      } = paymentRes.data || {};
+
+      if (!createdOrderId || !paymentToken) {
+        throw new Error("Missing ChainPay order reference.");
       }
 
-      setChainpayStatusMessage("Redirecting you to ChainPay checkout...");
-
-      const opened = window.open(paymentUrl, "_blank", "noopener,noreferrer");
-      if (opened) {
-        opened.focus();
-      } else {
-        window.location.href = paymentUrl;
+      try {
+        localStorage.setItem(
+          "qrfolio_chainpay",
+          JSON.stringify({
+            orderId: createdOrderId,
+            token: paymentToken,
+            paymentUrl,
+            mstcCoins,
+            createdAt: Date.now(),
+          })
+        );
+      } catch (storageError) {
+        console.warn("Unable to persist ChainPay session", storageError);
       }
+
+      setChainpayStatusMessage("Opening MSTC checkout...");
+      navigate(`/checkout/chainpay/${createdOrderId}`, {
+        state: { token: paymentToken, paymentUrl },
+        replace: true,
+      });
     } catch (err) {
       setErrors((prev) => ({
         ...prev,
@@ -897,13 +869,7 @@ const PaymentForm = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-xl font-bold text-indigo-600">
-                              {`${planPricing?.mstcCoins ?? plan.coins} MSTC`}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {/* {`≈ ${formatCurrencyDisplay(
-                                planPricing?.totalAmount ?? plan.price,
-                                planPricing?.currency || "INR"
-                              )}`} */}
+                              {`${plan.coins} MSTC`}
                             </div>
                           </div>
                         </div>

@@ -30,6 +30,7 @@ import PhonePeDemoPage from "./pages/PhonePeDemoPage";
 import PaymentStatusPage from "./pages/PaymentStatusPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailure from "./pages/PaymentFailure";
+import ChainpayCheckout from "./pages/ChainpayCheckout";
 import MaintenancePage from "./pages/MaintenancePage";
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -230,6 +231,10 @@ function App() {
               <Route path="/payment-status" element={<PaymentStatusPage />} />
               <Route path="/success" element={<PaymentSuccess />} />
               <Route path="/failure" element={<PaymentFailure />} />
+              <Route
+                path="/checkout/chainpay/:orderId"
+                element={<ChainpayCheckout />}
+              />
               <Route path="/verify-otp" element={<VerifyOTPPage />} />
               <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
               <Route path="/RefundPolicy" element={<RefundPolicy />} />
