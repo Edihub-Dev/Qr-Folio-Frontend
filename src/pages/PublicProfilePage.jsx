@@ -1076,7 +1076,7 @@ const PublicProfilePage = () => {
                         <p className="text-xs font-semibold uppercase tracking-wide text-[#1E1E1E]">
                           Company Name
                         </p>
-                        <p className="mt-2 break-words text-base font-semibold text-indigo-600">
+                        <p className="mt-2 break-words whitespace-pre-wrap text-base sm:text-lg font-semibold text-indigo-600">
                           {companyName}
                         </p>
                       </div>
@@ -1091,7 +1091,7 @@ const PublicProfilePage = () => {
                         <p className="text-xs font-semibold uppercase tracking-wide text-[#1E1E1E]">
                           Designation
                         </p>
-                        <p className="mt-2 break-words text-base font-semibold text-indigo-600">
+                        <p className="mt-2 break-words whitespace-pre-wrap text-base sm:text-lg font-semibold text-indigo-600">
                           {user.designation || "—"}
                         </p>
                       </div>
@@ -1113,16 +1113,16 @@ const PublicProfilePage = () => {
                   </div>
 
                   {/* Experience & Referral */}
-                  <div className="flex flex-nowrap">
-                    <div className="inline-flex items-center rounded-l-full bg-gradient-to-r from-[#4338CA] to-[#2563EB] px-4 py-2 text-sm font-medium text-white">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-nowrap">
+                    <div className="flex w-full items-center justify-center rounded-full sm:w-auto sm:justify-start sm:rounded-l-full sm:rounded-r-none bg-gradient-to-r from-[#4338CA] to-[#2563EB] px-4 py-2 text-sm font-medium text-white text-center sm:text-left">
                       <span>Experience:</span>
                       <span className="ml-1 font-semibold">
                         {companyExperience || "—"}
                       </span>
                     </div>
-                    <div className="inline-flex items-center rounded-r-full bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 -ml-1">
+                    <div className="flex w-full items-center justify-center rounded-full sm:w-auto sm:justify-start sm:rounded-r-full sm:rounded-l-none bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 text-center sm:text-left">
                       <span>Referral Code:</span>
-                      <span className="ml-1 font-semibold text-indigo-600">
+                      <span className="ml-1 font-semibold text-indigo-600 break-words break-all">
                         {companyReferralCode || "—"}
                       </span>
                     </div>
