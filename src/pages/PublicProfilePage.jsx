@@ -17,6 +17,7 @@ import {
   Building2,
   Briefcase,
   Globe,
+  Link2,
 } from "lucide-react";
 import QRCodeGenerator from "../components/QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
@@ -869,7 +870,7 @@ const PublicProfilePage = () => {
                       />
                     </div>
                     <div className="mt-6 space-y-2">
-                      <h1 className="text-2xl text-[#1532CB] font-semibold text-slate-900">
+                      <h1 className="text-2xl text-[#1532CB] font-semibold text-slate-900 break-words">
                         {displayName}
                       </h1>
                       <div className="text-sm font-medium text-slate-500">

@@ -360,13 +360,18 @@ const ChainpayCheckout = () => {
                 )}
                 {options.map((option) => {
                   const networkAmount = (() => {
+                    if (Number.isFinite(Number(option.value))) {
+                      return Number(option.value);
+                    }
+                    if (
+                      Number.isFinite(Number(option?.estimatedAmount))
+                    ) {
+                      return Number(option.estimatedAmount);
+                    }
                     if (
                       Number.isFinite(Number(order?.metadata?.networkCoins))
                     ) {
                       return Number(order.metadata.networkCoins);
-                    }
-                    if (Number.isFinite(Number(option.value))) {
-                      return Number(option.value);
                     }
                     return null;
                   })();
