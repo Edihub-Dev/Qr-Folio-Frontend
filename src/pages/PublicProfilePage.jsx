@@ -1068,7 +1068,7 @@ const PublicProfilePage = () => {
                   </h2>
                   <div className="grid min-h-0 grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Company Name Card */}
-                    <div className="flex flex-col  h-[200px] shadow-[rgba(0,0,0,0.46)] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
+                    <div className="flex flex-col min-h-[200px] shadow-[rgba(0,0,0,0.46)] items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
                       <div className="flex h-12 w-12 m-5 items-center justify-center rounded-2xl bg-indigo-100 text-[#1E1E1E] shadow-inner">
                         <Building2 className="h-6 w-6" />
                       </div>
@@ -1083,7 +1083,7 @@ const PublicProfilePage = () => {
                     </div>
 
                     {/* Designation Card */}
-                    <div className="flex h-[200px] flex-col items-center gap-3 shadow-[rgba(0,0,0,0.46)] rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
+                    <div className="flex min-h-[200px] flex-col items-center gap-3 shadow-[rgba(0,0,0,0.46)] rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm hover:shadow-lg">
                       <div className="flex h-12 w-12 m-5 items-center justify-center rounded-2xl bg-blue-100 text-[#1E1E1E] shadow-inner">
                         <Briefcase className="h-6 w-6" />
                       </div>
