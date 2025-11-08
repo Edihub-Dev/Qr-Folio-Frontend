@@ -108,8 +108,8 @@ const PaymentForm = () => {
 
   const CHAINPAY_PLAN_MSTC_DISPLAY = Object.freeze({
     starter: 100,
-    growth: 200.223,
-    enterprise: 300.3344,
+    growth: 200,
+    enterprise: 300,
   });
 
   const CHAINPAY_NETWORK_MSTC = Object.freeze({
