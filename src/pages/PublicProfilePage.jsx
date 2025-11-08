@@ -870,7 +870,7 @@ const PublicProfilePage = () => {
                       />
                     </div>
                     <div className="mt-6 space-y-2">
-                      <h1 className="text-2xl text-[#1532CB] font-semibold text-slate-900 break-words">
+                      <h1 className="text-2xl text-[#1532CB] font-semibold text-slate-900">
                         {displayName}
                       </h1>
                       <div className="text-sm font-medium text-slate-500">
