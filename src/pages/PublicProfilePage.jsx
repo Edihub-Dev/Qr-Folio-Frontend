@@ -1113,7 +1113,7 @@ const PublicProfilePage = () => {
                   </div>
 
                   {/* Experience & Referral */}
-                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-nowrap">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:gap-1">
                     <div className="flex w-full items-center justify-center rounded-full sm:w-auto sm:justify-start sm:rounded-l-full sm:rounded-r-none bg-gradient-to-r from-[#4338CA] to-[#2563EB] px-4 py-2 text-sm font-medium text-white text-center sm:text-left">
                       <span>Experience:</span>
                       <span className="ml-1 font-semibold">
