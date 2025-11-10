@@ -874,9 +874,9 @@ const PublicProfilePage = () => {
                         {displayName}
                       </h1>
                       <div className="text-sm font-medium text-slate-500">
-                        {user.designation || "—"} at{" "}
+                        {user.designation || ""} at{" "}
                         <span className="font-semibold text-[#1532CB]">
-                          {companyName !== "—" ? companyName : "Company"}
+                          {companyName !== "" ? companyName : "Company"}
                         </span>
                       </div>
                     </div>
@@ -1007,7 +1007,7 @@ const PublicProfilePage = () => {
                       About Me
                     </h2>
                     <p className="text-base leading-relaxed text-slate-600">
-                      {professionalSummary || "—"}
+                      {professionalSummary || ""}
                     </p>
                   </div>
                   {extendedGallery.length > 0 && (
@@ -1092,7 +1092,7 @@ const PublicProfilePage = () => {
                           Designation
                         </p>
                         <p className="mt-2 break-words whitespace-pre-wrap text-base sm:text-lg font-semibold text-indigo-600">
-                          {user.designation || "—"}
+                          {user.designation || ""}
                         </p>
                       </div>
                     </div>
@@ -1106,7 +1106,7 @@ const PublicProfilePage = () => {
                       Company Description
                     </h2>
                     <p className="text-base leading-relaxed text-slate-600 break-words">
-                      {companyDescription !== "—"
+                      {companyDescription !== ""
                         ? companyDescription
                         : "We create visually stunning and engaging content."}
                     </p>
@@ -1117,13 +1117,13 @@ const PublicProfilePage = () => {
                     <div className="flex w-full items-center justify-center rounded-full sm:w-auto sm:justify-start sm:rounded-l-full sm:rounded-r-none bg-gradient-to-r from-[#4338CA] to-[#2563EB] px-4 py-2 text-sm font-medium text-white text-center sm:text-left">
                       <span>Experience:</span>
                       <span className="ml-1 font-semibold">
-                        {companyExperience || "—"}
+                        {companyExperience || ""}
                       </span>
                     </div>
                     <div className="flex w-full items-center justify-center rounded-full sm:w-auto sm:justify-start sm:rounded-r-full sm:rounded-l-none bg-white px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 text-center sm:text-left">
                       <span>Referral Code:</span>
                       <span className="ml-1 font-semibold text-indigo-600 break-words break-all">
-                        {companyReferralCode || "—"}
+                        {companyReferralCode || ""}
                       </span>
                     </div>
                   </div>
@@ -1135,9 +1135,6 @@ const PublicProfilePage = () => {
                   <h2 className="text-xl font-semibold text-[#1532CB] mb-4">
                     Work Videos
                   </h2>
-                  {/* <div className="text-sm text-gray-500 mb-3">
-                    Explore the latest videos shared on this profile.
-                  </div> */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <AnimatePresence>
                       {videoItems.map((item) => (
