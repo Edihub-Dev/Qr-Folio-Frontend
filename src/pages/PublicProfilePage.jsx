@@ -18,6 +18,7 @@ import {
   Briefcase,
   Globe,
   Link2,
+  ArrowLeft,
 } from "lucide-react";
 import QRCodeGenerator from "../components/QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
@@ -221,6 +222,14 @@ const PublicProfilePage = () => {
       navigate("/", { replace: false });
     }
   }, [authLoading, authUser, navigate]);
+
+  const handleBackClick = useCallback(() => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/", { replace: false });
+    }
+  }, [navigate]);
 
   // Generate avatar with initials
   const getInitials = (name) => {
@@ -856,6 +865,16 @@ const PublicProfilePage = () => {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="w-full"
         >
+          <div className="mx-auto w-full max-w-[1440px] px-6 pt-8 xl:px-14">
+            <button
+              type="button"
+              onClick={handleBackClick}
+              className="no-print inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow transition hover:bg-indigo-50"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+          </div>
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-14 px-6 pb-20 pt-14 lg:flex-row lg:gap-20 xl:px-14">
             <aside className="w-full max-w-[360px] space-y-6">
               <div id="public-card-print" ref={cardRef} className="space-y-6">
