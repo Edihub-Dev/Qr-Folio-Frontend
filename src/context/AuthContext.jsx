@@ -251,15 +251,27 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("qr_folio_user");
       localStorage.removeItem("token");
 
-      const res = await api.post("/auth/signup", {
+      const trimmedReferral = couponCode?.trim();
+      const payload = {
         name,
         email,
         password,
         confirmPassword: confirmPassword ?? password,
         couponCode,
-      });
+      };
+
+      if (trimmedReferral) {
+        payload.referralCode = trimmedReferral;
+      }
+
+      const res = await api.post("/auth/signup", payload);
       if (res.data?.success) {
-        setSignupData({ name, email, couponCode });
+        setSignupData({
+          name,
+          email,
+          couponCode,
+          referralCode: trimmedReferral || null,
+        });
         return { success: true };
       }
       return { success: false, error: res.data?.message || "Signup failed" };
@@ -285,16 +297,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const verifyOTP = async (email, otp) => {
+  const verifyOTP = async (emailOrOtp, maybeOtp) => {
     try {
-      const userEmail = email || signupData?.email;
+      const isOtpString = (value) =>
+        typeof value === "string" && /^[0-9]{4,6}$/.test(value.trim());
+
+      let userEmail = null;
+      let otpValue = null;
+
+      if (typeof maybeOtp === "string" && maybeOtp.trim().length > 0) {
+        userEmail = emailOrOtp || signupData?.email;
+        otpValue = maybeOtp.trim();
+      } else if (isOtpString(emailOrOtp) && !maybeOtp) {
+        userEmail = signupData?.email;
+        otpValue = emailOrOtp.trim();
+      } else {
+        userEmail = emailOrOtp || signupData?.email;
+        otpValue = typeof maybeOtp === "string" ? maybeOtp.trim() : "";
+      }
+
       if (!userEmail)
         return { success: false, error: "Missing email for OTP verification" };
+      if (!isOtpString(otpValue))
+        return { success: false, error: "Invalid or missing OTP" };
 
       console.log("Sending OTP verification request for:", userEmail);
-      const payload = { email: userEmail, otp };
-      if (signupData?.couponCode) {
-        payload.couponCode = signupData.couponCode;
+      const payload = { email: userEmail, otp: otpValue };
+      const trimmedCoupon = signupData?.couponCode?.trim();
+      if (trimmedCoupon) {
+        payload.couponCode = trimmedCoupon;
+      }
+      const trimmedReferral = signupData?.referralCode?.trim();
+      if (trimmedReferral) {
+        payload.referralCode = trimmedReferral;
       }
 
       const res = await api.post("/auth/verify-otp", payload);
