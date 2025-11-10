@@ -324,12 +324,17 @@ export const AuthProvider = ({ children }) => {
       console.log("Sending OTP verification request for:", userEmail);
       const payload = { email: userEmail, otp: otpValue };
       const trimmedCoupon = signupData?.couponCode?.trim();
+      const trimmedReferral = signupData?.referralCode?.trim();
+
       if (trimmedCoupon) {
         payload.couponCode = trimmedCoupon;
       }
-      const trimmedReferral = signupData?.referralCode?.trim();
+
       if (trimmedReferral) {
         payload.referralCode = trimmedReferral;
+        if (!payload.couponCode) {
+          payload.couponCode = trimmedReferral;
+        }
       }
 
       const res = await api.post("/auth/verify-otp", payload);
