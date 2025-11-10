@@ -34,7 +34,14 @@ const FRAUD_BADGE = {
 const AdminReferralsPage = () => {
   const [referrals, setReferrals] = useState([]);
   const [stats, setStats] = useState(null);
-  const [filters, setFilters] = useState({ status: "", search: "", from: "", to: "" });
+  const [filters, setFilters] = useState({
+    status: "",
+    search: "",
+    referrerCode: "",
+    referredEmail: "",
+    from: "",
+    to: "",
+  });
   const [pagination, setPagination] = useState({ page: 1, limit: 20, totalPages: 1 });
   const [loading, setLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -62,6 +69,8 @@ const AdminReferralsPage = () => {
         limit: pagination.limit,
         status: filters.status || undefined,
         search: filters.search || undefined,
+        referrerCode: filters.referrerCode || undefined,
+        referredEmail: filters.referredEmail || undefined,
         from: filters.from || undefined,
         to: filters.to || undefined,
       });
@@ -107,7 +116,14 @@ const AdminReferralsPage = () => {
   };
 
   const resetFilters = () => {
-    const defaultFilters = { status: "", search: "", from: "", to: "" };
+    const defaultFilters = {
+      status: "",
+      search: "",
+      referrerCode: "",
+      referredEmail: "",
+      from: "",
+      to: "",
+    };
     setFilters(defaultFilters);
     setTimeout(() => {
       loadStats();
@@ -119,6 +135,8 @@ const AdminReferralsPage = () => {
     try {
       const { data } = await adminExportReferrals({
         status: filters.status || undefined,
+        referrerCode: filters.referrerCode || undefined,
+        referredEmail: filters.referredEmail || undefined,
         from: filters.from || undefined,
         to: filters.to || undefined,
       });
@@ -232,7 +250,7 @@ const AdminReferralsPage = () => {
           <Filter className="h-4 w-4" />
           <span className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Filters</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <label className="flex flex-col gap-2 text-sm">
             <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Status</span>
             <select
@@ -248,12 +266,32 @@ const AdminReferralsPage = () => {
             </select>
           </label>
           <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Search email/code</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Referrer code</span>
+            <input
+              type="text"
+              value={filters.referrerCode}
+              onChange={(event) => handleFilterChange("referrerCode", event.target.value.toUpperCase())}
+              placeholder="e.g. ABC123"
+              className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 uppercase"
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm">
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Referred email</span>
+            <input
+              type="text"
+              value={filters.referredEmail}
+              onChange={(event) => handleFilterChange("referredEmail", event.target.value)}
+              placeholder="user@example.com"
+              className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm">
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Search (name/email/code)</span>
             <input
               type="text"
               value={filters.search}
               onChange={(event) => handleFilterChange("search", event.target.value)}
-              placeholder="referred email or code"
+              placeholder="name, email, or code"
               className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
             />
           </label>
@@ -299,8 +337,9 @@ const AdminReferralsPage = () => {
           <table className="min-w-full">
             <thead>
               <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                <th className="px-6 py-3 text-left">Referred email</th>
-                <th className="px-6 py-3 text-left">Referrer code</th>
+                <th className="px-6 py-3 text-left">Referrer</th>
+                <th className="px-6 py-3 text-left">Referred user</th>
+                <th className="px-6 py-3 text-left">Plan</th>
                 <th className="px-6 py-3 text-left">Status</th>
                 <th className="px-6 py-3 text-left">Fraud</th>
                 <th className="px-6 py-3 text-left">Risk score</th>
@@ -312,14 +351,14 @@ const AdminReferralsPage = () => {
             <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
               {loading && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-slate-400">
+                  <td colSpan={9} className="px-6 py-8 text-center text-slate-400">
                     <Loader2 className="h-5 w-5 animate-spin inline-block" /> Loading referrals…
                   </td>
                 </tr>
               )}
               {!loading && referrals.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={9} className="px-6 py-8 text-center text-slate-500">
                     No referrals found for the selected filters.
                   </td>
                 </tr>
@@ -337,10 +376,28 @@ const AdminReferralsPage = () => {
                   : "—";
                 const signals = referral.riskSignals || [];
 
+                const referrerName = referral.referrerName || "—";
+                const referrerCode = referral.referrerCode || "—";
+                const referredName = referral.referredUserName || "—";
+                const referredEmail = referral.referredUserEmailMasked || referral.referredUserEmail || "—";
+                const planLabel = referral.referredUserPlan || "—";
+                const signupLabel = referral.referredUserSignupAt
+                  ? new Date(referral.referredUserSignupAt).toLocaleDateString("en-IN", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : null;
+
                 return (
                   <tr key={referral._id} className="hover:bg-slate-50">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-slate-900">{referral.referredUserEmail}</div>
+                      <div className="font-semibold text-slate-900">{referrerName}</div>
+                      <div className="text-xs text-slate-500">Code: {referrerCode}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-slate-900">{referredName}</div>
+                      <div className="text-xs text-slate-500">{referredEmail}</div>
                       {referral.reason && (
                         <div className="text-xs text-rose-500 flex items-center gap-1 mt-1">
                           <ShieldAlert className="h-3.5 w-3.5" />
@@ -348,7 +405,10 @@ const AdminReferralsPage = () => {
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-500">{referral.referrerCode}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      <div className="capitalize">{planLabel}</div>
+                      {signupLabel && <div className="text-xs text-slate-500">Signed up: {signupLabel}</div>}
+                    </td>
                     <td className="px-6 py-4 text-sm capitalize">{referral.status}</td>
                     <td className="px-6 py-4">{renderFraudBadge(referral)}</td>
                     <td className="px-6 py-4">

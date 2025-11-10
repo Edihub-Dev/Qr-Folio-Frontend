@@ -33,6 +33,25 @@ const ReferPage = () => {
   const referralLink = overview?.referralLink;
   const referralCode = overview?.referralCode;
 
+  const clientOrigin = useMemo(() => {
+    const envOrigin = import.meta?.env?.VITE_CLIENT_ORIGIN;
+    if (typeof envOrigin === "string" && envOrigin.trim()) {
+      return envOrigin.trim().replace(/\/$/, "");
+    }
+    if (typeof window !== "undefined" && window.location?.origin) {
+      return window.location.origin.replace(/\/$/, "");
+    }
+    return "https://www.qrfolio.net";
+  }, []);
+
+  const effectiveReferralLink = useMemo(() => {
+    if (referralLink) return referralLink;
+    if (referralCode) {
+      return `${clientOrigin}/signup?ref=${referralCode}`;
+    }
+    return null;
+  }, [clientOrigin, referralLink, referralCode]);
+
   useEffect(() => {
     const fetchOverview = async () => {
       try {
@@ -52,10 +71,13 @@ const ReferPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!referralLink) return;
+    if (!effectiveReferralLink) {
+      setQrDataUrl(null);
+      return;
+    }
     const generateQr = async () => {
       try {
-        const qr = await QRCode.toDataURL(referralLink, {
+        const qr = await QRCode.toDataURL(effectiveReferralLink, {
           errorCorrectionLevel: "M",
           margin: 2,
           width: 256,
@@ -66,7 +88,7 @@ const ReferPage = () => {
       }
     };
     generateQr();
-  }, [referralLink]);
+  }, [effectiveReferralLink]);
 
   const loadHistory = async (page = 1) => {
     try {
@@ -121,9 +143,9 @@ const ReferPage = () => {
   }, [overview?.recentHistory, overview?.referralCode]);
 
   const handleCopyLink = async () => {
-    if (!referralLink) return;
+    if (!effectiveReferralLink) return;
     try {
-      await navigator.clipboard.writeText(referralLink);
+      await navigator.clipboard.writeText(effectiveReferralLink);
       toast.success("Referral link copied");
     } catch (error) {
       toast.error("Unable to copy referral link");
@@ -182,7 +204,7 @@ const ReferPage = () => {
         <div className="xl:col-span-2 space-y-6">
           <ReferralCard
             referralCode={referralCode}
-            referralLink={referralLink}
+            referralLink={effectiveReferralLink}
             qrCodeDataUrl={qrDataUrl}
             onCopy={handleCopyLink}
             onShare={handleShare}
@@ -273,7 +295,7 @@ const ReferPage = () => {
       <InviteModal
         isOpen={inviteOpen}
         onClose={() => setInviteOpen(false)}
-        referralLink={referralLink}
+        referralLink={effectiveReferralLink}
         referralCode={referralCode}
       />
 

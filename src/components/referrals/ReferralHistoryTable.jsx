@@ -50,8 +50,9 @@ const ReferralHistoryTable = ({
         <table className="min-w-full">
           <thead>
             <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 bg-slate-50">
-              <th className="px-6 py-3">Referred email</th>
-              <th className="px-6 py-3">Date</th>
+              <th className="px-6 py-3">Referred user</th>
+              <th className="px-6 py-3">Plan</th>
+              <th className="px-6 py-3">Signup date</th>
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3">Reward</th>
               <th className="px-6 py-3">Action</th>
@@ -60,7 +61,7 @@ const ReferralHistoryTable = ({
           <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
             {entries.length === 0 && !loading && (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                   You haven’t invited anyone yet. Share your link to start earning rewards.
                 </td>
               </tr>
@@ -68,23 +69,31 @@ const ReferralHistoryTable = ({
 
             {entries.map((entry) => {
               const canResend = entry.status === "pending" && onResendInvite;
-              const createdAt = entry.createdAt ? new Date(entry.createdAt) : null;
-              const formattedDate = createdAt
-                ? createdAt.toLocaleDateString("en-IN", {
+              const signupDate = entry.referredUserSignupAt || entry.createdAt;
+              const signupAt = signupDate ? new Date(signupDate) : null;
+              const formattedSignup = signupAt
+                ? signupAt.toLocaleDateString("en-IN", {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",
                   })
                 : "—";
+              const displayName = entry.referredUserName || "—";
+              const displayEmail = entry.referredUserEmailMasked || entry.referredUserEmail || "—";
+              const planLabel = entry.referredUserPlan || "—";
 
               return (
                 <tr key={entry._id}
                   className="hover:bg-slate-50/70 transition">
-                  <td className="px-6 py-4 font-medium">
-                    {entry.referredUserEmail || "—"}
+                  <td className="px-6 py-4">
+                    <div className="font-semibold text-slate-900">{displayName}</div>
+                    <div className="text-xs text-slate-500">{displayEmail}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-600 capitalize">
+                    {planLabel || "—"}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-600">
-                    {formattedDate}
+                    {formattedSignup}
                   </td>
                   <td className="px-6 py-4">
                     {renderStatusBadge(entry.status)}
