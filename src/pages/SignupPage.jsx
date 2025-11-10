@@ -1,14 +1,21 @@
-import React, { useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import api from "../api";
 
 const SignupPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signup } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const referralCode = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("ref") || params.get("coupon") || "";
+  }, [location.search]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -16,12 +23,18 @@ const SignupPage = () => {
     password: "",
     confirmPassword: "",
     agreeToTerms: false,
-    couponCode: "",
+    couponCode: referralCode,
   });
   const [showPasswordFields, setShowPasswordFields] = useState({
     password: false,
     confirmPassword: false,
   });
+  const [referralState, setReferralState] = useState({
+    status: referralCode ? "loading" : "idle",
+    info: null,
+    message: "",
+  });
+  const lastValidatedRef = useRef("");
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -30,6 +43,13 @@ const SignupPage = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+    if (name === "couponCode") {
+      setReferralState((prev) =>
+        prev.status === "valid" || prev.status === "invalid"
+          ? { status: "idle", info: null, message: "" }
+          : prev
+      );
+    }
   };
 
   const togglePasswordVisibility = (field) => {
@@ -37,6 +57,68 @@ const SignupPage = () => {
       ...prev,
       [field]: !prev[field],
     }));
+  };
+
+  const validateReferral = useCallback(
+    async (code, { isAutoPrefill = false } = {}) => {
+      const trimmed = (code || "").trim().toUpperCase();
+      if (!trimmed) {
+        lastValidatedRef.current = "";
+        setReferralState({ status: "idle", info: null, message: "" });
+        return;
+      }
+
+      if (trimmed === lastValidatedRef.current && referralState.status !== "idle") {
+        return;
+      }
+
+      setReferralState({ status: "loading", info: null, message: "" });
+      try {
+        const { data } = await api.get(`/auth/referrals/${trimmed}/validate`);
+        if (data?.success) {
+          lastValidatedRef.current = trimmed;
+          setReferralState({
+            status: "valid",
+            info: data.data,
+            message: "",
+          });
+          if (!formData.couponCode) {
+            setFormData((prev) => ({ ...prev, couponCode: trimmed }));
+          }
+        } else {
+          throw new Error(data?.message || "Invalid referral code");
+        }
+      } catch (error) {
+        lastValidatedRef.current = "";
+        setReferralState({
+          status: "invalid",
+          info: null,
+          message: error?.response?.data?.message || error.message || "Invalid referral code",
+        });
+        if (isAutoPrefill) {
+          setFormData((prev) => ({ ...prev, couponCode: "" }));
+        }
+      }
+    },
+    [formData.couponCode, referralState.status]
+  );
+
+  useEffect(() => {
+    if (referralCode) {
+      setFormData((prev) => ({ ...prev, couponCode: referralCode }));
+      validateReferral(referralCode, { isAutoPrefill: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [referralCode]);
+
+  const handleCouponBlur = () => {
+    const current = formData.couponCode;
+    if (!current) {
+      setReferralState({ status: "idle", info: null, message: "" });
+      lastValidatedRef.current = "";
+      return;
+    }
+    validateReferral(current);
   };
 
   const validateForm = () => {
@@ -121,6 +203,32 @@ const SignupPage = () => {
         >
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Signup</h2>
           <p className="text-gray-600 mb-6">to get started</p>
+
+          {referralState.status === "loading" && (
+            <div className="mb-4 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+              Validating referral code…
+            </div>
+          )}
+
+          {referralState.status === "valid" && referralState.info && (
+            <div className="mb-4 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              You were referred by{" "}
+              <span className="font-semibold">
+                {referralState.info.referrerName || "a QR Folio member"}
+              </span>
+              {referralState.info.referralCode && (
+                <span>
+                  {" "}- referral code {referralState.info.referralCode}
+                </span>
+              )}
+            </div>
+          )}
+
+          {referralState.status === "invalid" && (
+            <div className="mb-4 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {referralState.message || "The referral code provided is invalid or expired."}
+            </div>
+          )}
 
           {errors.submit && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -235,6 +343,7 @@ const SignupPage = () => {
                 name="couponCode"
                 value={formData.couponCode}
                 onChange={handleInputChange}
+                onBlur={handleCouponBlur}
                 placeholder="Coupon Code (optional)"
                 className="w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all border-gray-200 bg-gray-50"
               />

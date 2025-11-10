@@ -760,7 +760,7 @@ const Dashboard = () => {
             </div>
           </motion.button>
 
-          <motion.button
+          {/* <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-primary-200 hover:bg-primary-50 transition-all"
@@ -772,7 +772,7 @@ const Dashboard = () => {
               <div className="font-medium text-gray-900"></div>
               <div className="text-sm text-gray-500"></div>
             </div>
-          </motion.button>
+          </motion.button> */}
         </div>
       </motion.div>
     </div>

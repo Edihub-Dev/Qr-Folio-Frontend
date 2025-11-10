@@ -10,6 +10,7 @@ import {
   Image,
   ShieldCheck,
   Share2,
+  Eye,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -27,6 +28,8 @@ const Sidebar = ({
   const navigate = useNavigate();
 
   const menuDefinitions = useMemo(() => {
+    const userId = user?.authUserId || user?.id || user?._id;
+
     const definitions = [
       {
         id: "dashboard",
@@ -63,13 +66,21 @@ const Sidebar = ({
         path: "/dashboard/qrcode",
         minPlan: "standard",
       },
-      // {
-      //   id: "refer",
-      //   label: "Refer & Earn",
-      //   icon: Share2,
-      //   path: "/dashboard/refer",
-      //   minPlan: "basic",
-      // },
+      {
+        id: "public-profile",
+        label: "Generate QR ID Card",
+        icon: Eye,
+        path: userId ? `/profile/${userId}` : "/dashboard",
+        minPlan: "basic",
+        external: true,
+      },
+      {
+        id: "refer",
+        label: "Refer & Earn",
+        icon: Share2,
+        path: "/dashboard/refer",
+        minPlan: "basic",
+      },
     ];
 
     if (user?.role === "admin") {
@@ -83,7 +94,7 @@ const Sidebar = ({
     }
 
     return definitions;
-  }, [user?.role]);
+  }, [user?.role, user?.authUserId, user?.id, user?._id]);
 
   const menuItems = useMemo(() => {
     const plan = (user?.subscriptionPlan || "basic").toLowerCase();
@@ -195,8 +206,20 @@ const Sidebar = ({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
-                      setActiveTab(item.id);
-                      navigate(item.path);
+                      if (!item.external) {
+                        setActiveTab(item.id);
+                        navigate(item.path);
+                      } else if (item.path) {
+                        if (!item.path.startsWith("http")) {
+                          navigate(item.path);
+                        } else {
+                          window.open(
+                            item.path,
+                            "_blank",
+                            "noopener,noreferrer"
+                          );
+                        }
+                      }
                       if (isMobile) setIsCollapsed(true);
                     }}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200
