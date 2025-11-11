@@ -23,6 +23,7 @@ import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminExportsPage from "./pages/admin/AdminExportsPage";
 import AdminInvoicesPage from "./pages/admin/AdminInvoicesPage";
 import AdminReferralsPage from "./pages/admin/AdminReferralsPage";
+import AdminWithdrawalsPage from "./pages/admin/AdminWithdrawalsPage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import RefundPolicy from "./pages/RefundPolicy";
@@ -264,6 +265,7 @@ function App() {
                 <Route path="exports" element={<AdminExportsPage />} />
                 <Route path="invoices" element={<AdminInvoicesPage />} />
                 <Route path="refer" element={<AdminReferralsPage />} />
+                <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/" />} />

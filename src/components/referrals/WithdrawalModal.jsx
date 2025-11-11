@@ -5,15 +5,21 @@ const WithdrawalModal = ({
   isOpen,
   onClose,
   onSubmit,
-  minWithdrawal = 500,
+  minWithdrawal = 50,
   walletBalance = 0,
   pendingRewards = 0,
+  totalWithdrawable = 0,
+  isEligible = true,
+  withdrawals = [],
+  withdrawalsLoading = false,
 }) => {
   const [amount, setAmount] = useState("");
   const [payoutMethod, setPayoutMethod] = useState("upi");
   const [upiId, setUpiId] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [ifsc, setIfsc] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accountHolderName, setAccountHolderName] = useState("");
   const [note, setNote] = useState("");
 
   const disableSubmit = useMemo(() => {
@@ -21,17 +27,28 @@ const WithdrawalModal = ({
     if (!Number.isFinite(numericAmount) || numericAmount < minWithdrawal) {
       return true;
     }
-    if (numericAmount > walletBalance) {
+    if (numericAmount > totalWithdrawable) {
       return true;
     }
     if (payoutMethod === "upi" && !upiId.trim()) {
       return true;
     }
-    if (payoutMethod === "bank" && (!accountNumber.trim() || !ifsc.trim())) {
+    if (
+      payoutMethod === "bank" &&
+      (!accountNumber.trim() || !ifsc.trim() || !bankName.trim() || !accountHolderName.trim())
+    ) {
       return true;
     }
     return false;
-  }, [amount, payoutMethod, upiId, accountNumber, ifsc, walletBalance, minWithdrawal]);
+  }, [
+    amount,
+    payoutMethod,
+    upiId,
+    accountNumber,
+    ifsc,
+    totalWithdrawable,
+    minWithdrawal,
+  ]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -44,9 +61,16 @@ const WithdrawalModal = ({
     } else {
       payoutDetails.accountNumber = accountNumber.trim();
       payoutDetails.ifsc = ifsc.trim();
+      payoutDetails.bankName = bankName.trim();
+      payoutDetails.accountHolderName = accountHolderName.trim();
     }
 
-    onSubmit({ amount: numericAmount, payoutMethod, payoutDetails, note: note.trim() });
+    onSubmit({
+      amount: numericAmount,
+      payoutMethod,
+      payoutDetails,
+      note: note.trim(),
+    });
   };
 
   const resetForm = () => {
@@ -55,6 +79,8 @@ const WithdrawalModal = ({
     setUpiId("");
     setAccountNumber("");
     setIfsc("");
+    setBankName("");
+    setAccountHolderName("");
     setNote("");
   };
 
@@ -73,7 +99,9 @@ const WithdrawalModal = ({
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">Request withdrawal</h3>
+            <h3 className="text-lg font-semibold text-slate-900">
+              Request withdrawal
+            </h3>
             <p className="text-xs text-slate-500">
               Minimum withdrawal ₹{minWithdrawal.toLocaleString("en-IN")}
             </p>
@@ -88,6 +116,14 @@ const WithdrawalModal = ({
         </div>
 
         <div className="px-6 py-5 space-y-5 text-sm text-slate-600">
+          {!isEligible && (
+            <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+              You need at least ₹{minWithdrawal.toLocaleString("en-IN")} to
+              place a withdrawal. You can still submit your payout details so
+              they’re ready once you meet the minimum.
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-2xl border border-primary-100 bg-primary-50 p-4">
               <p className="text-xs uppercase tracking-[0.3em] text-primary-500">
@@ -99,6 +135,9 @@ const WithdrawalModal = ({
               <p className="mt-1 text-xs text-primary-500">
                 Pending rewards: ₹{pendingRewards.toLocaleString("en-IN")}
               </p>
+              <p className="mt-1 text-xs text-primary-500">
+                Total withdrawable: ₹{totalWithdrawable.toLocaleString("en-IN")}
+              </p>
             </div>
             <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 flex gap-3">
               <Info className="h-5 w-5 text-amber-500" />
@@ -107,7 +146,8 @@ const WithdrawalModal = ({
                   Payout timeline
                 </p>
                 <p className="text-xs text-amber-600 mt-1">
-                  Withdrawals are reviewed by our team. You’ll receive an update within 2-3 business days.
+                  Withdrawals are reviewed by our team. You’ll receive an update
+                  within 2-3 business days.
                 </p>
               </div>
             </div>
@@ -160,6 +200,30 @@ const WithdrawalModal = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="flex flex-col gap-2">
                 <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  Bank name
+                </span>
+                <input
+                  type="text"
+                  value={bankName}
+                  onChange={(event) => setBankName(event.target.value)}
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  placeholder="HDFC Bank"
+                />
+              </label>
+              <label className="flex flex-col gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  Account holder name
+                </span>
+                <input
+                  type="text"
+                  value={accountHolderName}
+                  onChange={(event) => setAccountHolderName(event.target.value)}
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  placeholder="John Doe"
+                />
+              </label>
+              <label className="flex flex-col gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
                   Account number
                 </span>
                 <input
@@ -197,6 +261,78 @@ const WithdrawalModal = ({
               placeholder="Add any remarks for faster processing"
             />
           </label>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-slate-700">
+                Recent withdrawal requests
+              </h4>
+              <span className="text-xs text-slate-400">
+                Showing up to 20 latest entries
+              </span>
+            </div>
+            <div className="rounded-2xl border border-slate-100 bg-slate-50">
+              <div className="max-h-48 overflow-y-auto">
+                {withdrawalsLoading ? (
+                  <div className="px-4 py-6 text-center text-xs text-slate-500">
+                    Loading withdrawal history…
+                  </div>
+                ) : withdrawals.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-xs text-slate-500">
+                    No withdrawal requests yet.
+                  </div>
+                ) : (
+                  <table className="min-w-full text-xs text-slate-600">
+                    <thead>
+                      <tr className="bg-slate-100 text-[11px] uppercase tracking-[0.2em] text-slate-400">
+                        <th className="px-4 py-2 text-left">Date</th>
+                        <th className="px-4 py-2 text-right">Amount</th>
+                        <th className="px-4 py-2 text-left">Status</th>
+                        <th className="px-4 py-2 text-left">Note</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {withdrawals.map((entry) => {
+                        const created = entry.createdAt
+                          ? new Date(entry.createdAt).toLocaleString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "—";
+                        const statusLabel = entry.status || "pending";
+                        return (
+                          <tr
+                            key={
+                              entry.id || `${entry.createdAt}-${entry.amount}`
+                            }
+                            className="text-xs"
+                          >
+                            <td className="px-4 py-2">{created}</td>
+                            <td className="px-4 py-2 text-right">
+                              ₹
+                              {Number(entry.amount || 0).toLocaleString(
+                                "en-IN"
+                              )}
+                            </td>
+                            <td className="px-4 py-2 capitalize">
+                              {statusLabel}
+                            </td>
+                            <td className="px-4 py-2 truncate max-w-[140px]">
+                              {entry.note ||
+                                entry.metadata?.payoutDetails?.method ||
+                                "—"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="px-6 py-4 border-t border-slate-100 flex gap-3 justify-end">

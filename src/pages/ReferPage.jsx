@@ -10,6 +10,7 @@ import WithdrawalModal from "../components/referrals/WithdrawalModal";
 import {
   getReferralOverview,
   getReferralHistory,
+  getWithdrawalHistory,
   submitWithdrawal,
 } from "../services/referralService";
 
@@ -29,9 +30,27 @@ const ReferPage = () => {
   const [qrDataUrl, setQrDataUrl] = useState(null);
   const [isSubmittingWithdrawal, setSubmittingWithdrawal] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [withdrawalsLoading, setWithdrawalsLoading] = useState(false);
 
   const referralLink = overview?.referralLink;
   const referralCode = overview?.referralCode;
+  const minWithdrawal = useMemo(
+    () =>
+      Number(
+        (overview && overview.minWithdrawal) ||
+          import.meta.env?.VITE_REF_MIN_WITHDRAWAL ||
+          200
+      ),
+    [overview]
+  );
+
+  const totalWithdrawable = useMemo(() => {
+    if (!overview) return 0;
+    const balance = Number(overview.walletBalance || 0);
+    const pending = Number(overview.pendingRewards || 0);
+    return balance + pending;
+  }, [overview]);
 
   const clientOrigin = useMemo(() => {
     const envOrigin = import.meta?.env?.VITE_CLIENT_ORIGIN;
@@ -154,19 +173,54 @@ const ReferPage = () => {
 
   const handleShare = () => setInviteOpen(true);
 
-  const minWithdrawal = useMemo(
-    () => Number(import.meta.env?.VITE_REF_MIN_WITHDRAWAL) || 200,
-    []
-  );
+  const isWithdrawalEligible = totalWithdrawable >= minWithdrawal;
 
   const handleWithdrawal = () => {
-    if (!overview) return;
-    if (overview.walletBalance < minWithdrawal) {
-      toast.error(`You need at least ₹${minWithdrawal} to withdraw`);
+    if (!overview) {
+      console.warn("withdrawal.click.no-overview");
       return;
     }
+    console.debug("withdrawal.click", {
+      walletBalance: Number(overview.walletBalance || 0),
+      pendingRewards: Number(overview.pendingRewards || 0),
+      totalWithdrawable,
+      minWithdrawal,
+    });
+    if (totalWithdrawable < minWithdrawal) {
+      console.debug("withdrawal.disabled", {
+        walletBalance: Number(overview.walletBalance || 0),
+        pendingRewards: Number(overview.pendingRewards || 0),
+        totalWithdrawable,
+        minWithdrawal,
+      });
+      toast.error(
+        `You need at least ₹${minWithdrawal} to withdraw (currently ₹${totalWithdrawable.toLocaleString("en-IN")})`
+      );
+    }
+    console.debug("withdrawal.modal.opening");
     setWithdrawOpen(true);
   };
+
+  const loadWithdrawals = async () => {
+    try {
+      setWithdrawalsLoading(true);
+      const { data } = await getWithdrawalHistory({ limit: 20 });
+      if (data?.success) {
+        setWithdrawals(Array.isArray(data.data) ? data.data : []);
+      }
+    } catch (error) {
+      console.error("Unable to load withdrawal history", error);
+    } finally {
+      setWithdrawalsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (withdrawOpen) {
+      loadWithdrawals();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [withdrawOpen]);
 
   const handleWithdrawalSubmit = async ({
     amount,
@@ -211,7 +265,7 @@ const ReferPage = () => {
           />
 
           <div className="bg-white rounded-3xl border border-slate-100 shadow-lg overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900">
                   Reward summary
@@ -221,14 +275,22 @@ const ReferPage = () => {
                   withdrawable wallet balance.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={handleWithdrawal}
-                disabled={isSubmittingWithdrawal}
-                className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary-700 disabled:opacity-50"
-              >
-                Withdraw
-              </button>
+              <div className="flex flex-col items-end gap-1">
+                <button
+                  type="button"
+                  onClick={handleWithdrawal}
+                  disabled={isSubmittingWithdrawal}
+                  className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary-700 disabled:opacity-50"
+                >
+                  Withdraw
+                </button>
+                {!isWithdrawalEligible && (
+                  <p className="text-xs text-slate-400 text-right">
+                    Minimum ₹{minWithdrawal.toLocaleString("en-IN")} required.
+                    Currently ₹{totalWithdrawable.toLocaleString("en-IN")}.
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-6 py-6">
@@ -310,6 +372,10 @@ const ReferPage = () => {
         minWithdrawal={minWithdrawal}
         walletBalance={Number(overview?.walletBalance || 0)}
         pendingRewards={Number(overview?.pendingRewards || 0)}
+        totalWithdrawable={totalWithdrawable}
+        isEligible={isWithdrawalEligible}
+        withdrawals={withdrawals}
+        withdrawalsLoading={withdrawalsLoading}
       />
     </div>
   );

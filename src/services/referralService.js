@@ -5,6 +5,9 @@ export const getReferralOverview = () => api.get("/refer/me");
 export const getReferralHistory = (params) =>
   api.get("/refer/history", { params });
 
+export const getWithdrawalHistory = (params) =>
+  api.get("/refer/withdrawals", { params });
+
 export const submitWithdrawal = (payload) =>
   api.post("/refer/withdraw", payload);
 
@@ -22,3 +25,9 @@ export const adminExportReferrals = (params) =>
     params,
     responseType: "blob",
   });
+
+export const adminListWithdrawalRequests = (params) =>
+  api.get("/admin/withdrawals", { params });
+
+export const adminUpdateWithdrawalRequest = (id, payload) =>
+  api.patch(`/admin/withdrawals/${id}`, payload);
