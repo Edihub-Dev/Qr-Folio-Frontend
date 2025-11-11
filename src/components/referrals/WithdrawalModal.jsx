@@ -95,9 +95,9 @@ const WithdrawalModal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-xl rounded-3xl bg-white shadow-2xl border border-slate-100"
+        className="flex w-full max-w-xl max-h-[90vh] flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl"
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
             <h3 className="text-lg font-semibold text-slate-900">
               Request withdrawal
@@ -115,7 +115,7 @@ const WithdrawalModal = ({
           </button>
         </div>
 
-        <div className="px-6 py-5 space-y-5 text-sm text-slate-600">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 text-sm text-slate-600">
           {!isEligible && (
             <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs text-amber-700">
               You need at least ₹{minWithdrawal.toLocaleString("en-IN")} to
@@ -335,7 +335,7 @@ const WithdrawalModal = ({
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex gap-3 justify-end">
+        <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-6 py-4">
           <button
             type="button"
             onClick={handleClose}
