@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useParams, Navigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion } from "../utils/motion";
 import { ArrowLeft, Clock, Copy, AlertCircle, Loader2 } from "lucide-react";
 import api from "../api";
 import { useAuth } from "../context/AuthContext";

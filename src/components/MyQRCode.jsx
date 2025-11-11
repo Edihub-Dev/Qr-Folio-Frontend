@@ -9,7 +9,7 @@ import {
   Monitor,
   Tablet,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "../utils/motion";
 import QRCodeGenerator from "./QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";

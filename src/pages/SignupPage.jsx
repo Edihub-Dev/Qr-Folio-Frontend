@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion } from "../utils/motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Save, Building2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "../utils/motion";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 

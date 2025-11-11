@@ -1,6 +1,6 @@
 // frontend/src/pages/ForgotPasswordPage.jsx
 import React, { useState, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion } from "../utils/motion";
 import { useNavigate } from "react-router-dom";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import api from "../api";

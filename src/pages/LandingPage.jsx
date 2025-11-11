@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion } from "../utils/motion";
 import { SiGnuprivacyguard } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";

@@ -23,22 +23,31 @@ const formatCurrency = (value = 0) => {
   }).format(amount);
 };
 
-const StatCard = ({ title, value, subtitle, icon: Icon, accent }) => (
-  <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md">
+const StatCard = ({ title, value, subtitle, icon: Icon, accent, isLoading }) => (
+  <div className="relative min-h-[168px] overflow-hidden rounded-3xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md">
     <div
       className={`absolute -right-6 -top-6 h-28 w-28 rounded-full opacity-10 ${accent}`}
     ></div>
-    <div className="flex items-center justify-between">
-      <div>
+    <div className="flex h-full items-center justify-between">
+      <div className="w-full max-w-[70%]">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
           {title}
         </p>
-        <p className="mt-3 text-2xl font-semibold text-gray-900">{value}</p>
-        {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
+        {isLoading ? (
+          <div className="mt-4 space-y-2">
+            <div className="h-6 w-32 rounded-md bg-gray-100 animate-pulse" />
+            {subtitle && <div className="h-4 w-40 rounded-md bg-gray-100 animate-pulse" />}
+          </div>
+        ) : (
+          <>
+            <p className="mt-3 text-2xl font-semibold text-gray-900">{value}</p>
+            {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
+          </>
+        )}
       </div>
       {Icon && (
         <div
-          className={`rounded-2xl p-3 ${accent.replace(
+          className={`flex h-12 w-12 items-center justify-center rounded-2xl ${accent.replace(
             "bg-",
             "bg-opacity-20 "
           )}`}
@@ -178,12 +187,12 @@ const AdminDashboardPage = () => {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {statCards.map((card) => (
-          <StatCard key={card.title} {...card} />
+          <StatCard key={card.title} {...card} isLoading={loading} />
         ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-6 shadow-sm lg:col-span-2">
+        <section className="relative min-h-[420px] overflow-hidden rounded-3xl border border-gray-200 bg-white p-6 shadow-sm lg:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
@@ -221,7 +230,11 @@ const AdminDashboardPage = () => {
               </div>
             </div>
             <div className="mt-4">
-              <RevenueSparkline />
+              {loading ? (
+                <div className="h-40 w-full animate-pulse rounded-2xl bg-white/60" />
+              ) : (
+                <RevenueSparkline />
+              )}
             </div>
           </div>
 
@@ -253,7 +266,7 @@ const AdminDashboardPage = () => {
           </div>
         </section>
 
-        <section className="flex flex-col gap-4 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="flex min-h-[420px] flex-col gap-4 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
@@ -265,53 +278,53 @@ const AdminDashboardPage = () => {
             </div>
           </div>
           <div className="space-y-4">
-            <div className="flex items-start justify-between rounded-2xl bg-slate-50 p-4">
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Paid conversion
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-gray-900">
-                  {conversionRate}
-                </p>
+            {[
+              {
+                label: "Paid conversion",
+                value: conversionRate,
+                iconBg: "bg-emerald-100 text-emerald-600",
+                icon: TrendingUp,
+              },
+              {
+                label: "Blocked ratio",
+                value: stats.totalUsers
+                  ? `${Math.round(
+                      ((stats.blockedUsers || 0) / stats.totalUsers) * 100
+                    )}%`
+                  : "0%",
+                iconBg: "bg-rose-100 text-rose-600",
+                icon: ShieldCheck,
+              },
+              {
+                label: "Revenue per user",
+                value: stats.totalUsers
+                  ? formatCurrency((stats.totalRevenue || 0) / stats.totalUsers)
+                  : formatCurrency(0),
+                iconBg: "bg-cyan-100 text-cyan-600",
+                icon: IndianRupee,
+              },
+            ].map(({ label, value, iconBg, icon: Icon }) => (
+              <div
+                key={label}
+                className="flex items-start justify-between rounded-2xl bg-slate-50 p-4"
+              >
+                <div className="w-full max-w-[70%]">
+                  <p className="text-sm font-medium text-gray-600">{label}</p>
+                  {loading ? (
+                    <div className="mt-3 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
+                  ) : (
+                    <p className="mt-1 text-2xl font-semibold text-gray-900">
+                      {value}
+                    </p>
+                  )}
+                </div>
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-full ${iconBg}`}
+                >
+                  <Icon className="h-5 w-5" />
+                </div>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-            </div>
-            <div className="flex items-start justify-between rounded-2xl bg-slate-50 p-4">
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Blocked ratio
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-gray-900">
-                  {stats.totalUsers
-                    ? `${Math.round(
-                        ((stats.blockedUsers || 0) / stats.totalUsers) * 100
-                      )}%`
-                    : "0%"}
-                </p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-            </div>
-            <div className="flex items-start justify-between rounded-2xl bg-slate-50 p-4">
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Revenue per user
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-gray-900">
-                  {stats.totalUsers
-                    ? formatCurrency(
-                        (stats.totalRevenue || 0) / stats.totalUsers
-                      )
-                    : formatCurrency(0)}
-                </p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-100 text-cyan-600">
-                <IndianRupee className="h-5 w-5" />
-              </div>
-            </div>
+            ))}
           </div>
         </section>
       </div>

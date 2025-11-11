@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Shield } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "../utils/motion";
 
 const RefundPolicy = () => {
   const navigate = useNavigate();

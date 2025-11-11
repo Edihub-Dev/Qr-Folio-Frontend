@@ -1,7 +1,7 @@
 // frontend/src/pages/GalleryPage.jsx
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "../utils/motion";
 import {
   Image,
   UploadCloud,

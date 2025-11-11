@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { Download, Edit3, Copy, Share2, Eye } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "../utils/motion";
 import QRCodeGenerator from "./QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
 import {

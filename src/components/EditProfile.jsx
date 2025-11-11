@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Save, Upload } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from '../utils/motion';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 

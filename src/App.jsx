@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { Suspense, lazy, useEffect, useMemo } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -15,15 +15,15 @@ import SignupPage from "./pages/SignupPage";
 import PaymentPage from "./pages/PaymentPage";
 import VerifyOTPPage from "./pages/VerifyOTPPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import DashboardLayout from "./pages/DashboardLayout";
-import PublicProfilePage from "./pages/PublicProfilePage";
-import AdminLayout from "./pages/admin/AdminLayout";
-import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
-import AdminUsersPage from "./pages/admin/AdminUsersPage";
-import AdminExportsPage from "./pages/admin/AdminExportsPage";
-import AdminInvoicesPage from "./pages/admin/AdminInvoicesPage";
-import AdminReferralsPage from "./pages/admin/AdminReferralsPage";
-import AdminWithdrawalsPage from "./pages/admin/AdminWithdrawalsPage";
+const DashboardLayout = lazy(() => import("./pages/DashboardLayout"));
+const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminDashboardPage = lazy(() => import("./pages/admin/AdminDashboardPage"));
+const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
+const AdminExportsPage = lazy(() => import("./pages/admin/AdminExportsPage"));
+const AdminInvoicesPage = lazy(() => import("./pages/admin/AdminInvoicesPage"));
+const AdminReferralsPage = lazy(() => import("./pages/admin/AdminReferralsPage"));
+const AdminWithdrawalsPage = lazy(() => import("./pages/admin/AdminWithdrawalsPage"));
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import RefundPolicy from "./pages/RefundPolicy";
@@ -182,95 +182,103 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-gray-50 font-sans">
-          {maintenanceMode ? (
-            <Routes>
-              <Route path="*" element={<MaintenancePage />} />
-            </Routes>
-          ) : (
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <PublicRoute>
-                    <LandingPage />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/login"
-                element={
-                  <PublicRoute authPage>
-                    <LoginPage />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/forgot-password"
-                element={
-                  <PublicRoute>
-                    <ForgotPasswordPage />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/signup"
-                element={
-                  <PublicRoute authPage>
-                    <SignupPage />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/payment"
-                element={
-                  <SetupRoute>
-                    <PaymentPage />
-                  </SetupRoute>
-                }
-              />
-              <Route path="/phonepe-demo" element={<PhonePeDemoPage />} />
-              <Route path="/payment-status" element={<PaymentStatusPage />} />
-              <Route path="/success" element={<PaymentSuccess />} />
-              <Route path="/failure" element={<PaymentFailure />} />
-              <Route
-                path="/checkout/chainpay/:orderId"
-                element={<ChainpayCheckout />}
-              />
-              <Route path="/verify-otp" element={<VerifyOTPPage />} />
-              <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
-              <Route path="/RefundPolicy" element={<RefundPolicy />} />
-              <Route path="/terms" element={<TermsConditions />} />
+          <Suspense
+            fallback={
+              <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary-600" />
+              </div>
+            }
+          >
+            {maintenanceMode ? (
+              <Routes>
+                <Route path="*" element={<MaintenancePage />} />
+              </Routes>
+            ) : (
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <PublicRoute>
+                      <LandingPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/login"
+                  element={
+                    <PublicRoute authPage>
+                      <LoginPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/forgot-password"
+                  element={
+                    <PublicRoute>
+                      <ForgotPasswordPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/signup"
+                  element={
+                    <PublicRoute authPage>
+                      <SignupPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/payment"
+                  element={
+                    <SetupRoute>
+                      <PaymentPage />
+                    </SetupRoute>
+                  }
+                />
+                <Route path="/phonepe-demo" element={<PhonePeDemoPage />} />
+                <Route path="/payment-status" element={<PaymentStatusPage />} />
+                <Route path="/success" element={<PaymentSuccess />} />
+                <Route path="/failure" element={<PaymentFailure />} />
+                <Route
+                  path="/checkout/chainpay/:orderId"
+                  element={<ChainpayCheckout />}
+                />
+                <Route path="/verify-otp" element={<VerifyOTPPage />} />
+                <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
+                <Route path="/RefundPolicy" element={<RefundPolicy />} />
+                <Route path="/terms" element={<TermsConditions />} />
 
-              <Route path="/profile/:id" element={<PublicProfilePage />} />
+                <Route path="/profile/:id" element={<PublicProfilePage />} />
 
-              <Route
-                path="/dashboard/*"
-                element={
-                  <ProtectedRoute>
-                    <DashboardLayout />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/dashboard/*"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardLayout />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute requireAdmin>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<AdminDashboardPage />} />
-                <Route path="users" element={<AdminUsersPage />} />
-                <Route path="exports" element={<AdminExportsPage />} />
-                <Route path="invoices" element={<AdminInvoicesPage />} />
-                <Route path="refer" element={<AdminReferralsPage />} />
-                <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
-              </Route>
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<AdminDashboardPage />} />
+                  <Route path="users" element={<AdminUsersPage />} />
+                  <Route path="exports" element={<AdminExportsPage />} />
+                  <Route path="invoices" element={<AdminInvoicesPage />} />
+                  <Route path="refer" element={<AdminReferralsPage />} />
+                  <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
+                </Route>
 
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          )}
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            )}
+          </Suspense>
         </div>
       </Router>
     </AuthProvider>

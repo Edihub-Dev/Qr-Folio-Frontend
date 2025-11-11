@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "../utils/motion";
 // import Dashboard from "../components/Dashboard";
 import {
   Mail,
@@ -23,6 +23,60 @@ import {
 import QRCodeGenerator from "../components/QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
 import api from "../api";
+
+const LazyIframeEmbed = ({ title, src }) => {
+  const containerRef = useRef(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    if (shouldLoad) return undefined;
+
+    const node = containerRef.current;
+    if (!node) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setShouldLoad(true);
+            observer.disconnect();
+          }
+        });
+      },
+      {
+        rootMargin: "200px",
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, [shouldLoad]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full overflow-hidden rounded-xl bg-gray-100"
+      style={{ paddingBottom: "56.25%" }}
+    >
+      {shouldLoad ? (
+        <iframe
+          title={title}
+          src={src}
+          className="absolute inset-0 h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          frameBorder="0"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">
+          Loading video...
+        </div>
+      )}
+    </div>
+  );
+};
 
 const PublicProfilePage = () => {
   const { id } = useParams();
@@ -121,29 +175,41 @@ const PublicProfilePage = () => {
     };
 
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown, { passive: true });
 
     return () => {
       document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown, { passive: true });
     };
   }, [selectedPhoto]);
 
   useEffect(() => {
+    let rafId = null;
+
     const updateVisibleCount = () => {
       const width = window.innerWidth;
+      let nextCount = 3;
       if (width < 640) {
-        setVisibleGalleryCount(1);
+        nextCount = 1;
       } else if (width < 1024) {
-        setVisibleGalleryCount(2);
-      } else {
-        setVisibleGalleryCount(3);
+        nextCount = 2;
       }
+
+      setVisibleGalleryCount((prev) => (prev === nextCount ? prev : nextCount));
+    };
+
+    const handleResize = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updateVisibleCount);
     };
 
     updateVisibleCount();
-    window.addEventListener("resize", updateVisibleCount);
-    return () => window.removeEventListener("resize", updateVisibleCount);
+    window.addEventListener("resize", handleResize, { passive: true });
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", handleResize, { passive: true });
+    };
   }, []);
 
   useEffect(() => {
@@ -167,8 +233,10 @@ const PublicProfilePage = () => {
     }
 
     const intervalId = window.setInterval(() => {
-      setActiveGalleryIndex((prev) => prev + 1);
-    }, 1000);
+      requestAnimationFrame(() => {
+        setActiveGalleryIndex((prev) => prev + 1);
+      });
+    }, 2500);
 
     return () => window.clearInterval(intervalId);
   }, [featuredGallery.length, selectedPhoto, visibleGalleryCount]);
@@ -379,14 +447,10 @@ const PublicProfilePage = () => {
           params.set("modestbranding", "1");
 
           return (
-            <iframe
+            <LazyIframeEmbed
               key={cleanId}
               title={`YouTube video ${cleanId}`}
               src={`https://www.youtube.com/embed/${cleanId}?${params.toString()}`}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              frameBorder="0"
             />
           );
         }
@@ -397,14 +461,10 @@ const PublicProfilePage = () => {
         const videoId = segments.pop();
         if (videoId) {
           return (
-            <iframe
+            <LazyIframeEmbed
               key={videoId}
               title={`Vimeo video ${videoId}`}
               src={`https://player.vimeo.com/video/${videoId}`}
-              className="w-full h-full"
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowFullScreen
-              frameBorder="0"
             />
           );
         }

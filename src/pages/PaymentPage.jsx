@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { motion } from "framer-motion";
+import { motion } from "../utils/motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Shield, ArrowLeft, CheckCircle, QrCode } from "lucide-react";

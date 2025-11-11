@@ -1,22 +1,31 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { visualizer } from "rollup-plugin-visualizer";
 
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => {
+  const plugins = [react()];
 
-  optimizeDeps: {
-    exclude: ["lucide-react"],
-  },
+  if (mode === "analyze") {
+    plugins.push(
+      visualizer({
+        filename: "dist/bundle-report.html",
+        template: "treemap",
+        gzipSize: true,
+        brotliSize: true,
+        open: false,
+      })
+    );
+  }
 
-  build: {
-    chunkSizeWarningLimit: 800,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          "html-export": ["html-to-image", "html2canvas"],
-          framer: ["framer-motion"],
-        },
-      },
+  return {
+    plugins,
+
+    optimizeDeps: {
+      exclude: ["lucide-react"],
     },
-  },
+
+    build: {
+      chunkSizeWarningLimit: 800,
+    },
+  };
 });

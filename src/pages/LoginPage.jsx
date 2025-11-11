@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion } from "../utils/motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
@@ -175,6 +175,7 @@ const LoginPage = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Email"
+                autoComplete="email"
                 className={`w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
                   errors.email
                     ? "border-red-300 bg-red-50"
@@ -194,6 +195,7 @@ const LoginPage = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Password"
+                  autoComplete="current-password"
                   className={`w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12 ${
                     errors.password
                       ? "border-red-300 bg-red-50"

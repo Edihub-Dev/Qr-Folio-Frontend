@@ -12,7 +12,6 @@ import {
   Share2,
   Eye,
 } from "lucide-react";
-import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { PLAN_LABELS, getPlanRank } from "../utils/subscriptionPlan";
@@ -122,46 +121,49 @@ const Sidebar = ({
   return (
     <>
       {isMobile && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+        <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="fixed top-4 left-4 z-50 lg:hidden bg-white rounded-lg p-2 shadow-lg border border-gray-200"
+          className={`fixed top-4 left-4 z-50 border border-gray-200 bg-white p-2 shadow-lg lg:hidden transition-opacity duration-300 ${
+            isMobile ? "opacity-100" : "opacity-0"
+          }`}
+          aria-label={`${isCollapsed ? "Open" : "Close"} sidebar`}
         >
           <Menu className="w-6 h-6 text-gray-600" />
-        </motion.button>
+        </button>
       )}
 
-      {isMobile && !isCollapsed && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setIsCollapsed(true)}
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-        />
-      )}
-
-      <motion.div
-        initial={false}
-        animate={{
-          width: isCollapsed ? (isMobile ? 0 : 80) : 280,
-          x: isMobile && isCollapsed ? -280 : 0,
+      <div
+        role={isMobile ? "presentation" : undefined}
+        onClick={() => {
+          if (isMobile) setIsCollapsed(true);
         }}
-        className={`fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-xl z-40
-          ${isMobile ? "w-80" : ""}
-          ${isCollapsed && !isMobile ? "overflow-hidden" : ""}`}
+        className={`fixed inset-0 z-30 bg-black bg-opacity-50 transition-opacity duration-300 lg:hidden ${
+          isMobile && !isCollapsed ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
+
+      <div
+        className={`fixed top-0 left-0 z-40 h-full bg-white shadow-xl transition-[transform,width] duration-300 ease-out ${
+          isMobile ? "lg:hidden" : ""
+        }`}
+        style={{
+          width: isCollapsed ? (isMobile ? 0 : 88) : 280,
+          transform:
+            isMobile && isCollapsed ? "translateX(-100%)" : "translateX(0)",
+        }}
+        onMouseEnter={() => {
+          if (!isMobile && isCollapsed) setIsCollapsed(false);
+        }}
+        onMouseLeave={() => {
+          if (!isMobile && !isCollapsed) setIsCollapsed(true);
+        }}
       >
-        <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-gray-100">
+        <div className="flex h-full flex-col">
+          <div className="border-b border-gray-100 p-6">
             <div className="flex items-center justify-between">
               {!isCollapsed && (
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center space-x-3"
-                >
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
+                <div className="flex items-center space-x-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600">
                     <QrCode className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -177,20 +179,21 @@ const Sidebar = ({
                       </span>
                     )}
                   </div>
-                </motion.div>
+                </div>
               )}
-              {!isMobile && (
+              <div className="absolute top-4 right-4">
                 <button
                   onClick={() => setIsCollapsed(!isCollapsed)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 active:scale-95"
+                  aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                   <ChevronLeft
-                    className={`w-5 h-5 text-gray-500 transition-transform ${
+                    className={`h-5 w-5 transition-transform duration-300 ${
                       isCollapsed ? "rotate-180" : ""
                     }`}
                   />
                 </button>
-              )}
+              </div>
             </div>
           </div>
 
@@ -201,10 +204,13 @@ const Sidebar = ({
                 const isActive = activeTab === item.id;
 
                 return (
-                  <motion.button
+                  <button
                     key={item.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    className={`flex w-full items-center space-x-3 rounded-xl px-4 py-3 transition-colors duration-150 ${
+                      isActive
+                        ? "bg-primary-50 text-primary-600 border border-primary-200"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    } ${isCollapsed && !isMobile ? "justify-center px-2" : ""}`}
                     onClick={() => {
                       if (!item.external) {
                         setActiveTab(item.id);
@@ -222,37 +228,26 @@ const Sidebar = ({
                       }
                       if (isMobile) setIsCollapsed(true);
                     }}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200
-                      ${
-                        isActive
-                          ? "bg-primary-50 text-primary-600 border border-primary-200"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      }
-                      ${isCollapsed && !isMobile ? "justify-center px-2" : ""}`}
                   >
                     <Icon
                       className={`w-5 h-5 ${
                         isActive ? "text-primary-600" : ""
                       }`}
                     />
-                    {(!isCollapsed || isMobile) && (
+                    {!isCollapsed && (
                       <span className="font-medium">{item.label}</span>
                     )}
-                  </motion.button>
+                  </button>
                 );
               })}
             </div>
           </nav>
 
-          {(!isCollapsed || isMobile) && user && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 border-t border-gray-100"
-            >
-              <div className="flex items-center space-x-3 p-3 rounded-xl bg-gray-50">
-                <div className="relative w-10 h-10">
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-200 rounded-full">
+          {!isCollapsed && user && (
+            <div className="mt-auto space-y-4 border-t border-gray-100 px-6 pb-6 pt-6">
+              <div className="flex min-h-[72px] items-center space-x-3 rounded-xl bg-gray-50 p-3">
+                <div className="relative h-10 w-10">
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-gray-200">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -273,33 +268,31 @@ const Sidebar = ({
                     <img
                       src={avatarUrl}
                       alt={user.name}
-                      className="w-full h-full rounded-full object-cover border-2 border-white relative z-10"
+                      className="relative z-10 h-full w-full rounded-full border-2 border-white object-cover"
                     />
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900">
                     {user?.name || "—"}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="truncate text-xs text-gray-500">
                     {user?.email || "—"}
                   </p>
                 </div>
               </div>
 
-              <motion.button
+              <button
                 onClick={handleLogout}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full flex items-center space-x-3 px-4 py-3 mt-2 rounded-xl text-red-600 hover:bg-red-50 transition-colors"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:bg-black active:scale-95"
               >
-                <LogOut className="w-5 h-5" />
-                <span className="font-medium">Logout</span>
-              </motion.button>
-            </motion.div>
+                <LogOut className="h-4 w-4" />
+                <span>{isCollapsed ? "" : "Log out"}</span>
+              </button>
+            </div>
           )}
         </div>
-      </motion.div>
+      </div>
     </>
   );
 };

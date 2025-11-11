@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { lazy, Suspense, useState, useEffect, useMemo } from "react";
 import {
   Routes,
   Route,
@@ -6,16 +6,16 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "../components/Sidebar";
-import Dashboard from "../components/Dashboard";
-import EditProfile from "../components/EditProfile";
-import CompanyDetails from "../components/CompanyDetails";
-import MyQRCode from "../components/MyQRCode";
-import ReferPage from "./ReferPage";
-import GalleryPage from "./GalleryPage";
 import { PLAN_LABELS, getPlanRank } from "../utils/subscriptionPlan";
+
+const Dashboard = lazy(() => import("../components/Dashboard"));
+const EditProfile = lazy(() => import("../components/EditProfile"));
+const CompanyDetails = lazy(() => import("../components/CompanyDetails"));
+const MyQRCode = lazy(() => import("../components/MyQRCode"));
+const ReferPage = lazy(() => import("./ReferPage"));
+const GalleryPage = lazy(() => import("./GalleryPage"));
 
 const DashboardLayout = () => {
   const { user } = useAuth();
@@ -78,8 +78,8 @@ const DashboardLayout = () => {
     };
 
     checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    window.addEventListener("resize", checkMobile, { passive: true });
+    return () => window.removeEventListener("resize", checkMobile, { passive: true });
   }, []);
 
   useEffect(() => {
@@ -92,30 +92,40 @@ const DashboardLayout = () => {
     else if (path.includes("/dashboard/refer")) setActiveTab("refer");
   }, [location.pathname]);
 
+  const renderWithFallback = (node) => (
+    <Suspense
+      fallback={
+        <div className="py-10 text-center text-sm text-gray-500">Loading...</div>
+      }
+    >
+      {node}
+    </Suspense>
+  );
+
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard />;
+        return renderWithFallback(<Dashboard />);
       case "profile":
-        return <EditProfile />;
+        return renderWithFallback(<EditProfile />);
       case "company":
-        return <CompanyDetails />;
+        return renderWithFallback(<CompanyDetails />);
       case "gallery":
         return isStandardOrHigher ? (
-          <GalleryPage />
+          renderWithFallback(<GalleryPage />)
         ) : (
           renderRestrictedFeature("Gallery")
         );
       case "qrcode":
         return isStandardOrHigher ? (
-          <MyQRCode />
+          renderWithFallback(<MyQRCode />)
         ) : (
           renderRestrictedFeature("My QR Code")
         );
       case "refer":
-        return <ReferPage />;
+        return renderWithFallback(<ReferPage />);
       default:
-        return <Dashboard />;
+        return renderWithFallback(<Dashboard />);
     }
   };
 
@@ -129,11 +139,12 @@ const DashboardLayout = () => {
         isMobile={isMobile}
       />
 
-      <motion.main
-        animate={{
+      <main
+        style={{
           marginLeft: isMobile ? 0 : isCollapsed ? 80 : 280,
+          transition: "margin-left 0.3s ease",
         }}
-        className="transition-all duration-300 p-4 lg:p-6"
+        className="p-4 transition-all duration-300 lg:p-6"
       >
         <div className={`${isMobile ? "pt-16" : ""}`}>
           <div className="text-sm text-gray-500 flex items-center gap-2 mb-4">
@@ -179,45 +190,33 @@ const DashboardLayout = () => {
             )}
           </div>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Routes>
-                <Route index element={renderContent()} />
-                <Route path="profile" element={<EditProfile />} />
-                <Route path="company" element={<CompanyDetails />} />
-                <Route
-                  path="gallery"
-                  element={
-                    isStandardOrHigher ? (
-                      <GalleryPage />
-                    ) : (
-                      renderRestrictedFeature("Gallery")
-                    )
-                  }
-                />
-                <Route
-                  path="qrcode"
-                  element={
-                    isStandardOrHigher ? (
-                      <MyQRCode />
-                    ) : (
-                      renderRestrictedFeature("My QR Code")
-                    )
-                  }
-                />
-                <Route path="refer" element={<ReferPage />} />
-                <Route path="*" element={<Navigate to="/dashboard" />} />
-              </Routes>
-            </motion.div>
-          </AnimatePresence>
+          <div className="transition-opacity duration-200">
+            <Routes>
+              <Route index element={renderContent()} />
+              <Route path="profile" element={renderWithFallback(<EditProfile />)} />
+              <Route path="company" element={renderWithFallback(<CompanyDetails />)} />
+              <Route
+                path="gallery"
+                element={
+                  isStandardOrHigher
+                    ? renderWithFallback(<GalleryPage />)
+                    : renderRestrictedFeature("Gallery")
+                }
+              />
+              <Route
+                path="qrcode"
+                element={
+                  isStandardOrHigher
+                    ? renderWithFallback(<MyQRCode />)
+                    : renderRestrictedFeature("My QR Code")
+                }
+              />
+              <Route path="refer" element={renderWithFallback(<ReferPage />)} />
+              <Route path="*" element={<Navigate to="/dashboard" />} />
+            </Routes>
+          </div>
         </div>
-      </motion.main>
+      </main>
 
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary-100 to-transparent rounded-full opacity-30 animate-bounce-subtle"></div>
