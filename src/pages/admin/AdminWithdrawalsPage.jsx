@@ -163,8 +163,8 @@ const AdminWithdrawalsPage = () => {
         </div>
       </header>
 
-      <div className="rounded-3xl border border-slate-100 bg-white/90 shadow">
-        <div className="overflow-x-auto">
+      <div className="flex min-h-[520px] flex-col rounded-3xl border border-slate-100 bg-white/90 shadow">
+        <div className="flex-1 overflow-x-auto">
           <table className="min-w-full">
             <thead>
               <tr className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
@@ -303,7 +303,7 @@ const AdminWithdrawalsPage = () => {
           </table>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-h-[72px] flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
           <div>
             Showing {(pagination.page - 1) * pagination.limit + 1}-
             {Math.min(
@@ -314,7 +314,7 @@ const AdminWithdrawalsPage = () => {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="rounded-2xl border border-slate-200 px-3 py-1 disabled:opacity-50"
+              className="w-24 rounded-full border border-slate-200 px-3 py-1 text-center disabled:opacity-50"
               onClick={() => loadWithdrawals(Math.max(pagination.page - 1, 1))}
               disabled={pagination.page <= 1 || loading}
             >
@@ -322,7 +322,7 @@ const AdminWithdrawalsPage = () => {
             </button>
             <button
               type="button"
-              className="rounded-2xl border border-slate-200 px-3 py-1 disabled:opacity-50"
+              className="w-24 rounded-full border border-slate-200 px-3 py-1 text-center disabled:opacity-50"
               onClick={() =>
                 loadWithdrawals(
                   Math.min(pagination.page + 1, pagination.totalPages || 1)
