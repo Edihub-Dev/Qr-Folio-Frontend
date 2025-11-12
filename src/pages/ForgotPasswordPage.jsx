@@ -1,5 +1,5 @@
 // frontend/src/pages/ForgotPasswordPage.jsx
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import api from "../api";
@@ -10,8 +10,7 @@ const ForgotPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const inputRefs = useRef([]);
+  const [otp, setOtp] = useState("");
   const [passwords, setPasswords] = useState({ newPassword: "", confirmPassword: "" });
   const [showPasswordFields, setShowPasswordFields] = useState({
     newPassword: false,
@@ -50,7 +49,7 @@ const ForgotPasswordPage = () => {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setErrors({});
-    const otpString = otp.join("");
+    const otpString = otp.trim();
     if (otpString.length !== 6) {
       setErrors({ otp: "Please enter all 6 digits." });
       return;
@@ -84,7 +83,7 @@ const ForgotPasswordPage = () => {
     }
     setLoading(true);
     try {
-      const res = await api.post("/auth/reset-password", { email, otp: otp.join(""), newPassword });
+      const res = await api.post("/auth/reset-password", { email, otp: otp.trim(), newPassword });
       if (res.data?.success) {
         navigate("/login");
       } else {
@@ -97,13 +96,10 @@ const ForgotPasswordPage = () => {
     }
   };
 
-  const handleOtpChange = (index, value) => {
-    if (value.length > 1) return;
-    const newOtp = [...otp];
-    newOtp[index] = value.replace(/\D/g, "");
-    setOtp(newOtp);
+  const handleOtpChange = (value) => {
+    const sanitized = value.replace(/\D/g, "").slice(0, 6);
+    setOtp(sanitized);
     if (errors.otp) setErrors((prev) => ({ ...prev, otp: "" }));
-    if (value && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
   return (
@@ -165,22 +161,17 @@ const ForgotPasswordPage = () => {
             <form onSubmit={handleVerifyOtp} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Enter the 6-digit code</label>
-                <div className="flex justify-center space-x-3">
-                  {otp.map((digit, i) => (
-                    <input
-                      key={i}
-                      ref={(el) => (inputRefs.current[i] = el)}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOtpChange(i, e.target.value)}
-                      className={`w-12 h-12 text-center text-xl font-bold border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all ${
-                        errors.otp ? "border-red-300 bg-red-50" : "border-gray-200"
-                      }`}
-                    />
-                  ))}
-                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => handleOtpChange(e.target.value)}
+                  placeholder="Enter 6-digit OTP"
+                  className={`w-full px-4 py-4 text-center text-xl font-bold border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all ${
+                    errors.otp ? "border-red-300 bg-red-50" : "border-gray-200 bg-gray-50"
+                  }`}
+                />
                 {errors.otp && <p className="mt-2 text-center text-sm text-red-600">{errors.otp}</p>}
               </div>
 
