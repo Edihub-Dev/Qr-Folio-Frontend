@@ -1,5 +1,4 @@
 import React from "react";
-import { motion } from "../utils/motion";
 import { SiGnuprivacyguard } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -26,6 +25,24 @@ import {
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const createAvatarDataUri = (initials, background = "#6366F1") => {
+    const svg = `
+      <svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'>
+        <rect width='100' height='100' rx='50' fill='${background}' />
+        <text
+          x='50%'
+          y='55%'
+          dominant-baseline='middle'
+          text-anchor='middle'
+          font-family='Inter, sans-serif'
+          font-size='40'
+          fill='white'
+        >${initials}</text>
+      </svg>
+    `;
+
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  };
   const features = [
     {
       icon: QrCode,
@@ -123,8 +140,7 @@ const LandingPage = () => {
       company: "TechCorp",
       content:
         "QR Folio transformed how I network. No more lost business cards!",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
+      avatar: createAvatarDataUri("SJ", "#6366F1"),
     },
     {
       name: "Michael Chen",
@@ -132,8 +148,7 @@ const LandingPage = () => {
       company: "InnovateNow",
       content:
         "The analytics feature helps me track my networking ROI effectively.",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+      avatar: createAvatarDataUri("MC", "#10B981"),
     },
     {
       name: "Emily Davis",
@@ -141,8 +156,7 @@ const LandingPage = () => {
       company: "StartupHub",
       content:
         "Professional, eco-friendly, and incredibly easy to use. Highly recommended!",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
+      avatar: createAvatarDataUri("ED", "#F97316"),
     },
   ];
 
@@ -206,23 +220,14 @@ const LandingPage = () => {
       <nav className="bg-white border-b border-gray-100 justify-content:space-between top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center space-x-3"
-            >
+            <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
                 <QrCode className="w-6 h-6 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">QR Folio</span>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="flex items-center space-x-4"
-            >
+            <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate("/login")}
                 className="text-gray-700 hover:text-primary-600 px-4 py-2 rounded-lg transition-colors"
@@ -235,7 +240,7 @@ const LandingPage = () => {
               >
                 Get Started
               </button>
-            </motion.div>
+            </div>
           </div>
         </div>
       </nav>
@@ -244,10 +249,7 @@ const LandingPage = () => {
       <section className="pt-20 pb-16 bg-gradient-to-br from-primary-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
+            <div>
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
                 Your Digital
                 <span className="text-primary-600 block">Business Card</span>
@@ -257,24 +259,18 @@ const LandingPage = () => {
                 codes. Network smarter, not harder with QR Folio.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   onClick={() => navigate("/signup")}
                   className="bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2"
+                  type="button"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="w-5 h-5" />
-                </motion.button>
+                </button>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="relative"
-            >
+            <div className="relative">
               <div className="bg-white rounded-2xl shadow-2xl p-8 relative z-10">
                 <img
                   src="/assets/dashboard.png"
@@ -284,27 +280,18 @@ const LandingPage = () => {
               </div>
               <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary-100 rounded-full opacity-50"></div>
               <div className="absolute -top-6 -left-6 w-24 h-24 bg-primary-200 rounded-full opacity-30"></div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
 
       <section id="about" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="grid lg:grid-cols-2 gap-12 items-center"
-          >
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="about-image">
-              <motion.img
+              <img
                 src="/assets/aboutVideo.png"
                 alt="About QR Folio"
-                initial={{ scale: 0.9, opacity: 0 }}
-                whileInView={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5 }}
                 className="rounded-xl"
               />
             </div>
@@ -324,19 +311,14 @@ const LandingPage = () => {
                 everyone.
               </p>
             </div>
-          </motion.div>
+            </div>
         </div>
       </section>
 
       {/* Features Section */}
       <section id="features" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Everything You Need for Digital Networking
             </h2>
@@ -344,17 +326,13 @@ const LandingPage = () => {
               Powerful features designed to make professional networking
               seamless and effective.
             </p>
-          </motion.div>
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <motion.div
+                <div
                   key={feature.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
                   className="bg-white rounded-xl p-8 hover:shadow-lg transition-shadow"
                 >
                   <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
@@ -364,7 +342,7 @@ const LandingPage = () => {
                     {feature.title}
                   </h3>
                   <p className="text-gray-600">{feature.description}</p>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -373,12 +351,7 @@ const LandingPage = () => {
 
       <section id="features" className="w-[90%] max-w-[75rem] mx-auto">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-8 auto-rows-auto mr-12 ml-12 mb-[clamp(2rem,5vw,2.5rem)] mt-[clamp(2rem,5vw,2.5rem)]">
-          <motion.div
-            className="bg-black text-white flex flex-col justify-center row-span-2 text-center p-[clamp(1rem,8vw,2rem)] rounded-md shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <div className="bg-black text-white flex flex-col justify-center row-span-2 text-center p-[clamp(1rem,8vw,2rem)] rounded-md shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
             <SiGnuprivacyguard
               id="privacy"
               style={{
@@ -394,23 +367,17 @@ const LandingPage = () => {
             <p className="mb-[1rem] text-[#666] text-[clamp(0.875rem,2vw,1rem)] m-0">
               All data is encrypted; you decide what to share.
             </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => navigate("/PrivacyPolicy")}
               className="bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2"
+              type="button"
             >
               <span>View Policies</span>
               <ArrowRight className="w-5 h-5" />
-            </motion.button>
-          </motion.div>
+            </button>
+          </div>
 
-          <motion.div
-            className="bg-white rounded-md p-4 px-8 shadow-sm transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-md"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <div className="bg-white rounded-md p-4 px-8 shadow-sm transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-md">
             <img
               src="/assets/customizable.png"
               alt="Customizable Profiles"
@@ -423,14 +390,9 @@ const LandingPage = () => {
               Add or update details anytime — portfolio, documents, links, and
               more.
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            className="bg-white rounded-md p-4 px-8 shadow-sm transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-md"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
+          <div className="bg-white rounded-md p-4 px-8 shadow-sm transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-md">
             <img
               src="/assets/identity.png"
               alt="Instant Identity Sharing"
@@ -442,14 +404,9 @@ const LandingPage = () => {
             <p className="text-[#666] text-[clamp(0.875rem,2vw,1rem)] m-0">
               Say goodbye to paper IDs — share your profile with a single scan.
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            className="bg-white rounded-md p-4 px-8 shadow-sm transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-md"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
+          <div className="bg-white rounded-md p-4 px-8 shadow-sm transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-md">
             <img
               src="/assets/scan.png"
               alt="Instant Scan & Load"
@@ -461,14 +418,9 @@ const LandingPage = () => {
             <p className="text-[#666] text-[clamp(0.875rem,2vw,1rem)] m-0">
               Profiles load in under 2 seconds — even on slow networks.
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            className="bg-white rounded-md p-4 px-8 shadow-sm transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-md"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-          >
+          <div className="bg-white rounded-md p-4 px-8 shadow-sm transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-md">
             <img
               src="/assets/multi-device.png"
               alt="Multi-Device Support"
@@ -480,43 +432,34 @@ const LandingPage = () => {
             <p className="text-[#666] text-[clamp(0.875rem,2vw,1rem)] m-0">
               Seamlessly works across smartphones, tablets, and desktops.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       <section id="use-cases" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Use Cases</h2>
             <p className="text-xl text-gray-600">
               Explore how QR Folio fits into your world.
             </p>
-          </motion.div>
+          </div>
           <div className="grid md:grid-cols-3 gap-8">
             {useCases.map((useCase) => (
-              <motion.div
+              <div
                 key={useCase.id}
-                className={`bg-gray-50 rounded-xl p-6 hover:shadow-lg transition-shadow ${
-                  useCase.active ? "border-2 border-primary-600" : ""
+                className={`bg-gray-50 rounded-xl p-6 transition-shadow transform duration-300 hover:shadow-lg ${
+                  useCase.active ? "border-2 border-primary-600 scale-105" : "scale-100"
                 }`}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                whileHover={{ scale: 1.05 }}
-                onHoverStart={() => handleUseCaseHover(useCase.id)}
-                onHoverEnd={() => handleUseCaseLeave(useCase.id)}
-                transition={{ duration: 0.3 }}
+                onMouseEnter={() => handleUseCaseHover(useCase.id)}
+                onMouseLeave={() => handleUseCaseLeave(useCase.id)}
               >
                 <div className="text-4xl mb-4 text-center">{useCase.icon}</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">
                   {useCase.title}
                 </h3>
                 <p className="text-gray-600 text-center">{useCase.desc}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -525,31 +468,22 @@ const LandingPage = () => {
       {/* Pricing Section */}
       <section id="pricing" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Choose Your Plan
             </h2>
             <p className="text-xl text-gray-600">Start and scale as you grow</p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {pricingPlans.map((plan, index) => (
-              <motion.div
+            {pricingPlans.map((plan) => (
+              <div
                 key={plan.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
                 className={`bg-white rounded-2xl p-8 relative ${
                   plan.highlighted
                     ? "border-2 border-primary-500 shadow-xl scale-105"
                     : "border border-gray-200 shadow-lg"
-                }`}
+                } transition-transform duration-300`}
               >
                 {plan.highlighted && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -584,12 +518,9 @@ const LandingPage = () => {
                   ))}
                 </ul>
 
-                <motion.button
-                  whileHover={{ scale: plan.paymentEnabled ? 1.02 : 1 }}
-                  whileTap={{ scale: plan.paymentEnabled ? 0.98 : 1 }}
-                  onClick={() =>
-                    plan.paymentEnabled ? navigate("/signup") : null
-                  }
+                <button
+                  type="button"
+                  onClick={() => (plan.paymentEnabled ? navigate("/signup") : null)}
                   disabled={!plan.paymentEnabled}
                   className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
                     plan.paymentEnabled
@@ -600,8 +531,8 @@ const LandingPage = () => {
                   }`}
                 >
                   {plan.paymentEnabled ? "Get Started" : "Coming Soon"}
-                </motion.button>
-              </motion.div>
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -610,30 +541,18 @@ const LandingPage = () => {
       {/* Testimonials Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               Loved by Professionals
             </h2>
             <p className="text-xl text-gray-600">
               Join thousands of professionals who trust QR Folio
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-gray-50 rounded-xl p-8"
-              >
+            {testimonials.map((testimonial) => (
+              <div key={testimonial.name} className="bg-gray-50 rounded-xl p-8">
                 <div className="flex items-center mb-1">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -660,7 +579,7 @@ const LandingPage = () => {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -669,28 +588,21 @@ const LandingPage = () => {
       {/* CTA Section */}
       <section className="py-20 bg-primary-600">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <h2 className="text-4xl font-bold text-white mb-4">
+            Ready to Transform Your Networking?
+          </h2>
+          <p className="text-xl text-primary-100 mb-8">
+            Join thousands of professionals who are already using QR Folio to
+            build their network.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate("/signup")}
+            className="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2"
           >
-            <h2 className="text-4xl font-bold text-white mb-4">
-              Ready to Transform Your Networking?
-            </h2>
-            <p className="text-xl text-primary-100 mb-8">
-              Join thousands of professionals who are already using QR Folio to
-              build their network.
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/signup")}
-              className="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="w-5 h-5" />
-            </motion.button>
-          </motion.div>
+            <span>Get Started</span>
+            <ArrowRight className="w-5 h-5" />
+          </button>
         </div>
       </section>
 
