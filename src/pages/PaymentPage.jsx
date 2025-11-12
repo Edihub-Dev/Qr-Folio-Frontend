@@ -75,7 +75,7 @@ const PaymentForm = () => {
       },
       professional: {
         name: "Standard (Gold)",
-        price: 1,
+        price: 599,
         description: "Best for professionals",
         features: [
           "Everything in Basic",
