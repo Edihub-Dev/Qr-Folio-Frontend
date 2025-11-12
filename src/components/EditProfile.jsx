@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Save, Upload } from 'lucide-react';
-import { motion } from '../utils/motion';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -101,9 +100,7 @@ const EditProfile = () => {
       if (res.success) {
         await refreshUser();
         setSaved(true);
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 100);
+        setTimeout(() => setSaved(false), 3000);
       } else {
         alert(res.error || 'Failed to update profile');
       }
@@ -126,11 +123,7 @@ const EditProfile = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-4xl mx-auto"
-    >
+    <div className="max-w-4xl mx-auto">
       {saved && (
         <div className="fixed top-4 right-4 z-50">
           <div className="px-4 py-3 rounded-lg shadow-md bg-green-600 text-white text-sm">
@@ -401,10 +394,8 @@ const EditProfile = () => {
           </div>
 
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-            <motion.button
+            <button
               type="button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -413,21 +404,19 @@ const EditProfile = () => {
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
-            </motion.button>
-            <motion.button
+            </button>
+            <button
               type="submit"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
               disabled={saving}
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-colors ${saving ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700 text-white'}`}
             >
               <Save className="w-4 h-4" />
               <span>{saving ? 'Saving...' : 'Save Changes'}</span>
-            </motion.button>
+            </button>
           </div>
         </form>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -5,7 +5,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { motion } from "../utils/motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Shield, ArrowLeft, CheckCircle, QrCode } from "lucide-react";
@@ -768,9 +767,7 @@ const PaymentForm = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+        <button
           onClick={async () => {
             try {
               await logout();
@@ -780,16 +777,13 @@ const PaymentForm = () => {
             navigate("/signup", { replace: true });
           }}
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
+          type="button"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to signup</span>
-        </motion.button>
+        </button>
 
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
+        <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
               <QrCode className="w-7 h-7 text-white" />
@@ -806,14 +800,10 @@ const PaymentForm = () => {
                 }.`
               : "You already have access to the highest available plan."}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-          >
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
             <div className="flex items-center space-x-2 mb-6">
               <Shield className="w-5 h-5 text-purple-500" />
 
@@ -847,9 +837,8 @@ const PaymentForm = () => {
                   const planPricing = chainpayPricing[key];
                   const isSelected = selectedChainpayPlan === key;
                   return (
-                    <motion.div
+                    <div
                       key={key}
-                      whileHover={{ scale: isSelected ? 1 : 1.02 }}
                       onClick={() => setSelectedChainpayPlan(key)}
                       className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
                         isSelected
@@ -884,10 +873,8 @@ const PaymentForm = () => {
                             </li>
                           ))}
                         </ul>
-                        <motion.button
+                        <button
                           type="button"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
                           onClick={(event) => {
                             event.stopPropagation();
                             setSelectedChainpayPlan(key);
@@ -911,9 +898,9 @@ const PaymentForm = () => {
                             : isSelected
                             ? "Pay with ChainPay"
                             : "Select Plan to Pay"}
-                        </motion.button>
+                        </button>
                       </div>
-                    </motion.div>
+                    </div>
                   );
                 })
               )}
@@ -922,13 +909,9 @@ const PaymentForm = () => {
             <div className="mt-4 text-xs text-gray-500 text-center">
               Payments powered by ChainPay (MSTC)
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"
-          >
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
             <div className="flex items-center space-x-2 mb-6">
               <Shield className="w-5 h-5 text-primary-500" />
 
@@ -949,14 +932,13 @@ const PaymentForm = () => {
                     ? selectedPlanPricing
                     : calculateGstBreakdown(plan.price);
                   return (
-                    <motion.div
+                    <div
                       key={key}
-                      whileHover={{ scale: isSelected ? 1 : 1.02 }}
                       onClick={() => setSelectedPlan(key)}
                       className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
                         isSelected
                           ? "border-primary-500 bg-primary-50"
-                          : "border-gray-200 hover:border-gray-300"
+                          : "border-gray-200 hover-border-gray-300"
                       }`}
                     >
                       <div className="flex flex-col gap-4">
@@ -992,10 +974,8 @@ const PaymentForm = () => {
                             </li>
                           ))}
                         </ul>
-                        <motion.button
+                        <button
                           type="button"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
                           onClick={(event) => {
                             event.stopPropagation();
                             setSelectedPlan(key);
@@ -1019,9 +999,9 @@ const PaymentForm = () => {
                             : isSelected
                             ? "Pay with PhonePe"
                             : "Select Plan to Pay"}
-                        </motion.button>
+                        </button>
                       </div>
-                    </motion.div>
+                    </div>
                   );
                 })
               )}
@@ -1113,7 +1093,7 @@ const PaymentForm = () => {
                 payment will work normally.
               </p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

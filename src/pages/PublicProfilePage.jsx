@@ -6,7 +6,6 @@ import React, {
   useMemo,
 } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "../utils/motion";
 // import Dashboard from "../components/Dashboard";
 import {
   Mail,
@@ -23,60 +22,6 @@ import {
 import QRCodeGenerator from "../components/QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
 import api from "../api";
-
-const LazyIframeEmbed = ({ title, src }) => {
-  const containerRef = useRef(null);
-  const [shouldLoad, setShouldLoad] = useState(false);
-
-  useEffect(() => {
-    if (shouldLoad) return undefined;
-
-    const node = containerRef.current;
-    if (!node) return undefined;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setShouldLoad(true);
-            observer.disconnect();
-          }
-        });
-      },
-      {
-        rootMargin: "200px",
-        threshold: 0.1,
-      }
-    );
-
-    observer.observe(node);
-
-    return () => observer.disconnect();
-  }, [shouldLoad]);
-
-  return (
-    <div
-      ref={containerRef}
-      className="relative w-full overflow-hidden rounded-xl bg-gray-100"
-      style={{ paddingBottom: "56.25%" }}
-    >
-      {shouldLoad ? (
-        <iframe
-          title={title}
-          src={src}
-          className="absolute inset-0 h-full w-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          frameBorder="0"
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">
-          Loading video...
-        </div>
-      )}
-    </div>
-  );
-};
 
 const PublicProfilePage = () => {
   const { id } = useParams();
@@ -175,11 +120,11 @@ const PublicProfilePage = () => {
     };
 
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown, { passive: true });
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown, { passive: true });
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedPhoto]);
 
@@ -233,10 +178,8 @@ const PublicProfilePage = () => {
     }
 
     const intervalId = window.setInterval(() => {
-      requestAnimationFrame(() => {
-        setActiveGalleryIndex((prev) => prev + 1);
-      });
-    }, 2500);
+      setActiveGalleryIndex((prev) => prev + 1);
+    }, 1000);
 
     return () => window.clearInterval(intervalId);
   }, [featuredGallery.length, selectedPhoto, visibleGalleryCount]);
@@ -447,10 +390,14 @@ const PublicProfilePage = () => {
           params.set("modestbranding", "1");
 
           return (
-            <LazyIframeEmbed
+            <iframe
               key={cleanId}
               title={`YouTube video ${cleanId}`}
               src={`https://www.youtube.com/embed/${cleanId}?${params.toString()}`}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              frameBorder="0"
             />
           );
         }
@@ -461,10 +408,14 @@ const PublicProfilePage = () => {
         const videoId = segments.pop();
         if (videoId) {
           return (
-            <LazyIframeEmbed
+            <iframe
               key={videoId}
               title={`Vimeo video ${videoId}`}
               src={`https://player.vimeo.com/video/${videoId}`}
+              className="w-full h-full"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              frameBorder="0"
             />
           );
         }
@@ -919,12 +870,7 @@ const PublicProfilePage = () => {
       </div>
 
       <div className="relative z-10 flex min-h-screen flex-col">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="w-full"
-        >
+        <div className="w-full">
           <div className="mx-auto w-full max-w-[1440px] px-6 pt-8 xl:px-14">
             <button
               type="button"
@@ -1033,38 +979,34 @@ const PublicProfilePage = () => {
               </div>
 
               <div className="flex flex-col gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
+                  type="button"
                   onClick={handleShare}
                   className="no-print inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-[#4338ca] to-[#2563eb] px-8 py-3 text-sm font-semibold text-white shadow-lg"
                 >
                   Connect Now &gt;
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                </button>
+                <button
+                  type="button"
                   onClick={handlePrintCard}
                   className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-200 bg-white px-8 py-3 text-sm font-semibold text-indigo-600 shadow"
                 >
                   Download Card PDF
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                </button>
+                <button
+                  type="button"
                   onClick={handleDownloadCard}
                   className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-200 bg-white px-8 py-3 text-sm font-semibold text-indigo-600 shadow"
                 >
                   Download Card Image
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                </button>
+                <button
+                  type="button"
                   onClick={handleSaveContact}
                   className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-200 bg-white px-8 py-3 text-sm font-semibold text-indigo-600 shadow"
                 >
                   Save Contact
-                </motion.button>
+                </button>
               </div>
               <div className="text-center text-xs font-semibold text-slate-500">
                 <button
@@ -1215,108 +1157,89 @@ const PublicProfilePage = () => {
                     Work Videos
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <AnimatePresence>
-                      {videoItems.map((item) => (
-                        <motion.div
-                          key={item._id}
-                          layout
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          className="bg-[#e5ecff] hover:text-white hover:shadow-[rgba(0,0,0,0.46)] rounded-2xl shadow-md border border-gray-100 overflow-hidden group"
-                        >
-                          <div className="relative w-full h-60 bg-black flex items-center justify-center overflow-hidden">
-                            {renderVideoEmbed(item.url) || (
-                              <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-center px-6 text-[#1532CB]"
-                              >
-                                <Link2 className="w-10 h-10 mx-auto mb-3" />
-                                <p className="font-semibold truncate">
-                                  {item.title}
-                                </p>
-                                <a
-                                  href={item.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sm text-primary-200 underline mt-2 block truncate"
-                                >
-                                  Open video
-                                </a>
-                              </motion.div>
-                            )}
-                          </div>
-                          <div className="p-2 mt-0.5 bg-[#e5ecff] flex items-start gap-4">
-                            <div className="flex min-w-0">
-                              <h3 className="font-semibold text-sm text-black truncate">
+                    {videoItems.map((item) => (
+                      <div
+                        key={item._id}
+                        className="bg-[#e5ecff] hover:text-white hover:shadow-[rgba(0,0,0,0.46)] rounded-2xl shadow-md border border-gray-100 overflow-hidden group"
+                      >
+                        <div className="relative w-full h-60 bg-black flex items-center justify-center overflow-hidden">
+                          {renderVideoEmbed(item.url) || (
+                            <div className="text-center px-6 text-[#1532CB]">
+                              <Link2 className="w-10 h-10 mx-auto mb-3" />
+                              <p className="font-semibold truncate">
                                 {item.title}
-                                {item.description && (
-                                  <p className="text-xs text-black mt-1 line-clamp-2">
-                                    {item.description}
-                                  </p>
-                                )}
-                              </h3>
+                              </p>
+                              <a
+                                href={item.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary-200 underline mt-2 block truncate"
+                              >
+                                Open video
+                              </a>
                             </div>
+                          )}
+                        </div>
+                        <div className="p-2 mt-0.5 bg-[#e5ecff] flex items-start gap-4">
+                          <div className="flex min-w-0">
+                            <h3 className="font-semibold text-sm text-black truncate">
+                              {item.title}
+                              {item.description && (
+                                <p className="text-xs text-black mt-1 line-clamp-2">
+                                  {item.description}
+                                </p>
+                              )}
+                            </h3>
                           </div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
             </main>
           </div>
-        </motion.div>
+        </div>
 
-        <AnimatePresence>
-          {selectedPhoto && (
-            <motion.div
-              className="fixed inset-0 z-50  flex items-center justify-center bg-black/80 p-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedPhoto(null)}
+        {selectedPhoto && (
+          <div
+            className="fixed inset-0 z-50  flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setSelectedPhoto(null)}
+          >
+            <div
+              className="relative w-full max-w-4xl "
+              onClick={(event) => event.stopPropagation()}
             >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                className="relative w-full max-w-4xl "
-                onClick={(event) => event.stopPropagation()}
+              <button
+                type="button"
+                aria-label="Close image preview"
+                onClick={() => setSelectedPhoto(null)}
+                className="absolute -top-4 -right-4 rounded-full bg-white p-2 text-gray-700 shadow-lg hover:text-gray-900"
               >
-                <button
-                  type="button"
-                  aria-label="Close image preview"
-                  onClick={() => setSelectedPhoto(null)}
-                  className="absolute -top-4 -right-4 rounded-full bg-white p-2 text-gray-700 shadow-lg hover:text-gray-900"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-                <img
-                  src={selectedPhoto.url}
-                  alt={selectedPhoto.title || "Gallery image"}
-                  className="max-h-[80vh] w-full rounded-2xl bg-black object-contain"
-                />
-                {(selectedPhoto.title || selectedPhoto.description) && (
-                  <div className="mt-4 text-center text-white">
-                    {selectedPhoto.title && (
-                      <h3 className="text-lg font-semibold">
-                        {selectedPhoto.title}
-                      </h3>
-                    )}
-                    {selectedPhoto.description && (
-                      <p className="mt-1 text-sm text-white">
-                        {selectedPhoto.description}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <X className="h-5 w-5" />
+              </button>
+              <img
+                src={selectedPhoto.url}
+                alt={selectedPhoto.title || "Gallery image"}
+                className="max-h-[80vh] w-full rounded-2xl bg-black object-contain"
+              />
+              {(selectedPhoto.title || selectedPhoto.description) && (
+                <div className="mt-4 text-center text-white">
+                  {selectedPhoto.title && (
+                    <h3 className="text-lg font-semibold">
+                      {selectedPhoto.title}
+                    </h3>
+                  )}
+                  {selectedPhoto.description && (
+                    <p className="mt-1 text-sm text-white">
+                      {selectedPhoto.description}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

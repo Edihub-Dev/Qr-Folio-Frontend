@@ -5,17 +5,17 @@ import { visualizer } from "rollup-plugin-visualizer";
 export default defineConfig(({ mode }) => {
   const plugins = [react()];
 
-  if (mode === "analyze") {
-    plugins.push(
-      visualizer({
-        filename: "dist/bundle-report.html",
-        template: "treemap",
-        gzipSize: true,
-        brotliSize: true,
-        open: false,
-      })
-    );
-  }
+  // if (mode === "analyze") {
+  //   plugins.push(
+  //     visualizer({
+  //       filename: "dist/bundle-report.html",
+  //       template: "treemap",
+  //       gzipSize: true,
+  //       brotliSize: true,
+  //       open: false,
+  //     })
+  //   );
+  // }
 
   return {
     plugins,

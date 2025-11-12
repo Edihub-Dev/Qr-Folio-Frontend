@@ -126,17 +126,42 @@ const createMotionComponent = (tag) => {
       const hoverStyle = useMemo(() => toStyle(whileHover), [whileHover]);
       const tapStyle = useMemo(() => toStyle(whileTap), [whileTap]);
       const inViewStyle = useMemo(() => toStyle(whileInView), [whileInView]);
+      const hasWhileInView = useMemo(
+        () => inViewStyle && Object.keys(inViewStyle).length > 0,
+        [inViewStyle]
+      );
       const transitionStyle = useMemo(() => toTransition(transition), [transition]);
+
+      const [forceInView, setForceInView] = useState(() => {
+        if (typeof window === "undefined") return false;
+        return window.innerWidth <= 1024;
+      });
+
+      useEffect(() => {
+        if (typeof window === "undefined") return undefined;
+
+        const media = window.matchMedia("(max-width: 1024px)");
+        const update = () => setForceInView(media.matches);
+
+        update();
+        media.addEventListener("change", update, { passive: true });
+        return () => media.removeEventListener("change", update, { passive: true });
+      }, []);
+
+      const shouldObserveInView = useMemo(
+        () => hasWhileInView && !forceInView,
+        [hasWhileInView, forceInView]
+      );
 
       const [baseStyle, setBaseStyle] = useState(() => ({
         ...initialStyle,
         ...(transitionStyle ? { transition: transitionStyle } : {}),
+        ...(shouldObserveInView ? {} : animateStyle),
       }));
       const [hovered, setHovered] = useState(false);
       const [pressed, setPressed] = useState(false);
       const [inView, setInView] = useState(() => {
-        const hasWhileInView = inViewStyle && Object.keys(inViewStyle).length > 0;
-        return hasWhileInView ? false : true;
+        return shouldObserveInView ? false : true;
       });
       const elementRef = useRef(null);
 
@@ -153,8 +178,7 @@ const createMotionComponent = (tag) => {
       );
 
       useEffect(() => {
-        const hasWhileInView = inViewStyle && Object.keys(inViewStyle).length > 0;
-        if (!hasWhileInView) {
+        if (!shouldObserveInView) {
           setInView(true);
           return undefined;
         }
@@ -195,32 +219,31 @@ const createMotionComponent = (tag) => {
         observer.observe(node);
 
         return () => observer.disconnect();
-      }, [inViewStyle, viewport]);
+      }, [shouldObserveInView, viewport, inViewStyle]);
 
       useEffect(() => {
+        if (shouldObserveInView && inView) {
+          return;
+        }
+
         setBaseStyle({
           ...initialStyle,
           ...(transitionStyle ? { transition: transitionStyle } : {}),
+          ...(shouldObserveInView ? {} : animateStyle),
         });
-      }, [initialStyle, transitionStyle]);
-
-      const hasWhileInView = inViewStyle && Object.keys(inViewStyle).length > 0;
+      }, [initialStyle, transitionStyle, shouldObserveInView, inView, animateStyle]);
 
       useEffect(() => {
-        if (hasWhileInView) return;
-        if (Object.keys(animateStyle).length === 0) return;
-        const frame = requestAnimationFrame(() => {
-          setBaseStyle((prev) => ({
-            ...prev,
-            ...animateStyle,
-            ...(transitionStyle ? { transition: transitionStyle } : {}),
-          }));
+        if (shouldObserveInView) return;
+        setBaseStyle({
+          ...initialStyle,
+          ...(transitionStyle ? { transition: transitionStyle } : {}),
+          ...animateStyle,
         });
-        return () => cancelAnimationFrame(frame);
-      }, [animateStyle, transitionStyle, hasWhileInView]);
+      }, [animateStyle, transitionStyle, shouldObserveInView, initialStyle]);
 
       useEffect(() => {
-        if (!hasWhileInView) return;
+        if (!shouldObserveInView) return;
         if (!inView) {
           setBaseStyle({
             ...initialStyle,
@@ -238,7 +261,7 @@ const createMotionComponent = (tag) => {
           }));
         });
         return () => cancelAnimationFrame(frame);
-      }, [hasWhileInView, inView, inViewStyle, initialStyle, transitionStyle]);
+      }, [shouldObserveInView, inView, inViewStyle, initialStyle, transitionStyle]);
 
       const combinedStyle = {
         ...style,

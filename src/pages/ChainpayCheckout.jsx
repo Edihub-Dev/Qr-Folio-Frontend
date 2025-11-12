@@ -363,9 +363,7 @@ const ChainpayCheckout = () => {
                     if (Number.isFinite(Number(option.value))) {
                       return Number(option.value);
                     }
-                    if (
-                      Number.isFinite(Number(option?.estimatedAmount))
-                    ) {
+                    if (Number.isFinite(Number(option?.estimatedAmount))) {
                       return Number(option.estimatedAmount);
                     }
                     if (

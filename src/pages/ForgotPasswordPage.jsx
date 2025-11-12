@@ -1,6 +1,5 @@
 // frontend/src/pages/ForgotPasswordPage.jsx
 import React, { useState, useRef } from "react";
-import { motion } from "../utils/motion";
 import { useNavigate } from "react-router-dom";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import api from "../api";
@@ -110,34 +109,25 @@ const ForgotPasswordPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+        <button
+          type="button"
           onClick={() => navigate("/")}
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to home</span>
-        </motion.button>
+        </button>
 
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
+        <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
               <QrCode className="w-7 h-7 text-white" />
             </div>
             <span className="text-2xl font-bold text-gray-900">QR Folio</span>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
-        >
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password</h2>
           <p className="text-gray-600 mb-6">{step === 1 ? "Enter your email to receive an OTP" : step === 2 ? "Enter the OTP sent to your email" : "Set your new password"}</p>
 
@@ -161,15 +151,13 @@ const ForgotPasswordPage = () => {
               />
               {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
 
-              <motion.button
+              <button
                 type="submit"
                 disabled={loading}
-                whileHover={{ scale: loading ? 1 : 1.02 }}
-                whileTap={{ scale: loading ? 1 : 0.98 }}
                 className="w-full bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Sending OTP..." : "Send OTP"}
-              </motion.button>
+              </button>
             </form>
           )}
 
@@ -196,15 +184,13 @@ const ForgotPasswordPage = () => {
                 {errors.otp && <p className="mt-2 text-center text-sm text-red-600">{errors.otp}</p>}
               </div>
 
-              <motion.button
+              <button
                 type="submit"
                 disabled={loading}
-                whileHover={{ scale: loading ? 1 : 1.02 }}
-                whileTap={{ scale: loading ? 1 : 0.98 }}
                 className="w-full bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Verifying..." : "Verify OTP"}
-              </motion.button>
+              </button>
             </form>
           )}
 
@@ -262,18 +248,16 @@ const ForgotPasswordPage = () => {
               </div>
               {errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword}</p>}
 
-              <motion.button
+              <button
                 type="submit"
                 disabled={loading}
-                whileHover={{ scale: loading ? 1 : 1.02 }}
-                whileTap={{ scale: loading ? 1 : 0.98 }}
                 className="w-full bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Resetting..." : "Reset Password"}
-              </motion.button>
+              </button>
             </form>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

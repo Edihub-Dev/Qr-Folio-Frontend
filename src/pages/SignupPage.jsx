@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
-import { motion } from "../utils/motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
@@ -173,34 +172,25 @@ const SignupPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+        <button
+          type="button"
           onClick={() => navigate("/")}
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-3 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to home</span>
-        </motion.button>
+        </button>
 
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-1"
-        >
+        <div className="text-center mb-1">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
               <QrCode className="w-7 h-7 text-white" />
             </div>
             <span className="text-2xl font-bold text-gray-900">QR Folio</span>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8"
-        >
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Signup</h2>
           <p className="text-gray-600 mb-6">to get started</p>
 
@@ -375,15 +365,13 @@ const SignupPage = () => {
               <p className="text-sm text-red-600">{errors.agreeToTerms}</p>
             )}
 
-            <motion.button
+            <button
               type="submit"
               disabled={loading}
-              whileHover={{ scale: loading ? 1 : 1.02 }}
-              whileTap={{ scale: loading ? 1 : 0.98 }}
               className="w-full bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Creating Account..." : "Continue"}
-            </motion.button>
+            </button>
           </form>
 
           <p className="mt-6 text-center text-gray-600">
@@ -395,7 +383,7 @@ const SignupPage = () => {
               Login
             </button>
           </p>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

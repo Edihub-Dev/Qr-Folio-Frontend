@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Save, Building2 } from "lucide-react";
-import { motion } from "../utils/motion";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -63,7 +62,7 @@ const CompanyDetails = () => {
       if (!res.success) throw new Error(res.error || "Failed to update company");
       await refreshUser();
       setSaved(true);
-      setTimeout(() => navigate('/dashboard'), 400);
+      setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error(err);
       alert(err.message || "Error updating company details");
@@ -73,11 +72,7 @@ const CompanyDetails = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-4xl mx-auto"
-    >
+    <div className="max-w-4xl mx-auto">
       {saved && (
         <div className="fixed top-4 right-4 z-50">
           <div className="px-4 py-3 rounded-lg shadow-md bg-green-600 text-white text-sm">
@@ -208,10 +203,8 @@ const CompanyDetails = () => {
           </div>
 
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-            <motion.button
+            <button
               type="button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -220,21 +213,19 @@ const CompanyDetails = () => {
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
-            </motion.button>
-            <motion.button
+            </button>
+            <button
               type="submit"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
               disabled={loading}
               className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-colors ${loading ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700 text-white'}`}
             >
               <Save className="w-4 h-4" />
               <span>{loading ? "Saving..." : "Save Changes"}</span>
-            </motion.button>
+            </button>
           </div>
         </form>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
