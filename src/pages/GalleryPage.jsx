@@ -1,7 +1,6 @@
 // frontend/src/pages/GalleryPage.jsx
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { motion, AnimatePresence } from "../utils/motion";
 import {
   Image,
   UploadCloud,
@@ -444,9 +443,8 @@ const GalleryPage = () => {
                 JPEG, PNG formats, up to 2 MB
               </p>
             </div>
-            <motion.button
-              whileHover={{ scale: hasReachedImageLimit ? 1 : 1.05 }}
-              whileTap={{ scale: hasReachedImageLimit ? 1 : 0.98 }}
+            <button
+              type="button"
               disabled={hasReachedImageLimit}
               onClick={(event) => {
                 event.stopPropagation();
@@ -459,7 +457,7 @@ const GalleryPage = () => {
               }`}
             >
               <span>Browse Files</span>
-            </motion.button>
+            </button>
           </div>
           {hasReachedImageLimit && (
             <p className="mt-4 text-sm text-amber-600">
@@ -508,21 +506,30 @@ const GalleryPage = () => {
           </div>
         </div>
 
-        <AnimatePresence>
-          {uploading.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="mt-6 space-y-3"
-            >
+        {uploading.length > 0 && (
+          <div className="mt-10 bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Upload Progress</h2>
+                <p className="text-sm text-gray-500">
+                  {uploading.filter((item) => item.status === "success").length}/
+                  {uploading.length} files uploaded
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setUploading([])}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Clear all
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
               {uploading.map((file) => (
-                <motion.div
+                <div
                   key={file.id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  className="border border-gray-200 rounded-2xl p-4 bg-white shadow-sm flex items-center gap-4"
+                  className="bg-gray-50 rounded-xl border border-gray-200 p-4 shadow-sm"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
@@ -554,21 +561,29 @@ const GalleryPage = () => {
                     {file.status === "success" && (
                       <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                     )}
-                    {file.status === "error" && (
+                    {file.status === "error" ? (
                       <button
+                        type="button"
                         onClick={() => removeUploadEntry(file.id)}
-                        className="text-red-500 hover:text-red-600"
-                        title="Dismiss"
+                        className="text-sm text-red-500 hover:text-red-600"
                       >
-                        <X className="w-5 h-5" />
+                        Dismiss
                       </button>
-                    )}
+                    ) : file.status === "success" ? (
+                      <button
+                        type="button"
+                        onClick={() => removeUploadEntry(file.id)}
+                        className="text-sm text-gray-500 hover:text-gray-700"
+                      >
+                        Hide
+                      </button>
+                    ) : null}
                   </div>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleAddVideo} className="mt-10">
           <h2 className="text-lg font-semibold text-gray-900 mb-3">
@@ -604,9 +619,7 @@ const GalleryPage = () => {
                 />
               </div>
             </div>
-            <motion.button
-              whileHover={{ scale: hasReachedVideoLimit ? 1 : 1.05 }}
-              whileTap={{ scale: hasReachedVideoLimit ? 1 : 0.98 }}
+            <button
               type="submit"
               disabled={hasReachedVideoLimit}
               className={`inline-flex items-center justify-center space-x-2 rounded-full px-6 py-3 text-sm font-semibold shadow-sm ${
@@ -617,7 +630,7 @@ const GalleryPage = () => {
             >
               <Plus className="w-4 h-4" />
               <span>Add Link</span>
-            </motion.button>
+            </button>
           </div>
           {hasReachedVideoLimit && (
             <p className="mt-3 text-sm text-amber-600">
@@ -643,194 +656,168 @@ const GalleryPage = () => {
         ) : (
           <div className="space-y-12">
             {imageItems.length > 0 && (
-              <div>
+              <section>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Photos
-                  </h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Photos</h2>
                   <span className="text-sm text-gray-500">{imageUsageText}</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <AnimatePresence>
-                    {imageItems.map((item) => (
-                      <motion.div
-                        key={item._id}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden group"
-                      >
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedPhoto(item)}
-                            className="block w-full"
-                          >
-                            <motion.img
-                              src={item.url}
-                              alt={item.title || "Gallery image"}
-                              className="w-full h-56 object-cover cursor-zoom-in"
-                              initial={{ scale: 1.02 }}
-                              animate={{ scale: 1 }}
-                            />
-                          </button>
-                        </div>
-                        <div className="p-5">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-gray-900 truncate">
-                                {item.title || "Untitled image"}
-                              </h3>
-                              {item.description ? (
-                                <p className="mt-1 text-sm text-gray-500 line-clamp-3">
-                                  {item.description}
-                                </p>
-                              ) : (
-                                <p className="mt-1 text-xs text-gray-400">
-                                  No description provided
-                                </p>
-                              )}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(item._id)}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600"
-                              aria-label={`Delete ${item.title || "image"}`}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                          <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
-                            <span>{formatBytes(item.size)}</span>
-                            <span>{new Date(item.createdAt).toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-            )}
-            {videoItems.length > 0 && (
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                </h2>
-                <div className="text-sm text-gray-500 mb-3">{videoUsageText}</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <AnimatePresence>
-                    {videoItems.map((item) => (
-                      <motion.div
-                        key={item._id}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden group"
-                      >
-                        <div className="relative w-full h-56 bg-black flex items-center justify-center overflow-hidden">
-                          {renderVideoEmbed(item.url) || (
-                            <motion.div
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="text-center px-6 text-white"
-                            >
-                              <Link2 className="w-10 h-10 mx-auto mb-3" />
-                              <p className="font-semibold truncate">
-                                {item.title || "Video"}
-                              </p>
-                              <a
-                                href={item.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm text-primary-200 underline mt-2 block truncate"
-                              >
-                                Open video
-                              </a>
-                            </motion.div>
-                          )}
-                        </div>
-                        <div className="p-5 flex justify-between items-start gap-4">
+                  {imageItems.map((item) => (
+                    <article
+                      key={item._id}
+                      className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden group"
+                    >
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPhoto(item)}
+                          className="block w-full"
+                        >
+                          <img
+                            src={item.url}
+                            alt={item.title || "Gallery image"}
+                            className="w-full h-56 object-cover cursor-zoom-in"
+                          />
+                        </button>
+                      </div>
+                      <div className="p-5">
+                        <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <h3 className="font-semibold text-gray-900 truncate">
-                              {item.title || "Untitled video"}
+                              {item.title || "Untitled image"}
                             </h3>
-                            {item.description && (
-                              <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                            {item.description ? (
+                              <p className="mt-1 text-sm text-gray-500 line-clamp-3">
                                 {item.description}
+                              </p>
+                            ) : (
+                              <p className="mt-1 text-xs text-gray-400">
+                                No description provided
                               </p>
                             )}
                           </div>
                           <button
+                            type="button"
                             onClick={() => handleDelete(item._id)}
-                            className="text-gray-400 hover:text-red-500 transition-colors"
-                            title="Delete"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600"
+                            aria-label={`Delete ${item.title || "image"}`}
                           >
-                            <Trash2 className="w-5 h-5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                        <div className="px-5 pb-5">
-                          <p className="text-xs text-gray-400">
-                            {new Date(item.createdAt).toLocaleString()}
-                          </p>
+                        <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
+                          <span>{formatBytes(item.size)}</span>
+                          <span>{new Date(item.createdAt).toLocaleString()}</span>
                         </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
+                      </div>
+                    </article>
+                  ))}
                 </div>
-              </div>
+              </section>
+            )}
+
+            {videoItems.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">Videos</h2>
+                  <span className="text-sm text-gray-500">{videoUsageText}</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {videoItems.map((item) => (
+                    <article
+                      key={item._id}
+                      className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden"
+                    >
+                      <div className="relative w-full h-56 bg-black flex items-center justify-center overflow-hidden">
+                        {renderVideoEmbed(item.url) || (
+                          <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center px-6 text-center text-white">
+                            <Link2 className="w-10 h-10 mb-3" />
+                            <p className="font-semibold truncate w-full">
+                              {item.title || "Video"}
+                            </p>
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-primary-200 underline mt-2 block truncate"
+                            >
+                              Open video
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-5 flex justify-between items-start gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate">
+                            {item.title || "Untitled video"}
+                          </h3>
+                          {item.description && (
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(item._id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="px-5 pb-5">
+                        <p className="text-xs text-gray-400">
+                          {new Date(item.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
             )}
           </div>
         )}
       </div>
-      <AnimatePresence>
-        {selectedPhoto && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedPhoto(null)}
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div
+            className="max-w-4xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
           >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-              className="relative max-w-4xl w-full"
-              onClick={(event) => event.stopPropagation()}
+            <button
+              type="button"
+              aria-label="Close image preview"
+              onClick={() => setSelectedPhoto(null)}
+              className="absolute -top-4 -right-4 rounded-full bg-white text-gray-700 shadow-lg p-2 hover:text-gray-900"
             >
-              <button
-                type="button"
-                aria-label="Close image preview"
-                onClick={() => setSelectedPhoto(null)}
-                className="absolute -top-4 -right-4 rounded-full bg-white text-gray-700 shadow-lg p-2 hover:text-gray-900"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              <img
-                src={selectedPhoto.url}
-                alt={selectedPhoto.title || "Gallery image"}
-                className="w-full max-h-[80vh] object-contain rounded-2xl bg-black"
-              />
-              {(selectedPhoto.title || selectedPhoto.description) && (
-                <div className="mt-4 text-center text-white">
-                  {selectedPhoto.title && (
-                    <h3 className="text-lg font-semibold">
-                      {selectedPhoto.title}
-                    </h3>
-                  )}
-                  {selectedPhoto.description && (
-                    <p className="text-sm text-gray-200 mt-1">
-                      {selectedPhoto.description}
-                    </p>
-                  )}
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={selectedPhoto.url}
+              alt={selectedPhoto.title || "Gallery image"}
+              className="max-h-[80vh] w-full object-contain"
+            />
+            {(selectedPhoto.title || selectedPhoto.description) && (
+              <div className="mt-4 text-center text-white px-6 pb-6">
+                {selectedPhoto.title && (
+                  <h3 className="text-lg font-semibold">
+                    {selectedPhoto.title}
+                  </h3>
+                )}
+                {selectedPhoto.description && (
+                  <p className="text-sm text-gray-200 mt-1">
+                    {selectedPhoto.description}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const CompanyDetails = () => {
-  const { user, editCompany, refreshUser } = useAuth();
+  const { user, editCompany } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -60,7 +60,6 @@ const CompanyDetails = () => {
       };
       const res = await editCompany(payload);
       if (!res.success) throw new Error(res.error || "Failed to update company");
-      await refreshUser();
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const EditProfile = () => {
-  const { user, editProfile, uploadPhoto, refreshUser } = useAuth();
+  const { user, editProfile, uploadPhoto } = useAuth();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
@@ -98,7 +98,6 @@ const EditProfile = () => {
       );
       const res = await editProfile(cleaned);
       if (res.success) {
-        await refreshUser();
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       } else {
