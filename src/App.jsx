@@ -18,12 +18,18 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 const DashboardLayout = lazy(() => import("./pages/DashboardLayout"));
 const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
-const AdminDashboardPage = lazy(() => import("./pages/admin/AdminDashboardPage"));
+const AdminDashboardPage = lazy(() =>
+  import("./pages/admin/AdminDashboardPage")
+);
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminExportsPage = lazy(() => import("./pages/admin/AdminExportsPage"));
 const AdminInvoicesPage = lazy(() => import("./pages/admin/AdminInvoicesPage"));
-const AdminReferralsPage = lazy(() => import("./pages/admin/AdminReferralsPage"));
-const AdminWithdrawalsPage = lazy(() => import("./pages/admin/AdminWithdrawalsPage"));
+const AdminReferralsPage = lazy(() =>
+  import("./pages/admin/AdminReferralsPage")
+);
+const AdminWithdrawalsPage = lazy(() =>
+  import("./pages/admin/AdminWithdrawalsPage")
+);
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import RefundPolicy from "./pages/RefundPolicy";
@@ -63,7 +69,10 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       }
     }
 
-    if (!user.isPaid && !requireAdmin) {
+    const requiresRenewal =
+      Boolean(user.requiresRenewal) || Boolean(user.planExpired);
+
+    if ((requiresRenewal || !user.isPaid) && !requireAdmin) {
       if (location.pathname === "/payment") {
         return null;
       }
@@ -107,11 +116,14 @@ const PublicRoute = ({ children, authPage = false }) => {
     const returnTo = searchParams.get("returnTo");
     const hasValidReturn = returnTo && returnTo.startsWith("/");
 
-    const targetPath = user.isPaid
-      ? hasValidReturn
-        ? returnTo
-        : "/dashboard"
-      : "/payment";
+    const requiresRenewal =
+      Boolean(user.requiresRenewal) || Boolean(user.planExpired);
+    const targetPath =
+      !requiresRenewal && user.isPaid
+        ? hasValidReturn
+          ? returnTo
+          : "/dashboard"
+        : "/payment";
 
     if (location.pathname !== targetPath) {
       navigate(targetPath, { replace: true });
@@ -175,8 +187,9 @@ function App() {
   }, []);
 
   const maintenanceMode =
-    (import.meta.env?.VITE_MAINTENANCE_MODE ?? "false").toString().toLowerCase() ===
-    "true";
+    (import.meta.env?.VITE_MAINTENANCE_MODE ?? "false")
+      .toString()
+      .toLowerCase() === "true";
 
   return (
     <AuthProvider>
@@ -272,7 +285,10 @@ function App() {
                   <Route path="exports" element={<AdminExportsPage />} />
                   <Route path="invoices" element={<AdminInvoicesPage />} />
                   <Route path="refer" element={<AdminReferralsPage />} />
-                  <Route path="withdrawals" element={<AdminWithdrawalsPage />} />
+                  <Route
+                    path="withdrawals"
+                    element={<AdminWithdrawalsPage />}
+                  />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" />} />
