@@ -180,13 +180,15 @@ const ReferPage = () => {
       console.warn("withdrawal.click.no-overview");
       return;
     }
+
     console.debug("withdrawal.click", {
       walletBalance: Number(overview.walletBalance || 0),
       pendingRewards: Number(overview.pendingRewards || 0),
       totalWithdrawable,
       minWithdrawal,
     });
-    if (totalWithdrawable < minWithdrawal) {
+
+    if (!isWithdrawalEligible) {
       console.debug("withdrawal.disabled", {
         walletBalance: Number(overview.walletBalance || 0),
         pendingRewards: Number(overview.pendingRewards || 0),
@@ -194,9 +196,13 @@ const ReferPage = () => {
         minWithdrawal,
       });
       toast.error(
-        `You need at least ₹${minWithdrawal} to withdraw (currently ₹${totalWithdrawable.toLocaleString("en-IN")})`
+        `You need at least ₹${minWithdrawal} to withdraw (currently ₹${totalWithdrawable.toLocaleString(
+          "en-IN"
+        )})`
       );
+      return;
     }
+
     console.debug("withdrawal.modal.opening");
     setWithdrawOpen(true);
   };
@@ -279,8 +285,15 @@ const ReferPage = () => {
                 <button
                   type="button"
                   onClick={handleWithdrawal}
-                  disabled={isSubmittingWithdrawal}
-                  className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary-700 disabled:opacity-50"
+                  disabled={isSubmittingWithdrawal || !isWithdrawalEligible}
+                  title={
+                    !isWithdrawalEligible
+                      ? `You need at least ₹${minWithdrawal.toLocaleString(
+                          "en-IN"
+                        )} to withdraw`
+                      : undefined
+                  }
+                  className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300 disabled:text-primary-50"
                 >
                   Withdraw
                 </button>

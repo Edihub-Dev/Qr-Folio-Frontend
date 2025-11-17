@@ -3,7 +3,6 @@ import {
   RefreshCw,
   Download,
   Eye,
-  PenLine,
   Shield,
   ShieldOff,
   Trash2,
@@ -24,7 +23,6 @@ import AdminModal from "../../components/admin/AdminModal";
 import {
   fetchAdminUsers,
   fetchAdminUserById,
-  updateAdminUser,
   blockAdminUser,
   deleteAdminUser,
   downloadUsersCsv,
@@ -71,7 +69,6 @@ const AdminUsersPage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [modalState, setModalState] = useState({
     view: false,
-    edit: false,
     confirm: false,
     remind: false,
     renew: false,
@@ -93,6 +90,12 @@ const AdminUsersPage = () => {
   });
   const [reminderLogs, setReminderLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
+
+  const formatDateTime = useCallback((value) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
+  }, []);
 
   const loadUsers = useCallback(async () => {
     try {
@@ -194,7 +197,6 @@ const AdminUsersPage = () => {
   const closeModal = () => {
     setModalState({
       view: false,
-      edit: false,
       confirm: false,
       remind: false,
       renew: false,
@@ -211,19 +213,6 @@ const AdminUsersPage = () => {
     });
     setReminderLogs([]);
     setExpiryForm({ planExpireDate: "", notes: "" });
-  };
-
-  const handleUpdateUser = async (updates) => {
-    if (!selectedUser) return;
-    try {
-      await updateAdminUser(selectedUser.id || selectedUser._id, updates);
-      closeModal();
-      refresh();
-    } catch (err) {
-      setError(
-        err?.response?.data?.message || err.message || "Failed to update user"
-      );
-    }
   };
 
   const handleRefreshSubscription = async (user) => {
@@ -426,86 +415,99 @@ const AdminUsersPage = () => {
     []
   );
 
-  const renderActions = (user) => (
-    <div className="flex items-center justify-end gap-2">
-      <button
-        type="button"
-        onClick={() => openModal("view", user.id || user._id)}
-        className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-      >
-        <Eye className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => handleRefreshSubscription(user)}
-        disabled={actionLoading}
-        className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        <RefreshCw
-          className={`h-4 w-4 ${actionLoading ? "animate-spin" : ""}`}
-        />
-      </button>
-      <button
-        type="button"
-        onClick={() => openModal("remind", user.id || user._id)}
-        className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-      >
-        <Bell className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => openModal("renew", user.id || user._id)}
-        className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-      >
-        <CalendarClock className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => openModal("expiry", user.id || user._id)}
-        className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-      >
-        <CalendarPlus className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => openModal("logs", user.id || user._id)}
-        className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-      >
-        <History className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => openModal("edit", user.id || user._id)}
-        className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-      >
-        <PenLine className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          setPendingAction({ type: "block", value: !user.isBlocked });
-          openModal("confirm", user.id || user._id);
-        }}
-        className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-      >
-        {user.isBlocked ? (
-          <ShieldOff className="h-4 w-4" />
-        ) : (
-          <Shield className="h-4 w-4" />
-        )}
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          setPendingAction({ type: "delete" });
-          openModal("confirm", user.id || user._id);
-        }}
-        className="inline-flex items-center rounded-full border border-red-200 p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
-    </div>
-  );
+  const renderActions = (user) => {
+    const blockActionLabel = user.isBlocked ? "Unblock user" : "Block user";
+
+    return (
+      <div className="flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => openModal("view", user.id || user._id)}
+          title="View user details"
+          aria-label="View user details"
+          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+        >
+          <Eye className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => handleRefreshSubscription(user)}
+          disabled={actionLoading}
+          title="Refresh subscription"
+          aria-label="Refresh subscription"
+          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <RefreshCw
+            className={`h-4 w-4 ${actionLoading ? "animate-spin" : ""}`}
+          />
+        </button>
+        <button
+          type="button"
+          onClick={() => openModal("remind", user.id || user._id)}
+          title="Send reminder"
+          aria-label="Send reminder"
+          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+        >
+          <Bell className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => openModal("renew", user.id || user._id)}
+          title="Renew subscription"
+          aria-label="Renew subscription"
+          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+        >
+          <CalendarClock className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => openModal("expiry", user.id || user._id)}
+          title="Set custom expiry"
+          aria-label="Set custom expiry"
+          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+        >
+          <CalendarPlus className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => openModal("logs", user.id || user._id)}
+          title="View reminder history"
+          aria-label="View reminder history"
+          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+        >
+          <History className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setPendingAction({ type: "block", value: !user.isBlocked });
+            openModal("confirm", user.id || user._id);
+          }}
+          title={blockActionLabel}
+          aria-label={blockActionLabel}
+          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+        >
+          {user.isBlocked ? (
+            <ShieldOff className="h-4 w-4" />
+          ) : (
+            <Shield className="h-4 w-4" />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setPendingAction({ type: "delete" });
+            openModal("confirm", user.id || user._id);
+          }}
+          title="Delete user"
+          aria-label="Delete user"
+          className="inline-flex items-center rounded-full border border-red-200 p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -796,35 +798,103 @@ const AdminUsersPage = () => {
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">Expires</p>
-                <p className="text-gray-900">
-                  {selectedUser.planExpireDate
-                    ? new Date(selectedUser.planExpireDate).toLocaleString()
-                    : "—"}
-                </p>
-              </div>
-              <div>
                 <p className="text-xs font-medium text-gray-500">Total paid</p>
                 <p className="text-gray-900">
                   ₹{Number(selectedUser.totalAmountPaid || 0).toLocaleString()}
                 </p>
               </div>
             </div>
+            {(() => {
+              const planExpireTime = selectedUser.planExpireDate
+                ? new Date(selectedUser.planExpireDate).getTime()
+                : null;
+              const renewTime = selectedUser.subscriptionRenewsAt
+                ? new Date(selectedUser.subscriptionRenewsAt).getTime()
+                : null;
+              const accessTime = selectedUser.subscriptionExpiresAt
+                ? new Date(selectedUser.subscriptionExpiresAt).getTime()
+                : null;
+
+              const shouldShowRenew = Boolean(
+                selectedUser.subscriptionRenewsAt &&
+                  (!planExpireTime || renewTime !== planExpireTime)
+              );
+
+              const shouldShowAccess = Boolean(
+                selectedUser.subscriptionExpiresAt &&
+                  (!planExpireTime || accessTime !== planExpireTime) &&
+                  (!shouldShowRenew || accessTime !== renewTime)
+              );
+
+              if (
+                !selectedUser.planStartDate &&
+                !selectedUser.planExpireDate &&
+                !shouldShowRenew &&
+                !shouldShowAccess
+              ) {
+                return null;
+              }
+
+              return (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {selectedUser.planStartDate && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500">
+                        Plan start
+                      </p>
+                      <p className="text-gray-900">
+                        {formatDateTime(selectedUser.planStartDate)}
+                      </p>
+                    </div>
+                  )}
+                  {selectedUser.planExpireDate && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500">
+                        Plan expiry
+                      </p>
+                      <p className="text-gray-900">
+                        {formatDateTime(selectedUser.planExpireDate)}
+                      </p>
+                    </div>
+                  )}
+                  {shouldShowRenew && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500">
+                        Renews on
+                      </p>
+                      <p className="text-gray-900">
+                        {formatDateTime(selectedUser.subscriptionRenewsAt)}
+                      </p>
+                    </div>
+                  )}
+                  {shouldShowAccess && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500">
+                        Access until
+                      </p>
+                      <p className="text-gray-900">
+                        {formatDateTime(selectedUser.subscriptionExpiresAt)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <p className="text-xs font-medium text-gray-500">Created</p>
+                <p className="text-xs font-medium text-gray-500">
+                  Account created
+                </p>
                 <p className="text-gray-900">
-                  {selectedUser.createdAt
-                    ? new Date(selectedUser.createdAt).toLocaleString()
-                    : "—"}
+                  {formatDateTime(selectedUser.createdAt)}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">Updated</p>
+                <p className="text-xs font-medium text-gray-500">
+                  Last updated
+                </p>
                 <p className="text-gray-900">
-                  {selectedUser.updatedAt
-                    ? new Date(selectedUser.updatedAt).toLocaleString()
-                    : "—"}
+                  {formatDateTime(selectedUser.updatedAt)}
                 </p>
               </div>
             </div>
@@ -843,102 +913,9 @@ const AdminUsersPage = () => {
             <div>
               <p className="text-xs font-medium text-gray-500">Last reminder</p>
               <p className="text-gray-900">
-                {selectedUser.lastReminderSent
-                  ? new Date(selectedUser.lastReminderSent).toLocaleString()
-                  : "—"}
+                {formatDateTime(selectedUser.lastReminderSent)}
               </p>
             </div>
-          </div>
-        ) : (
-          <div className="text-sm text-gray-500">Loading user...</div>
-        )}
-      </AdminModal>
-
-      <AdminModal
-        open={modalState.edit}
-        title="Edit user"
-        onClose={closeModal}
-        footer={
-          selectedUser && (
-            <>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  handleUpdateUser({
-                    subscriptionPlan: selectedUser.subscriptionPlan,
-                    paymentStatus: selectedUser.paymentStatus,
-                    paymentMethod: selectedUser.paymentMethod,
-                    isBlocked: selectedUser.isBlocked,
-                  })
-                }
-                className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
-              >
-                Save changes
-              </button>
-            </>
-          )
-        }
-      >
-        {selectedUser ? (
-          <div className="grid gap-4 text-sm">
-            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
-              <span>Payment method</span>
-              <select
-                value={selectedUser.paymentMethod || "none"}
-                onChange={(event) =>
-                  setSelectedUser((prev) => ({
-                    ...prev,
-                    paymentMethod: event.target.value,
-                  }))
-                }
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              >
-                <option value="none">None</option>
-                {PAYMENT_METHOD_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
-              <span>Status</span>
-              <select
-                value={selectedUser.isBlocked ? "true" : "false"}
-                onChange={(event) =>
-                  setSelectedUser((prev) => ({
-                    ...prev,
-                    isBlocked: event.target.value === "true",
-                  }))
-                }
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              >
-                <option value="true">Blocked</option>
-              </select>
-            </label>
-            {/* 
-            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
-              <span>GST number</span>
-              <input
-                type="text"
-                value={selectedUser.gstNumber || ""}
-                onChange={(event) =>
-                  setSelectedUser((prev) => ({
-                    ...prev,
-                    gstNumber: event.target.value,
-                  }))
-                }
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              />
-            </label> */}
           </div>
         ) : (
           <div className="text-sm text-gray-500">Loading user...</div>

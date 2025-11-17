@@ -18,10 +18,18 @@ const ReferralHistoryTable = ({
   loading,
   onResendInvite,
 }) => {
-  const renderStatusBadge = (status) => {
+  const renderStatusBadge = (entry) => {
+    const status = entry.status;
     const style = statusStyles[status] || statusStyles.pending;
+    const tooltipPieces = [];
+    if (entry.reason) tooltipPieces.push(entry.reason);
+    if (entry.reasonCode) tooltipPieces.push(`#${entry.reasonCode}`);
+    const title = tooltipPieces.length ? tooltipPieces.join(" • ") : undefined;
     return (
-      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${style}`}>
+      <span
+        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${style}`}
+        title={title}
+      >
         {status}
       </span>
     );
@@ -31,9 +39,12 @@ const ReferralHistoryTable = ({
     <div className="bg-white rounded-3xl border border-slate-100 shadow-lg overflow-hidden">
       <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">Referral history</h3>
+          <h3 className="text-lg font-semibold text-slate-900">
+            Referral history
+          </h3>
           <p className="text-sm text-slate-500">
-            Track each invite and reward status. Resend invites to friends who haven’t finished signing up yet.
+            Track each invite and reward status. Resend invites to friends who
+            haven’t finished signing up yet.
           </p>
         </div>
         <button
@@ -61,8 +72,12 @@ const ReferralHistoryTable = ({
           <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
             {entries.length === 0 && !loading && (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                  You haven’t invited anyone yet. Share your link to start earning rewards.
+                <td
+                  colSpan={6}
+                  className="px-6 py-8 text-center text-slate-500"
+                >
+                  You haven’t invited anyone yet. Share your link to start
+                  earning rewards.
                 </td>
               </tr>
             )}
@@ -79,14 +94,16 @@ const ReferralHistoryTable = ({
                   })
                 : "—";
               const displayName = entry.referredUserName || "—";
-              const displayEmail = entry.referredUserEmailMasked || entry.referredUserEmail || "—";
+              const displayEmail =
+                entry.referredUserEmailMasked || entry.referredUserEmail || "—";
               const planLabel = entry.referredUserPlan || "—";
 
               return (
-                <tr key={entry._id}
-                  className="hover:bg-slate-50/70 transition">
+                <tr key={entry._id} className="hover:bg-slate-50/70 transition">
                   <td className="px-6 py-4">
-                    <div className="font-semibold text-slate-900">{displayName}</div>
+                    <div className="font-semibold text-slate-900">
+                      {displayName}
+                    </div>
                     <div className="text-xs text-slate-500">{displayEmail}</div>
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-600 capitalize">
@@ -95,9 +112,7 @@ const ReferralHistoryTable = ({
                   <td className="px-6 py-4 text-sm text-slate-600">
                     {formattedSignup}
                   </td>
-                  <td className="px-6 py-4">
-                    {renderStatusBadge(entry.status)}
-                  </td>
+                  <td className="px-6 py-4">{renderStatusBadge(entry)}</td>
                   <td className="px-6 py-4 font-semibold text-slate-900">
                     ₹{Number(entry.rewardAmount || 0).toLocaleString("en-IN")}
                   </td>
@@ -112,9 +127,22 @@ const ReferralHistoryTable = ({
                       </button>
                     ) : (
                       entry.status === "rejected" && (
-                        <div className="flex items-center gap-1 text-xs text-rose-500">
-                          <AlertTriangle className="h-4 w-4" />
-                          {entry.reason || "Rejected"}
+                        <div className="flex flex-col gap-1 text-xs text-rose-500">
+                          <div className="flex items-center gap-1">
+                            <AlertTriangle className="h-4 w-4" />
+                            <span>
+                              {entry.reason || "Referral rejected"}
+                              {entry.reasonCode
+                                ? ` (#${entry.reasonCode})`
+                                : ""}
+                            </span>
+                          </div>
+                          {Array.isArray(entry.riskSignals) &&
+                            entry.riskSignals.length > 0 && (
+                              <div className="text-[11px] text-rose-400">
+                                Signals: {entry.riskSignals.join(", ")}
+                              </div>
+                            )}
                         </div>
                       )
                     )}
@@ -128,7 +156,8 @@ const ReferralHistoryTable = ({
 
       <div className="px-6 py-4 border-t border-slate-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-slate-600">
         <div>
-          Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalItems)} of {totalItems}
+          Showing {(page - 1) * pageSize + 1}-
+          {Math.min(page * pageSize, totalItems)} of {totalItems}
         </div>
         <div className="flex items-center gap-2">
           <button
