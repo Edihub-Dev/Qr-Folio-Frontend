@@ -15,7 +15,6 @@ const PAYMENT_SUCCESS_STATES = new Set([
   "SUCCESSFUL",
   "CAPTURED",
   "PAID",
-  "CONFIRMED",
 ]);
 
 const hasPaymentFlag = (data = {}) => {
@@ -352,20 +351,31 @@ export const AuthProvider = ({ children }) => {
 
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        const normalizedUser = normalizeUser(userData, {
+        const paymentComplete = hasPaymentFlag(userData);
+        const verifiedUser = {
+          id: userData._id || res.data.userId,
+          email: userData.email || userEmail,
+          name: userData.name || signupData?.name,
           isVerified: true,
-        });
+          isPaid: paymentComplete,
+          hasCompletedSetup: paymentComplete,
+          phonepePaymentId: userData.phonepePaymentId,
+          phonepeMerchantTransactionId: userData.phonepeMerchantTransactionId,
+          subscriptionPlan: normalizePlan(
+            userData.subscriptionPlan,
+            userData.planName
+          ),
+        };
 
-        console.log("Setting user state:", normalizedUser);
+        console.log("Setting user state:", verifiedUser);
 
-        setUser(normalizedUser);
-        localStorage.setItem("qr_folio_user", JSON.stringify(normalizedUser));
+        setUser(verifiedUser);
+        localStorage.setItem("qr_folio_user", JSON.stringify(verifiedUser));
 
         return {
           success: true,
-          requiresPayment: !hasPaymentFlag(normalizedUser),
-          requiresRenewal: normalizedUser.requiresRenewal,
-          user: normalizedUser,
+          requiresPayment: !paymentComplete,
+          user: verifiedUser,
         };
       }
 
@@ -583,44 +593,37 @@ export const AuthProvider = ({ children }) => {
 
       if (res.data?.success) {
         console.log("Login successful for:", normalizedEmail);
-        const { token, user: u, requiresRenewal, planExpired, planStatus } = res.data;
+        const { token, user: u } = res.data;
 
         if (token) {
           console.log("Token received, saving to localStorage");
           localStorage.setItem("token", token);
-          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         } else {
           console.warn("No token received in login response");
         }
 
-        const normalized = normalizeUser(
-          {
-            ...u,
-            email: u?.email || normalizedEmail,
-          },
-          {
-            requiresRenewal,
-            planStatus,
-            planExpired,
-          }
-        );
+        const normalized = {
+          ...u,
+          email: u?.email || normalizedEmail,
+          role: u?.role || "user",
+          isBlocked: Boolean(u?.isBlocked),
+          paymentStatus:
+            u?.paymentStatus || (hasPaymentFlag(u) ? "paid" : "pending"),
+          paymentMethod: u?.paymentMethod || "none",
+          totalAmountPaid: Number(u?.totalAmountPaid || 0),
+          lastPaymentAt: u?.lastPaymentAt || null,
+          paymentReference: u?.paymentReference || null,
+          isPaid: hasPaymentFlag(u),
+          hasCompletedSetup: hasPaymentFlag(u),
+          isVerified: u?.isVerified || false,
+          subscriptionPlan: normalizePlan(u?.subscriptionPlan, u?.planName),
+        };
 
         console.log("Normalized user data:", normalized);
         setUser(normalized);
         localStorage.setItem("qr_folio_user", JSON.stringify(normalized));
 
-        const requiresPayment = res.data?.requiresPayment ?? !hasPaymentFlag(normalized);
-
-        if (requiresRenewal || planExpired) {
-          console.log("Subscription renewal required for:", normalizedEmail);
-          return {
-            success: true,
-            requiresPayment: requiresPayment || requiresRenewal,
-            requiresRenewal: true,
-            planExpired,
-            user: normalized,
-          };
-        }
+        const requiresPayment = res.data?.requiresPayment ?? !normalized.isPaid;
 
         if (requiresPayment) {
           console.log("Payment required for user:", normalizedEmail);
@@ -647,22 +650,35 @@ export const AuthProvider = ({ children }) => {
       console.error("API Error:", apiError);
       const data = apiError.response?.data;
 
-      if (data?.user) {
-        const normalized = normalizeUser(data.user, {
-          requiresRenewal: Boolean(data.requiresRenewal),
-          planStatus: data.planStatus,
-          planExpired: data.planExpired,
-        });
+      if (data?.requiresPayment && data?.user) {
+        console.log("💳 Payment required response received");
+        const normalized = {
+          ...data.user,
+          role: data.user?.role || "user",
+          isBlocked: Boolean(data.user?.isBlocked),
+          paymentStatus:
+            data.user?.paymentStatus ||
+            (hasPaymentFlag(data.user) ? "paid" : "pending"),
+          paymentMethod: data.user?.paymentMethod || "none",
+          totalAmountPaid: Number(data.user?.totalAmountPaid || 0),
+          lastPaymentAt: data.user?.lastPaymentAt || null,
+          paymentReference: data.user?.paymentReference || null,
+          isPaid: hasPaymentFlag(data.user),
+          hasCompletedSetup: hasPaymentFlag(data.user),
+          isVerified: data.user?.isVerified || true,
+          subscriptionPlan: normalizePlan(
+            data.user.subscriptionPlan,
+            data.user.planName
+          ),
+        };
 
-        console.log("User requires follow-up action:", normalized);
+        console.log("User needs to complete payment:", normalized);
         setUser(normalized);
         localStorage.setItem("qr_folio_user", JSON.stringify(normalized));
 
         return {
           success: true,
-          requiresPayment: Boolean(data.requiresPayment && !hasPaymentFlag(normalized)),
-          requiresRenewal: Boolean(data.requiresRenewal),
-          planExpired: Boolean(data.planExpired),
+          requiresPayment: true,
           user: normalized,
         };
       }
@@ -762,24 +778,10 @@ export const AuthProvider = ({ children }) => {
           merged.planName || merged.planKey
         ) || "basic";
 
-      const planStatus = (merged.planStatus || "active").toLowerCase();
-      const planExpireDate = merged.planExpireDate
-        ? new Date(merged.planExpireDate)
-        : merged.subscriptionExpiresAt
-        ? new Date(merged.subscriptionExpiresAt)
-        : null;
-      const planExpired = planStatus === "expired";
-      const requiresRenewal =
-        typeof merged.requiresRenewal === "boolean"
-          ? merged.requiresRenewal
-          : planStatus !== "active";
-
-      const hasPayment = hasPaymentFlag(merged);
-
       const hasCompletedSetupValue =
         typeof merged.hasCompletedSetup === "boolean"
           ? merged.hasCompletedSetup
-          : hasPayment || Boolean(merged.profileCompleted);
+          : Boolean(merged.isPaid) || Boolean(merged.profileCompleted);
 
       const isVerifiedValue =
         typeof merged.isVerified === "boolean"
@@ -791,11 +793,6 @@ export const AuthProvider = ({ children }) => {
         subscriptionPlan: normalizedPlan,
         hasCompletedSetup: hasCompletedSetupValue,
         isVerified: isVerifiedValue,
-        planStatus,
-        planExpired,
-        planExpireDate: planExpireDate ? planExpireDate.toISOString() : null,
-        requiresRenewal,
-        isPaid: hasPayment,
       };
     },
     [normalizePlan, user]

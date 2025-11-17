@@ -33,43 +33,6 @@ export const downloadUsersCsv = async (params = {}) => {
   return response;
 };
 
-export const refreshAdminUserSubscription = async (userId) => {
-  const response = await api.post(`/admin/users/${userId}/subscription/refresh`);
-  return response.data;
-};
-
-export const renewAdminUserSubscription = async (userId, payload = {}) => {
-  const response = await api.post(`/admin/users/${userId}/subscription/renew`, payload);
-  return response.data;
-};
-
-export const updateAdminUserSubscriptionExpiry = async (userId, payload = {}) => {
-  const response = await api.post(`/admin/users/${userId}/subscription/expiry`, payload);
-  return response.data;
-};
-
-export const sendAdminUserReminder = async (userId, payload = {}) => {
-  const response = await api.post(`/admin/users/${userId}/subscription/remind`, payload);
-  return response.data;
-};
-
-export const fetchAdminUserReminderLogs = async (userId, params = {}) => {
-  const response = await api.get(`/admin/users/${userId}/subscription/logs`, {
-    params,
-  });
-  return response.data;
-};
-
-export const runAdminSubscriptionAudit = async () => {
-  const response = await api.post(`/admin/subscriptions/audit`);
-  return response.data;
-};
-
-export const fetchAdminSubscriptionAnalytics = async () => {
-  const response = await api.get(`/admin/subscriptions/analytics`);
-  return response.data;
-};
-
 export const fetchAdminInvoices = async (params = {}) => {
   const response = await api.get("/admin/invoices", { params });
   return response.data;

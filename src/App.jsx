@@ -63,9 +63,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       }
     }
 
-    const requiresRenewal = Boolean(user.requiresRenewal) || Boolean(user.planExpired);
-
-    if ((requiresRenewal || !user.isPaid) && !requireAdmin) {
+    if (!user.isPaid && !requireAdmin) {
       if (location.pathname === "/payment") {
         return null;
       }
@@ -109,8 +107,7 @@ const PublicRoute = ({ children, authPage = false }) => {
     const returnTo = searchParams.get("returnTo");
     const hasValidReturn = returnTo && returnTo.startsWith("/");
 
-    const requiresRenewal = Boolean(user.requiresRenewal) || Boolean(user.planExpired);
-    const targetPath = !requiresRenewal && user.isPaid
+    const targetPath = user.isPaid
       ? hasValidReturn
         ? returnTo
         : "/dashboard"
@@ -133,8 +130,7 @@ const PublicRoute = ({ children, authPage = false }) => {
     const searchParams = new URLSearchParams(location.search);
     const returnTo = searchParams.get("returnTo");
     const hasValidReturn = returnTo && returnTo.startsWith("/");
-    const requiresRenewal = Boolean(user.requiresRenewal) || Boolean(user.planExpired);
-    const targetPath = !requiresRenewal && user.isPaid
+    const targetPath = user.isPaid
       ? hasValidReturn
         ? returnTo
         : "/dashboard"

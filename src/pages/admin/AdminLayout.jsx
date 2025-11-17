@@ -26,10 +26,6 @@ const AdminLayout = () => {
     () => location.pathname.startsWith("/admin/invoices"),
     [location.pathname]
   );
-  const isUsersRoute = useMemo(
-    () => location.pathname.startsWith("/admin/users"),
-    [location.pathname]
-  );
   const isReferRoute = useMemo(
     () => location.pathname.startsWith("/admin/refer"),
     [location.pathname]
@@ -39,13 +35,11 @@ const AdminLayout = () => {
     [location.pathname]
   );
 
-  const requiresSidebarToggle = isInvoiceRoute || isUsersRoute;
-
   useEffect(() => {
-    if (requiresSidebarToggle || isReferRoute || isWithdrawalRoute) {
+    if (isInvoiceRoute || isReferRoute || isWithdrawalRoute) {
       setSidebarOpen(false);
     }
-  }, [requiresSidebarToggle, isReferRoute, isWithdrawalRoute]);
+  }, [isInvoiceRoute, isReferRoute, isWithdrawalRoute]);
   const navItems = useMemo(
     () => [
       { to: "/admin", label: "Dashboard", icon: BarChart3, exact: true },
@@ -91,7 +85,7 @@ const AdminLayout = () => {
             <button
               type="button"
               className={`inline-flex items-center justify-center rounded-xl border border-white/60 bg-white/90 p-2 text-slate-600 shadow-sm transition hover:bg-white ${
-                requiresSidebarToggle ? "" : "lg:hidden"
+                isInvoiceRoute ? "" : "lg:hidden"
               }`}
               onClick={() => setSidebarOpen((prev) => !prev)}
               aria-expanded={sidebarOpen}
@@ -132,10 +126,10 @@ const AdminLayout = () => {
 
       <div
         className={`flex w-full ${
-          sidebarOpen || !requiresSidebarToggle ? "gap-6" : "gap-4"
+          sidebarOpen || !isInvoiceRoute ? "gap-6" : "gap-4"
         } px-4 py-6 sm:px-6 lg:px-10`}
       >
-        {(!requiresSidebarToggle || sidebarOpen) && (
+        {(!isInvoiceRoute || sidebarOpen) && (
           <aside
             className={`fixed inset-y-0 left-0 z-40 w-72 flex-shrink-0 transform border-r border-white/60 bg-white/90 px-5 py-6 shadow-2xl backdrop-blur transition-transform duration-200 ease-in-out lg:sticky lg:top-6 lg:h-[calc(100vh-4rem)] lg:w-72 lg:translate-x-0 lg:rounded-3xl lg:border lg:bg-white lg:shadow-xl ${
               sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -143,7 +137,7 @@ const AdminLayout = () => {
           >
             <div
               className={`flex items-center justify-between ${
-                requiresSidebarToggle ? "" : "lg:hidden"
+                isInvoiceRoute ? "" : "lg:hidden"
               }`}
             >
               <span className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
@@ -183,7 +177,7 @@ const AdminLayout = () => {
 
         <main
           className={`flex w-full flex-1 flex-col gap-4 rounded-3xl border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur ${
-            requiresSidebarToggle && !sidebarOpen ? "ml-0" : ""
+            isInvoiceRoute && !sidebarOpen ? "ml-0" : ""
           }`}
         >
           <div className="flex flex-col gap-3 border-b border-white/70 pb-4 sm:flex-row sm:items-center sm:justify-between">
