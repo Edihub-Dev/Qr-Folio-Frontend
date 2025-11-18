@@ -66,19 +66,19 @@ const Sidebar = ({
         minPlan: "standard",
       },
       {
+        id: "refer",
+        label: "Refer & Earn",
+        icon: Share2,
+        path: "/dashboard/refer",
+        minPlan: "basic",
+      },
+      {
         id: "public-profile",
         label: "Generate QR ID Card",
         icon: Eye,
         path: userId ? `/profile/${userId}` : "/dashboard",
         minPlan: "basic",
         external: true,
-      },
-      {
-        id: "refer",
-        label: "Refer & Earn",
-        icon: Share2,
-        path: "/dashboard/refer",
-        minPlan: "basic",
       },
     ];
 
@@ -138,7 +138,9 @@ const Sidebar = ({
           if (isMobile) setIsCollapsed(true);
         }}
         className={`fixed inset-0 z-30 bg-black bg-opacity-50 transition-opacity duration-300 lg:hidden ${
-          isMobile && !isCollapsed ? "opacity-100" : "pointer-events-none opacity-0"
+          isMobile && !isCollapsed
+            ? "opacity-100"
+            : "pointer-events-none opacity-0"
         }`}
       />
 
@@ -185,7 +187,9 @@ const Sidebar = ({
                 <button
                   onClick={() => setIsCollapsed(!isCollapsed)}
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 active:scale-95"
-                  aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  aria-label={
+                    isCollapsed ? "Expand sidebar" : "Collapse sidebar"
+                  }
                 >
                   <ChevronLeft
                     className={`h-5 w-5 transition-transform duration-300 ${

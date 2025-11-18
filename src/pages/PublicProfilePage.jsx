@@ -4,6 +4,8 @@ import React, {
   useRef,
   useCallback,
   useMemo,
+  lazy,
+  Suspense,
 } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 // import Dashboard from "../components/Dashboard";
@@ -19,9 +21,10 @@ import {
   Link2,
   ArrowLeft,
 } from "lucide-react";
-import QRCodeGenerator from "../components/QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
 import api from "../api";
+
+const QRCodeGenerator = lazy(() => import("../components/QRCodeGenerator"));
 
 const PublicProfilePage = () => {
   const { id } = useParams();
@@ -68,36 +71,44 @@ const PublicProfilePage = () => {
         id: data.user.id || data.user._id || id,
       };
 
+      setUser(profileData);
+      setError("");
+
       // Fetch profile photo if not available
       if (!profileData.profilePhotoDataUri) {
-        try {
-          const photoRes = await api.get(`/user/public/${id}/photo-data`);
-          if (photoRes.data?.success && photoRes.data?.dataUri) {
-            profileData.profilePhotoDataUri = photoRes.data.dataUri;
+        (async () => {
+          try {
+            const photoRes = await api.get(`/user/public/${id}/photo-data`);
+            if (photoRes.data?.success && photoRes.data?.dataUri) {
+              setUser((prev) =>
+                prev
+                  ? { ...prev, profilePhotoDataUri: photoRes.data.dataUri }
+                  : prev
+              );
+            }
+          } catch (photoErr) {
+            console.warn(
+              "Failed to fetch profile photo data URI:",
+              photoErr.message
+            );
           }
-        } catch (photoErr) {
-          console.warn(
-            "Failed to fetch profile photo data URI:",
-            photoErr.message
-          );
-        }
+        })();
       }
 
       // Fetch gallery items
-      try {
-        const galleryRes = await api.get(`/gallery/public/${id}`);
-        if (galleryRes.data?.success) {
-          const items = galleryRes.data.items || [];
-          setGalleryItems(items);
-          setImageItems(items.filter((item) => item?.type === "image"));
-          setVideoItems(items.filter((item) => item?.type === "video"));
+      (async () => {
+        try {
+          const galleryRes = await api.get(`/gallery/public/${id}`);
+          if (galleryRes.data?.success) {
+            const items = galleryRes.data.items || [];
+            setGalleryItems(items);
+            setImageItems(items.filter((item) => item?.type === "image"));
+            setVideoItems(items.filter((item) => item?.type === "video"));
+          }
+        } catch (galleryErr) {
+          console.warn("Failed to fetch gallery items:", galleryErr.message);
         }
-      } catch (galleryErr) {
-        console.warn("Failed to fetch gallery items:", galleryErr.message);
-      }
-
-      setUser(profileData);
-      setError("");
+      })();
     } catch (err) {
       console.error("Error fetching user profile:", err);
       setError(err.message || "Failed to load profile");
@@ -326,34 +337,6 @@ const PublicProfilePage = () => {
     user?.companyWebsite,
   ]);
 
-  // Handle loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
-  // Handle error state
-  if (error || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="text-center">
-          <div className="text-2xl font-semibold text-gray-700 mb-2">
-            {error || "Profile not found"}
-          </div>
-          <button
-            onClick={() => navigate("/")}
-            className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            Return to Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const renderVideoEmbed = (url) => {
     if (!url) return null;
 
@@ -427,17 +410,8 @@ const PublicProfilePage = () => {
     return null;
   };
 
-  // Handle loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
   // Handle error state
-  if (error || !user) {
+  if (!loading && (error || !user)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="text-center">
@@ -456,31 +430,31 @@ const PublicProfilePage = () => {
   }
 
   // User data
-  const displayName = user.name || "—";
-  const displayEmail = user.email || "—";
+  const displayName = user?.name || "—";
+  const displayEmail = user?.email || "—";
   const address =
-    [user.address, user.city, user.state, user.zipcode, user.country]
+    [user?.address, user?.city, user?.state, user?.zipcode, user?.country]
       .filter(Boolean)
       .join(", ") || "—";
   const profileUrl = window.location.href;
-  const idNo = (user.id || user._id || "")
+  const idNo = (user?.id || user?._id || "")
     .toString()
     .slice(-6)
     .padStart(6, "0");
-  const dateOfBirth = user.dateOfBirth
+  const dateOfBirth = user?.dateOfBirth
     ? new Date(user.dateOfBirth).toLocaleDateString("en-GB")
     : "—";
 
-  const companyName = user.companyName || "—";
-  const companyEmail = user.companyEmail || "—";
-  const companyPhone = user.companyPhone || "—";
-  const companyReferralCode = user.companyReferralCode || "—";
-  const companyExperience = user.companyExperience || "—";
-  const companyDescription = user.companyDescription?.trim() || "—";
-  const companyAddress = user.companyAddress?.trim() || "—";
-  const companyWebsiteRaw = user.companyWebsite?.trim() || "";
+  const companyName = user?.companyName || "—";
+  const companyEmail = user?.companyEmail || "—";
+  const companyPhone = user?.companyPhone || "—";
+  const companyReferralCode = user?.companyReferralCode || "—";
+  const companyExperience = user?.companyExperience || "—";
+  const companyDescription = user?.companyDescription?.trim() || "—";
+  const companyAddress = user?.companyAddress?.trim() || "—";
+  const companyWebsiteRaw = user?.companyWebsite?.trim() || "";
   const companyWebsiteUrl = normalizeLink(companyWebsiteRaw);
-  const userSummary = user.description?.trim() || "";
+  const userSummary = user?.description?.trim() || "";
   const professionalSummary =
     userSummary || (companyDescription !== "—" ? companyDescription : "");
 
@@ -576,13 +550,13 @@ const PublicProfilePage = () => {
   };
 
   // Format dates
-  const issueDate = user.createdAt
+  const issueDate = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString("en-GB")
     : new Date().toLocaleDateString("en-GB");
 
   const expireDate = new Date(
-    new Date(user.createdAt || new Date()).setFullYear(
-      new Date(user.createdAt || new Date()).getFullYear() + 1
+    new Date(user?.createdAt || new Date()).setFullYear(
+      new Date(user?.createdAt || new Date()).getFullYear() + 1
     )
   ).toLocaleDateString("en-GB");
 
@@ -678,9 +652,9 @@ const PublicProfilePage = () => {
 
           if (
             imgEl.dataset.profilePhoto === "true" &&
-            user.profilePhotoDataUri
+            user?.profilePhotoDataUri
           ) {
-            await waitForImage(imgEl, user.profilePhotoDataUri);
+            await waitForImage(imgEl, user?.profilePhotoDataUri);
             return;
           }
 
@@ -698,7 +672,7 @@ const PublicProfilePage = () => {
                 await waitForImage(imgEl, dataUrl);
                 return;
               }
-              await waitForImage(imgEl, initialsAvatar);
+              await waitForImage(imgEl, avatar);
               return;
             }
             const dataUrl = await fetchAsDataUrl(src);
@@ -710,7 +684,7 @@ const PublicProfilePage = () => {
             if (dataUrl) {
               await waitForImage(imgEl, dataUrl);
             } else {
-              await waitForImage(imgEl, initialsAvatar);
+              await waitForImage(imgEl, avatar);
             }
           }
         })
@@ -803,13 +777,13 @@ const PublicProfilePage = () => {
         "BEGIN:VCARD",
         "VERSION:3.0",
         `FN:${displayName}`,
-        user.designation ? `TITLE:${user.designation}` : "",
-        user.email ? `EMAIL;TYPE=INTERNET:${user.email}` : "",
-        user.phone ? `TEL;TYPE=CELL:${user.phone}` : "",
-        user.address
+        user?.designation ? `TITLE:${user.designation}` : "",
+        user?.email ? `EMAIL;TYPE=INTERNET:${user.email}` : "",
+        user?.phone ? `TEL;TYPE=CELL:${user.phone}` : "",
+        user?.address
           ? `ADR;TYPE=HOME:;;${user.address.replace(/,/g, ";")}`
           : "",
-        user.companyName ? `ORG:${user.companyName}` : "",
+        user?.companyName ? `ORG:${user.companyName}` : "",
         "END:VCARD",
       ]
         .filter(Boolean)
@@ -858,7 +832,7 @@ const PublicProfilePage = () => {
     return url;
   };
 
-  const skills = Array.isArray(user.skills)
+  const skills = Array.isArray(user?.skills)
     ? user.skills.map((skill) => `${skill}`.trim()).filter(Boolean)
     : [];
 
@@ -899,10 +873,11 @@ const PublicProfilePage = () => {
                       <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-indigo-400 via-sky-400 to-cyan-300 opacity-60 blur-md" />
                       <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-indigo-300/70 bg-slate-900 shadow-[0_22px_40px_rgba(15,23,42,0.9)]">
                         <img
-                          src={user.profilePhotoDataUri || avatar}
+                          src={user?.profilePhotoDataUri || avatar}
                           alt={displayName}
                           className="h-full w-full object-cover"
                           data-profile-photo="true"
+                          loading="eager"
                         />
                       </div>
                     </div>
@@ -911,7 +886,7 @@ const PublicProfilePage = () => {
                         {displayName}
                       </h1>
                       <div className="text-xs font-medium uppercase tracking-[0.22em] text-indigo-200/90">
-                        {user.designation || ""}
+                        {user?.designation || ""}
                       </div>
                       <div className="text-sm font-medium text-slate-300">
                         at{" "}
@@ -951,7 +926,7 @@ const PublicProfilePage = () => {
                           <Phone className="h-4 w-4" />
                         </span>
                         <span className="break-all text-sm">
-                          {user.phone || "—"}
+                          {user?.phone || "—"}
                         </span>
                       </div>
                       <div className="flex items-start gap-3 rounded-2xl bg-slate-900/70 px-3 py-2 ring-1 ring-white/5">
@@ -971,11 +946,17 @@ const PublicProfilePage = () => {
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/10 via-indigo-900/10 to-slate-950/60" />
                   <div className="relative flex flex-col items-center text-center">
                     <div className="rounded-3xl bg-white/95 p-3 shadow-[0_28px_50px_rgba(15,23,42,0.65)]">
-                      <QRCodeGenerator
-                        value={profileUrl}
-                        size={175}
-                        level="M"
-                      />
+                      <Suspense
+                        fallback={
+                          <div className="h-[175px] w-[175px] rounded-2xl bg-slate-200/80" />
+                        }
+                      >
+                        <QRCodeGenerator
+                          value={profileUrl}
+                          size={175}
+                          level="M"
+                        />
+                      </Suspense>
                     </div>
                     <div className="mt-6 text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-indigo-100/90">
                       Powered by
@@ -1077,6 +1058,7 @@ const PublicProfilePage = () => {
                                   src={item.url}
                                   alt={item.title || "Gallery image"}
                                   className="h-full w-full object-cover"
+                                  loading="lazy"
                                 />
                                 {item.title && (
                                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-3 pb-3 pt-10 text-left">
@@ -1127,7 +1109,7 @@ const PublicProfilePage = () => {
                           Designation
                         </p>
                         <p className="mt-2 break-words whitespace-pre-wrap text-base font-semibold text-indigo-100 sm:text-lg">
-                          {user.designation || "—"}
+                          {user?.designation || "—"}
                         </p>
                       </div>
                     </div>
@@ -1236,6 +1218,7 @@ const PublicProfilePage = () => {
                 src={selectedPhoto.url}
                 alt={selectedPhoto.title || "Gallery image"}
                 className="max-h-[80vh] w-full rounded-2xl bg-black object-contain"
+                loading="lazy"
               />
               {(selectedPhoto.title || selectedPhoto.description) && (
                 <div className="mt-4 text-center text-white">

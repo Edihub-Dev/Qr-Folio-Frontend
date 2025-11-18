@@ -10,6 +10,7 @@ import {
   X,
   LogOut,
   ShieldCheck,
+  CreditCard,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import AdminDashboardPage from "./AdminDashboardPage";
@@ -38,20 +39,30 @@ const AdminLayout = () => {
     () => location.pathname.startsWith("/admin/withdrawals"),
     [location.pathname]
   );
+  const isNfcRoute = useMemo(
+    () => location.pathname.startsWith("/admin/nfc"),
+    [location.pathname]
+  );
 
   const requiresSidebarToggle = isInvoiceRoute || isUsersRoute;
 
   useEffect(() => {
-    if (requiresSidebarToggle || isReferRoute || isWithdrawalRoute) {
+    if (
+      requiresSidebarToggle ||
+      isReferRoute ||
+      isWithdrawalRoute ||
+      isNfcRoute
+    ) {
       setSidebarOpen(false);
     }
-  }, [requiresSidebarToggle, isReferRoute, isWithdrawalRoute]);
+  }, [requiresSidebarToggle, isReferRoute, isWithdrawalRoute, isNfcRoute]);
   const navItems = useMemo(
     () => [
       { to: "/admin", label: "Dashboard", icon: BarChart3, exact: true },
       { to: "/admin/users", label: "Users", icon: Users },
       { to: "/admin/invoices", label: "Invoices", icon: FileText },
       { to: "/admin/refer", label: "Referrals", icon: Share2 },
+      { to: "/admin/nfc", label: "NFC cards", icon: CreditCard },
       { to: "/admin/withdrawals", label: "Withdrawals", icon: Wallet },
       {
         to: "/dashboard",

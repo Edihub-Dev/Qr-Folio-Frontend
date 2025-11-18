@@ -82,3 +82,13 @@ export const downloadInvoicesCsv = async (params = {}) => {
   });
   return response;
 };
+
+export const fetchAdminNfcRequests = async (params = {}) => {
+  const response = await api.get("/admin/nfc/requests", { params });
+  return response.data;
+};
+
+export const updateAdminNfcStatus = async (userId, payload = {}) => {
+  const response = await api.patch(`/admin/nfc/${userId}`, payload);
+  return response.data;
+};

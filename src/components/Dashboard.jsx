@@ -10,6 +10,8 @@ import { Download, Edit3, Copy, Share2, Eye } from "lucide-react";
 import { motion } from "../utils/motion";
 import QRCodeGenerator from "./QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
+import api from "../api";
+import { toast } from "react-hot-toast";
 import {
   PLAN_LABELS,
   PLAN_ORDER,
@@ -89,6 +91,7 @@ const Dashboard = () => {
     [authUser?.subscriptionPlan, authUser?.planName]
   );
   const currentPlanLabel = PLAN_LABELS[currentPlan] || PLAN_LABELS.basic;
+  const isPremiumPlan = currentPlan === "premium";
   const nextPlanKey = useMemo(() => {
     const index = PLAN_ORDER.indexOf(currentPlan);
     if (index === -1) return null;
@@ -109,6 +112,11 @@ const Dashboard = () => {
     navigate(nextUpgradePath);
   }, [nextUpgradePath, navigate]);
 
+  const handleUpgradeToPremiumClick = useCallback(() => {
+    const params = new URLSearchParams({ upgrade: "premium" }).toString();
+    navigate(`/payment?${params}`);
+  }, [navigate]);
+
   const safeAvatar = useMemo(() => {
     if (authUser?.profilePhoto) return authUser.profilePhoto;
     return `data:image/svg+xml;utf8,${encodeURIComponent(`
@@ -124,10 +132,20 @@ const Dashboard = () => {
   const qrWrapperRef = useRef(null);
   const qrGeneratorRef = useRef(null);
 
+  const hasRefreshed = useRef(false);
+  const nfcFormInitializedRef = useRef(false);
+  const nfcNameRef = useRef(null);
+  const nfcPhoneRef = useRef(null);
+  const nfcAddress1Ref = useRef(null);
+  const nfcAddress2Ref = useRef(null);
+  const nfcCityRef = useRef(null);
+  const nfcStateRef = useRef(null);
+  const nfcPostalRef = useRef(null);
+  const nfcCountryRef = useRef(null);
+  const nfcNotesRef = useRef(null);
+
   const profileUrl =
     user.qrCodeUrl || (user.id ? `${baseClientUrl}/profile/${user.id}` : "");
-
-  const hasRefreshed = useRef(false);
 
   useEffect(() => {
     if (hasRefreshed.current) {
@@ -136,6 +154,180 @@ const Dashboard = () => {
     hasRefreshed.current = true;
     refreshUser?.();
   }, [refreshUser]);
+
+  const [nfcStatus, setNfcStatus] = useState({
+    status: "not_requested",
+    requestedAt: null,
+    trackingNumber: null,
+    shippedAt: null,
+    deliveredAt: null,
+    shippingName: "",
+    shippingPhone: "",
+    shippingAddressLine1: "",
+    shippingAddressLine2: "",
+    shippingCity: "",
+    shippingState: "",
+    shippingPostalCode: "",
+    shippingCountry: "",
+    shippingNotes: "",
+  });
+  const [nfcLoading, setNfcLoading] = useState(false);
+  const [nfcRequesting, setNfcRequesting] = useState(false);
+  const [nfcForm, setNfcForm] = useState({
+    name: "",
+    phone: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "India",
+    notes: "",
+  });
+  const [nfcFormVisible, setNfcFormVisible] = useState(false);
+
+  const loadNfcStatus = useCallback(async () => {
+    try {
+      setNfcLoading(true);
+      const { data } = await api.get("/user/nfc/status");
+      if (data?.success) {
+        const nextStatus = {
+          status: data.nfcCardStatus || "not_requested",
+          requestedAt: data.nfcRequestedAt || null,
+          trackingNumber: data.nfcTrackingNumber || null,
+          shippedAt: data.nfcShippedAt || null,
+          deliveredAt: data.nfcDeliveredAt || null,
+          shippingName: data.nfcShippingName || "",
+          shippingPhone: data.nfcShippingPhone || "",
+          shippingAddressLine1: data.nfcShippingAddressLine1 || "",
+          shippingAddressLine2: data.nfcShippingAddressLine2 || "",
+          shippingCity: data.nfcShippingCity || "",
+          shippingState: data.nfcShippingState || "",
+          shippingPostalCode: data.nfcShippingPostalCode || "",
+          shippingCountry: data.nfcShippingCountry || "",
+          shippingNotes: data.nfcShippingNotes || "",
+        };
+        setNfcStatus(nextStatus);
+
+        if (!nfcFormInitializedRef.current) {
+          setNfcForm((prev) => ({
+            ...prev,
+            name: nextStatus.shippingName || user.name || "",
+            phone: nextStatus.shippingPhone || user.phone || "",
+            addressLine1:
+              nextStatus.shippingAddressLine1 ||
+              (user.address && user.address !== "—" ? user.address : ""),
+            addressLine2: nextStatus.shippingAddressLine2 || "",
+            city: nextStatus.shippingCity || "",
+            state: nextStatus.shippingState || "",
+            postalCode: nextStatus.shippingPostalCode || "",
+            country: nextStatus.shippingCountry || "India",
+            notes: nextStatus.shippingNotes || "",
+          }));
+          nfcFormInitializedRef.current = true;
+        }
+      } else if (!nfcFormInitializedRef.current) {
+        setNfcForm((prev) => ({
+          ...prev,
+          name: user.name || "",
+          phone: user.phone || "",
+          addressLine1:
+            user.address && user.address !== "—" ? user.address : "",
+        }));
+        nfcFormInitializedRef.current = true;
+      }
+    } catch (error) {
+      console.error("nfc.status.error", error);
+    } finally {
+      setNfcLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadNfcStatus();
+  }, [loadNfcStatus]);
+
+  const nfcStatusLabel = useMemo(() => {
+    switch (nfcStatus.status) {
+      case "requested":
+        return "Requested";
+      case "in_production":
+        return "In production";
+      case "shipped":
+        return "Shipped";
+      case "delivered":
+        return "Delivered";
+      default:
+        return "Not requested";
+    }
+  }, [nfcStatus.status]);
+
+  const formatNfcDate = (value) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const handleRequestNfc = async (event) => {
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault();
+    }
+
+    const name = (nfcNameRef.current?.value || "").trim();
+    const phone = (nfcPhoneRef.current?.value || "").trim();
+    const addressLine1 = (nfcAddress1Ref.current?.value || "").trim();
+    const addressLine2 = (nfcAddress2Ref.current?.value || "").trim();
+    const city = (nfcCityRef.current?.value || "").trim();
+    const state = (nfcStateRef.current?.value || "").trim();
+    const postalCode = (nfcPostalRef.current?.value || "").trim();
+    const country =
+      (nfcCountryRef.current?.value || "").trim() || nfcForm.country || "India";
+    const notes = (nfcNotesRef.current?.value || "").trim();
+
+    if (!name || !phone || !addressLine1 || !city || !state || !postalCode) {
+      toast.error(
+        "Please fill in name, phone, address line 1, city, state, and postal code."
+      );
+      return;
+    }
+
+    try {
+      setNfcRequesting(true);
+      const { data } = await api.post("/user/nfc/request", {
+        shippingName: name,
+        shippingPhone: phone,
+        addressLine1,
+        addressLine2,
+        city,
+        state,
+        postalCode,
+        country,
+        notes,
+      });
+      if (data?.success) {
+        if (data.message) {
+          toast.success(data.message);
+        } else {
+          toast.success("NFC card request submitted.");
+        }
+        loadNfcStatus();
+      } else {
+        toast.error(data?.message || "Unable to submit NFC card request");
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "Unable to submit NFC card request";
+      toast.error(message);
+      console.error("nfc.request.error", error);
+    } finally {
+      setNfcRequesting(false);
+    }
+  };
 
   const socialLinks = useMemo(() => {
     const links = [];
@@ -774,6 +966,198 @@ const Dashboard = () => {
             </div>
           </motion.button> */}
         </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm"
+      >
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">NFC Card</h3>
+            <p className="mt-1 text-sm text-gray-600">
+              Track the status of your physical NFC card linked to this profile.
+            </p>
+            <div className="mt-3 inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+              <span className="mr-2 text-gray-500">Current status:</span>
+              <span className="capitalize">
+                {nfcLoading ? "Checking..." : nfcStatusLabel}
+              </span>
+            </div>
+            <div className="mt-3 grid gap-2 text-xs text-gray-500 sm:grid-cols-3">
+              <div>
+                <div className="font-medium text-gray-700">Requested</div>
+                <div>{formatNfcDate(nfcStatus.requestedAt)}</div>
+              </div>
+              <div>
+                <div className="font-medium text-gray-700">Shipped</div>
+                <div>{formatNfcDate(nfcStatus.shippedAt)}</div>
+              </div>
+              <div>
+                <div className="font-medium text-gray-700">Delivered</div>
+                <div>{formatNfcDate(nfcStatus.deliveredAt)}</div>
+              </div>
+            </div>
+            {nfcStatus.trackingNumber && (
+              <div className="mt-3 text-xs text-gray-600">
+                Tracking number:{" "}
+                <span className="font-mono font-medium">
+                  {nfcStatus.trackingNumber}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col gap-2 md:items-end">
+            {isPremiumPlan && nfcStatus.status === "not_requested" && (
+              <>
+                <button
+                  type="button"
+                  disabled={nfcLoading || nfcRequesting}
+                  onClick={() => setNfcFormVisible(true)}
+                  className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300"
+                >
+                  {nfcFormVisible
+                    ? "Fill shipping details below"
+                    : "Request NFC card"}
+                </button>
+                <p className="text-xs text-gray-500 max-w-xs text-right">
+                  NFC cards are available for Premium (Platinum) users. We will
+                  ship to the address you provide in the form.
+                </p>
+              </>
+            )}
+            {!isPremiumPlan && nfcStatus.status === "not_requested" && (
+              <>
+                <p className="text-xs text-gray-500 max-w-xs text-right">
+                  Physical NFC cards are available on the Premium (Platinum)
+                  plan. Upgrade your plan to request a card.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleUpgradeToPremiumClick}
+                  className="inline-flex items-center justify-center rounded-lg border border-primary-600 px-4 py-1.5 text-xs font-semibold text-primary-700 shadow-sm hover:bg-primary-50"
+                >
+                  Upgrade to Premium
+                </button>
+              </>
+            )}
+            {nfcStatus.status !== "not_requested" && (
+              <p className="text-xs text-gray-500 max-w-xs text-right">
+                You have already submitted a request. You will receive your card
+                once it is produced and shipped.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {isPremiumPlan &&
+          nfcFormVisible &&
+          nfcStatus.status === "not_requested" && (
+            <div className="mt-6 grid gap-3 border-t border-gray-100 pt-4 text-xs text-gray-700">
+              <p className="text-sm font-semibold text-gray-900">
+                Shipping details
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex flex-col gap-1">
+                  <span>Full name *</span>
+                  <input
+                    type="text"
+                    defaultValue={nfcForm.name}
+                    ref={nfcNameRef}
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span>Phone number *</span>
+                  <input
+                    type="tel"
+                    defaultValue={nfcForm.phone}
+                    ref={nfcPhoneRef}
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  />
+                </label>
+              </div>
+              <label className="flex flex-col gap-1">
+                <span>Address line 1 *</span>
+                <input
+                  type="text"
+                  defaultValue={nfcForm.addressLine1}
+                  ref={nfcAddress1Ref}
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span>Address line 2</span>
+                <input
+                  type="text"
+                  defaultValue={nfcForm.addressLine2}
+                  ref={nfcAddress2Ref}
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex flex-col gap-1">
+                  <span>City *</span>
+                  <input
+                    type="text"
+                    defaultValue={nfcForm.city}
+                    ref={nfcCityRef}
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span>State *</span>
+                  <input
+                    type="text"
+                    defaultValue={nfcForm.state}
+                    ref={nfcStateRef}
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  />
+                </label>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex flex-col gap-1">
+                  <span>Postal code *</span>
+                  <input
+                    type="text"
+                    defaultValue={nfcForm.postalCode}
+                    ref={nfcPostalRef}
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span>Country</span>
+                  <input
+                    type="text"
+                    defaultValue={nfcForm.country}
+                    ref={nfcCountryRef}
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                  />
+                </label>
+              </div>
+              <label className="flex flex-col gap-1">
+                <span>Delivery notes (optional)</span>
+                <textarea
+                  rows={3}
+                  defaultValue={nfcForm.notes}
+                  ref={nfcNotesRef}
+                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                />
+              </label>
+              <div className="flex flex-col gap-2 md:items-end">
+                <button
+                  type="button"
+                  onClick={handleRequestNfc}
+                  disabled={nfcLoading || nfcRequesting}
+                  className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300"
+                >
+                  {nfcRequesting ? "Submitting..." : "Submit NFC request"}
+                </button>
+              </div>
+            </div>
+          )}
       </motion.div>
     </div>
   );
