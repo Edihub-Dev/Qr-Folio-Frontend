@@ -83,6 +83,13 @@ export const downloadInvoicesCsv = async (params = {}) => {
   return response;
 };
 
+export const downloadInvoicePdf = async (invoiceId) => {
+  const response = await api.get(`/admin/invoices/${invoiceId}/pdf`, {
+    responseType: "blob",
+  });
+  return response;
+};
+
 export const fetchAdminNfcRequests = async (params = {}) => {
   const response = await api.get("/admin/nfc/requests", { params });
   return response.data;

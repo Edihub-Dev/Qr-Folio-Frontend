@@ -89,7 +89,7 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: 999,
+        price: 1,
         description: "For large organizations",
         features: [
           "Everything in Standard",

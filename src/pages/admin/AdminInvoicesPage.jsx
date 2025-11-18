@@ -8,6 +8,7 @@ import AdminModal from "../../components/admin/AdminModal";
 import {
   fetchAdminInvoices,
   downloadInvoicesCsv,
+  downloadInvoicePdf,
 } from "../../services/adminApi";
 
 const GATEWAY_OPTIONS = [
@@ -245,6 +246,25 @@ const AdminInvoicesPage = () => {
     setSelectedInvoice(null);
   };
 
+  const handleOpenPdf = useCallback(
+    async (invoice) => {
+      if (!invoice?._id) return;
+      try {
+        const response = await downloadInvoicePdf(invoice._id);
+        const blob = new Blob([response.data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, "_blank", "noopener");
+      } catch (err) {
+        setError(
+          err?.response?.data?.message ||
+            err.message ||
+            "Failed to open invoice PDF"
+        );
+      }
+    },
+    [setError]
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -359,7 +379,22 @@ const AdminInvoicesPage = () => {
         </div>
       )}
 
-      <AdminModal open={modalOpen} onClose={closeModal} title="Invoice details">
+      <AdminModal
+        open={modalOpen}
+        onClose={closeModal}
+        title="Invoice details"
+        footer={
+          selectedInvoice && (
+            <button
+              type="button"
+              onClick={() => handleOpenPdf(selectedInvoice)}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700"
+            >
+              Open PDF
+            </button>
+          )
+        }
+      >
         {selectedInvoice && (
           <div className="space-y-6 text-sm text-gray-700">
             <div className="grid gap-4 sm:grid-cols-2">
