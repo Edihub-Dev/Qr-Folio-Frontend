@@ -20,6 +20,8 @@ import {
   Globe,
   Link2,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import api from "../api";
@@ -42,6 +44,7 @@ const PublicProfilePage = () => {
   const [isGalleryTransitionEnabled, setIsGalleryTransitionEnabled] =
     useState(true);
   const [visibleGalleryCount, setVisibleGalleryCount] = useState(3);
+  const touchStartXRef = useRef(null);
 
   const featuredGallery = useMemo(() => [...imageItems], [imageItems]);
   const effectiveVisibleCount =
@@ -183,23 +186,15 @@ const PublicProfilePage = () => {
     setActiveGalleryIndex((prev) => Math.min(prev, maxIndex));
   }, [featuredGallery.length, visibleGalleryCount]);
 
-  // Lightweight auto-scroll for the gallery: desktop/tablet only, slower interval
-  useEffect(() => {
-    if (selectedPhoto) return undefined;
-    if (featuredGallery.length <= visibleGalleryCount) return undefined;
+  const handleGalleryNext = useCallback(() => {
+    if (featuredGallery.length <= visibleGalleryCount) return;
+    setActiveGalleryIndex((prev) => prev + 1);
+  }, [featuredGallery.length, visibleGalleryCount]);
 
-    // Only auto-scroll on screens >= 768px to keep mobile very smooth
-    const width = window.innerWidth;
-    if (width < 568) return undefined;
-
-    const intervalId = window.setInterval(() => {
-      setActiveGalleryIndex((prev) => prev + 1);
-    }, 3000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [featuredGallery.length, selectedPhoto, visibleGalleryCount]);
+  const handleGalleryPrev = useCallback(() => {
+    if (featuredGallery.length <= visibleGalleryCount) return;
+    setActiveGalleryIndex((prev) => Math.max(prev - 1, 0));
+  }, [featuredGallery.length, visibleGalleryCount]);
 
   useEffect(() => {
     if (featuredGallery.length <= visibleGalleryCount) {
@@ -844,6 +839,36 @@ const PublicProfilePage = () => {
     ? user.skills.map((skill) => `${skill}`.trim()).filter(Boolean)
     : [];
 
+  const handleGalleryTouchStart = (event) => {
+    if (event.touches && event.touches.length > 0) {
+      touchStartXRef.current = event.touches[0].clientX;
+    }
+  };
+
+  const handleGalleryTouchEnd = (event) => {
+    if (touchStartXRef.current == null) return;
+
+    const endX =
+      event.changedTouches && event.changedTouches.length > 0
+        ? event.changedTouches[0].clientX
+        : touchStartXRef.current;
+
+    const deltaX = endX - touchStartXRef.current;
+    const threshold = 40;
+
+    if (Math.abs(deltaX) > threshold) {
+      if (deltaX < 0) {
+        // swipe left -> next
+        handleGalleryNext();
+      } else {
+        // swipe right -> previous
+        handleGalleryPrev();
+      }
+    }
+
+    touchStartXRef.current = null;
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-slate-950">
       <div className="pointer-events-none absolute inset-0">
@@ -1042,7 +1067,31 @@ const PublicProfilePage = () => {
                     </p>
                   </div>
                   {extendedGallery.length > 0 && (
-                    <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-3 shadow-inner shadow-slate-950/60 sm:p-4">
+                    <div
+                      className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-3 shadow-inner shadow-slate-950/60 sm:p-4"
+                      onTouchStart={handleGalleryTouchStart}
+                      onTouchEnd={handleGalleryTouchEnd}
+                    >
+                      {featuredGallery.length > visibleGalleryCount && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleGalleryPrev}
+                            className="absolute left-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-slate-900/80 text-slate-100 shadow-md ring-1 ring-white/20 hover:bg-slate-800"
+                            aria-label="Previous photos"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleGalleryNext}
+                            className="absolute right-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-slate-900/80 text-slate-100 shadow-md ring-1 ring-white/20 hover:bg-slate-800"
+                            aria-label="Next photos"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
                       <div
                         className="flex"
                         style={{
