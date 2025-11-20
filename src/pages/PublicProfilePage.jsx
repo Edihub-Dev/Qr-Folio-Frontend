@@ -401,6 +401,20 @@ const PublicProfilePage = () => {
     return null;
   };
 
+  // Handle loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="flex flex-col items-center gap-3 text-slate-200">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
+          <p className="text-sm font-medium text-slate-300">
+            Loading public profile...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Handle error state
   if (!loading && (error || !user)) {
     return (
