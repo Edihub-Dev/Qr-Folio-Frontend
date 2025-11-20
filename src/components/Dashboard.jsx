@@ -18,7 +18,7 @@ import {
 } from "../utils/subscriptionPlan";
 
 const Dashboard = () => {
-  const { user: authUser, refreshUser } = useAuth();
+  const { user: authUser, refreshUser, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const baseClientUrl = useMemo(() => {
@@ -614,6 +614,44 @@ const Dashboard = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (authLoading) {
+    return (
+      <div className="space-y-6 max-w-6xl mx-auto px-3 sm:px-0 animate-pulse">
+        <div className="rounded-3xl bg-slate-900/90 p-6 space-y-3">
+          <div className="h-4 w-40 rounded bg-slate-800" />
+          <div className="h-3 w-64 rounded bg-slate-800" />
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="rounded-3xl bg-slate-900/90 p-6 space-y-4">
+              <div className="flex gap-4">
+                <div className="h-20 w-20 rounded-full bg-slate-800" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 w-32 rounded bg-slate-800" />
+                  <div className="h-3 w-40 rounded bg-slate-800" />
+                  <div className="h-3 w-48 rounded bg-slate-800" />
+                </div>
+              </div>
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="h-16 rounded-2xl bg-slate-800" />
+                <div className="h-16 rounded-2xl bg-slate-800" />
+                <div className="h-16 rounded-2xl bg-slate-800" />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="rounded-3xl bg-slate-900/90 p-6 space-y-4">
+              <div className="h-40 w-full rounded-2xl bg-slate-800" />
+              <div className="h-3 w-32 rounded bg-slate-800 mx-auto" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

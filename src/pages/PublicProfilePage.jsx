@@ -142,8 +142,7 @@ const PublicProfilePage = () => {
   }, [selectedPhoto]);
 
   useEffect(() => {
-    let rafId = null;
-
+    // Defer gallery layout calculation to after first paint, no resize listener
     const updateVisibleCount = () => {
       const width = window.innerWidth;
       let nextCount = 3;
@@ -156,17 +155,10 @@ const PublicProfilePage = () => {
       setVisibleGalleryCount((prev) => (prev === nextCount ? prev : nextCount));
     };
 
-    const handleResize = () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(updateVisibleCount);
-    };
-
-    updateVisibleCount();
-    window.addEventListener("resize", handleResize, { passive: true });
+    const rafId = window.requestAnimationFrame(updateVisibleCount);
 
     return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", handleResize, { passive: true });
+      window.cancelAnimationFrame(rafId);
     };
   }, []);
 
@@ -404,12 +396,59 @@ const PublicProfilePage = () => {
   // Handle loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="flex flex-col items-center gap-3 text-slate-200">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
-          <p className="text-sm font-medium text-slate-300">
-            Loading public profile...
-          </p>
+      <div className="min-h-screen bg-slate-950 px-4 py-8 flex justify-center">
+        <div className="w-full max-w-[1440px] space-y-6 animate-pulse">
+          <div className="h-8 w-28 rounded-full bg-slate-800" />
+
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,380px),1fr]">
+            {/* Left column skeleton: profile card + QR card */}
+            <div className="space-y-4">
+              <div className="rounded-3xl bg-slate-900/90 p-6 space-y-4">
+                <div className="mx-auto h-28 w-28 rounded-full bg-slate-800" />
+                <div className="mx-auto h-4 w-32 rounded bg-slate-800" />
+                <div className="mx-auto h-3 w-40 rounded bg-slate-800" />
+                <div className="space-y-2 pt-2">
+                  <div className="h-3 w-full rounded bg-slate-800" />
+                  <div className="h-3 w-5/6 rounded bg-slate-800" />
+                  <div className="h-3 w-4/6 rounded bg-slate-800" />
+                </div>
+              </div>
+
+              <div className="rounded-3xl bg-slate-900/90 p-6 space-y-4">
+                <div className="h-40 w-full rounded-2xl bg-slate-800" />
+                <div className="h-3 w-24 rounded bg-slate-800 mx-auto" />
+              </div>
+            </div>
+
+            {/* Right column skeleton: about + sections */}
+            <div className="space-y-4">
+              <div className="rounded-3xl bg-slate-900/90 p-6 space-y-3">
+                <div className="h-4 w-32 rounded bg-slate-800" />
+                <div className="space-y-2 pt-1">
+                  <div className="h-3 w-full rounded bg-slate-800" />
+                  <div className="h-3 w-11/12 rounded bg-slate-800" />
+                  <div className="h-3 w-10/12 rounded bg-slate-800" />
+                </div>
+              </div>
+
+              <div className="rounded-3xl bg-slate-900/90 p-6 space-y-3">
+                <div className="h-4 w-40 rounded bg-slate-800" />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="h-20 rounded-2xl bg-slate-800" />
+                  <div className="h-20 rounded-2xl bg-slate-800" />
+                </div>
+                <div className="h-3 w-32 rounded bg-slate-800" />
+              </div>
+
+              <div className="rounded-3xl bg-slate-900/90 p-6 space-y-3">
+                <div className="h-4 w-40 rounded bg-slate-800" />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="h-16 rounded-2xl bg-slate-800" />
+                  <div className="h-16 rounded-2xl bg-slate-800" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -874,10 +913,7 @@ const PublicProfilePage = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-slate-950">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_#4f46e5_0%,_#0f172a_45%,_#020617_100%)]" />
-        <div className="absolute -left-40 top-20 h-72 w-72 rounded-full bg-indigo-500/30 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
-        <div className="absolute inset-0 bg-[url('/assets/publicprofilebackground.jpg')] bg-cover bg-center opacity-20 mix-blend-overlay" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-950" />
       </div>
 
       <div className="relative z-10 flex min-h-screen flex-col">
@@ -886,7 +922,7 @@ const PublicProfilePage = () => {
             <button
               type="button"
               onClick={handleBackClick}
-              className="no-print inline-flex items-center gap-2 rounded-full border border-indigo-500/40 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-indigo-100 shadow-lg shadow-indigo-900/40 backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/70 hover:bg-slate-900/80 hover:text-white"
+              className="no-print inline-flex items-center gap-2 rounded-full border border-indigo-500/40 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-indigo-100 shadow-lg shadow-indigo-900/40 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/70 hover:bg-slate-900/80 hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
@@ -900,7 +936,7 @@ const PublicProfilePage = () => {
               <div
                 id="public-card-print"
                 ref={cardRef}
-                className="space-y-6 rounded-[32px] bg-white/5 p-[1px] shadow-[0_24px_80px_rgba(15,23,42,0.7)] ring-1 ring-white/10 backdrop-blur-2xl"
+                className="space-y-6 rounded-[32px] bg-slate-900/80 p-[1px] shadow-xl shadow-slate-950/70 ring-1 ring-white/10"
               >
                 <div className="rounded-[30px] bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/80 p-8">
                   <div className="flex flex-col items-center text-center">
@@ -976,7 +1012,7 @@ const PublicProfilePage = () => {
                   </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-900/70 p-8 text-white shadow-[0_26px_60px_rgba(15,23,42,0.85)] backdrop-blur-xl">
+                <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-900/80 p-8 text-white shadow-lg shadow-slate-950/80">
                   <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(129,140,248,0.7),_transparent_55%)]" />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/10 via-indigo-900/10 to-slate-950/60" />
                   <div className="relative flex flex-col items-center text-center">
@@ -1026,21 +1062,21 @@ const PublicProfilePage = () => {
                 <button
                   type="button"
                   onClick={handlePrintCard}
-                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
+                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
                 >
                   Download Card PDF
                 </button>
                 <button
                   type="button"
                   onClick={handleDownloadCard}
-                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
+                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
                 >
                   Download Card Image
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveContact}
-                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
+                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
                 >
                   Save Contact
                 </button>
@@ -1058,7 +1094,7 @@ const PublicProfilePage = () => {
             </aside>
 
             <main className="flex-1 space-y-6">
-              <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 backdrop-blur-xl shadow-[0_22px_60px_rgba(15,23,42,0.85)]">
+              <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 shadow-lg shadow-slate-950/70">
                 <div className="space-y-8">
                   <div className="max-w-3xl space-y-4">
                     <h2 className="text-2xl font-semibold tracking-tight text-indigo-100">
@@ -1119,7 +1155,7 @@ const PublicProfilePage = () => {
                                 maxWidth: `${basis}%`,
                               }}
                             >
-                              <div className="relative h-[200px] w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-[0_18px_40px_rgba(15,23,42,0.9)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_26px_60px_rgba(15,23,42,0.95)] sm:h-[240px]">
+                              <div className="relative h-[200px] w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-lg shadow-slate-950/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:h-[240px]">
                                 <img
                                   src={item.url}
                                   alt={item.title || "Gallery image"}
@@ -1143,7 +1179,7 @@ const PublicProfilePage = () => {
                 </div>
               </section>
 
-              <section className="grid gap-10 rounded-3xl border border-white/10 bg-slate-900/70 p-6 pt-10 backdrop-blur-xl shadow-[0_22px_60px_rgba(15,23,42,0.85)] lg:grid-cols-[minmax(0,380px),1fr] sm:p-8">
+              <section className="grid gap-10 rounded-3xl border border-white/10 bg-slate-900/70 p-6 pt-10 shadow-lg shadow-slate-950/70 lg:grid-cols-[minmax(0,380px),1fr] sm:p-8">
                 {/* Professional Details */}
                 <div className="space-y-5">
                   <h2 className="text-2xl font-semibold tracking-tight text-indigo-100">
@@ -1151,7 +1187,7 @@ const PublicProfilePage = () => {
                   </h2>
                   <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2">
                     {/* Company Name Card */}
-                    <div className="flex min-h-[200px] flex-col items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/80 p-5 text-center shadow-[0_18px_40px_rgba(15,23,42,0.9)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.95)]">
+                    <div className="flex min-h-[200px] flex-col items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/80 p-5 text-center shadow-lg shadow-slate-950/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                       <div className="m-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/15 text-indigo-200 shadow-inner shadow-slate-950/70">
                         <Building2 className="h-6 w-6" />
                       </div>
@@ -1197,13 +1233,13 @@ const PublicProfilePage = () => {
 
                   {/* Experience & Referral */}
                   <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:gap-1">
-                    <div className="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-sky-400 px-4 py-2 text-sm font-medium text-white text-center shadow-[0_12px_30px_rgba(37,99,235,0.7)] sm:w-auto sm:justify-start sm:rounded-l-full sm:rounded-r-none sm:text-left">
+                    <div className="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-sky-400 px-4 py-2 text-sm font-medium text-white text-center shadow-md shadow-slate-900/70 sm:w-auto sm:justify-start sm:rounded-l-full sm:rounded-r-none sm:text-left">
                       <span>Experience:</span>
                       <span className="ml-1 font-semibold">
                         {companyExperience || "-"}
                       </span>
                     </div>
-                    <div className="flex w-full items-center justify-center rounded-full bg-slate-900/80 px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/10 text-center shadow-[0_12px_30px_rgba(15,23,42,0.9)] sm:w-auto sm:justify-start sm:rounded-l-none sm:rounded-r-full sm:text-left">
+                    <div className="flex w-full items-center justify-center rounded-full bg-slate-900/80 px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/10 text-center shadow-md shadow-slate-900/80 sm:w-auto sm:justify-start sm:rounded-l-none sm:rounded-r-full sm:text-left">
                       <span>Referral Code:</span>
                       <span className="ml-1 break-all break-words font-semibold text-indigo-200">
                         {companyReferralCode || "-"}
@@ -1214,7 +1250,7 @@ const PublicProfilePage = () => {
               </section>
 
               {videoItems.length > 0 && (
-                <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 backdrop-blur-xl shadow-[0_22px_60px_rgba(15,23,42,0.85)] sm:p-8">
+                <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-950/70 sm:p-8">
                   <h2 className="mb-4 text-xl font-semibold tracking-tight text-indigo-100">
                     Work Videos
                   </h2>
@@ -1222,7 +1258,7 @@ const PublicProfilePage = () => {
                     {videoItems.map((item) => (
                       <div
                         key={item._id}
-                        className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-[0_18px_40px_rgba(15,23,42,0.9)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.95)]"
+                        className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-lg shadow-slate-950/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                       >
                         <div className="relative flex h-60 w-full items-center justify-center overflow-hidden bg-black">
                           {renderVideoEmbed(item.url) || (

@@ -262,6 +262,46 @@ const ReferPage = () => {
     toast.success(`Reminder email queued for ${entry.referredUserEmail}`);
   };
 
+  if (loading && !overview) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          <div className="space-y-6 xl:col-span-2">
+            <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/90 p-6 shadow-xl shadow-slate-950/60">
+              <div className="space-y-4">
+                <div className="h-4 w-40 rounded bg-slate-800" />
+                <div className="h-3 w-64 rounded bg-slate-800" />
+                <div className="h-3 w-52 rounded bg-slate-800" />
+                <div className="mt-4 h-10 w-full rounded-2xl bg-slate-800" />
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/90 p-6 shadow-xl shadow-slate-950/60">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2">
+                  <div className="h-4 w-32 rounded bg-slate-800" />
+                  <div className="h-3 w-56 rounded bg-slate-800" />
+                </div>
+                <div className="h-8 w-32 rounded-full bg-slate-800" />
+              </div>
+              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="h-20 rounded-2xl bg-slate-800" />
+                <div className="h-20 rounded-2xl bg-slate-800" />
+                <div className="h-20 rounded-2xl bg-slate-800" />
+                <div className="h-20 rounded-2xl bg-slate-800" />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="h-40 rounded-3xl border border-white/10 bg-slate-900/90 shadow-xl shadow-slate-950/60" />
+            <div className="h-24 rounded-3xl border border-white/10 bg-slate-900/90 shadow-xl shadow-slate-950/60" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
