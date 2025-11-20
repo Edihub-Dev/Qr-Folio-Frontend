@@ -52,10 +52,9 @@ const PublicProfilePage = () => {
       ? Math.min(featuredGallery.length, visibleGalleryCount)
       : 1;
   const extendedGallery = useMemo(() => {
-    if (!featuredGallery.length) return [];
-    const loopCount = Math.min(featuredGallery.length, visibleGalleryCount);
-    return [...featuredGallery, ...featuredGallery.slice(0, loopCount)];
-  }, [featuredGallery, visibleGalleryCount]);
+    // No looping: we just show the images once
+    return featuredGallery;
+  }, [featuredGallery]);
 
   const fetchUser = useCallback(async () => {
     if (!id) return;
@@ -188,7 +187,8 @@ const PublicProfilePage = () => {
 
   const handleGalleryNext = useCallback(() => {
     if (featuredGallery.length <= visibleGalleryCount) return;
-    setActiveGalleryIndex((prev) => prev + 1);
+    const maxIndex = Math.max(0, featuredGallery.length - visibleGalleryCount);
+    setActiveGalleryIndex((prev) => Math.min(prev + 1, maxIndex));
   }, [featuredGallery.length, visibleGalleryCount]);
 
   const handleGalleryPrev = useCallback(() => {
@@ -197,19 +197,7 @@ const PublicProfilePage = () => {
   }, [featuredGallery.length, visibleGalleryCount]);
 
   useEffect(() => {
-    if (featuredGallery.length <= visibleGalleryCount) {
-      setIsGalleryTransitionEnabled(true);
-      return;
-    }
-
-    if (activeGalleryIndex === featuredGallery.length) {
-      const timeout = window.setTimeout(() => {
-        setIsGalleryTransitionEnabled(false);
-        setActiveGalleryIndex(0);
-      }, 700);
-      return () => window.clearTimeout(timeout);
-    }
-
+    // With non-looping gallery we always keep transitions enabled
     setIsGalleryTransitionEnabled(true);
   }, [activeGalleryIndex, featuredGallery.length, visibleGalleryCount]);
 
