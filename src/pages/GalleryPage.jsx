@@ -66,10 +66,8 @@ const GalleryPage = () => {
   const remainingVideoSlots = unlimitedVideos
     ? Number.POSITIVE_INFINITY
     : Math.max(0, maxVideos - videoItems.length);
-  const hasReachedImageLimit =
-    !unlimitedImages && remainingImageSlots <= 0;
-  const hasReachedVideoLimit =
-    !unlimitedVideos && remainingVideoSlots <= 0;
+  const hasReachedImageLimit = !unlimitedImages && remainingImageSlots <= 0;
+  const hasReachedVideoLimit = !unlimitedVideos && remainingVideoSlots <= 0;
   const planLabel = PLAN_LABELS[plan] || PLAN_LABELS.basic;
   const imageLimitDescription = unlimitedImages
     ? "Upload unlimited images (max 2 MB each)"
@@ -390,56 +388,56 @@ const GalleryPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="w-10 h-10 animate-spin text-primary-600" />
+        <Loader2 className="h-10 w-10 animate-spin text-primary-400" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 md:p-10">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/60 backdrop-blur md:p-10">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gallery</h1>
-            <p className="text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold text-white">Gallery</h1>
+            <p className="mt-1 text-sm text-slate-300">
               {imageLimitDescription}. Add up to {videoLimitDescription} to
               showcase your work.
             </p>
           </div>
-          <div className="hidden md:flex items-center space-x-3 text-sm text-gray-500 bg-gray-50 rounded-full px-4 py-2">
+          <div className="hidden items-center space-x-3 rounded-full bg-slate-900/70 px-4 py-2 text-sm text-slate-300 md:flex">
             <span>{imageUsageText}</span>
             <span>•</span>
             <span>{videoUsageText}</span>
           </div>
         </div>
 
-        <div className="mt-4 text-sm text-primary-600 font-medium">
+        <div className="mt-4 text-sm font-medium text-primary-300">
           Current plan: {planLabel}
         </div>
 
         <div
           {...getRootProps({
-            className: `mt-8 border-2 border-dashed rounded-2xl p-8 text-center transition relative overflow-hidden ${
+            className: `relative mt-8 overflow-hidden rounded-2xl border-2 border-dashed p-8 text-center transition ${
               hasReachedImageLimit
-                ? "border-gray-200 bg-gray-50 cursor-not-allowed"
+                ? "cursor-not-allowed border-slate-800 bg-slate-900/70"
                 : isDragActive
-                ? "border-primary-300 bg-primary-50"
-                : "border-gray-200 hover:border-primary-300 cursor-pointer"
+                ? "border-primary-400/70 bg-primary-500/10"
+                : "cursor-pointer border-slate-800 hover:border-primary-400/70 hover:bg-slate-900/80"
             }`,
           })}
         >
           <input {...getInputProps()} />
           <div className="flex flex-col items-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center">
-              <UploadCloud className="w-8 h-8 text-primary-500" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-500/10 text-primary-300">
+              <UploadCloud className="h-8 w-8" />
             </div>
             <div>
-              <p className="text-lg font-semibold text-gray-900">
+              <p className="text-lg font-semibold text-slate-100">
                 {hasReachedImageLimit
                   ? "Image limit reached"
                   : "Choose a file or drag & drop it here"}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-400">
                 JPEG, PNG formats, up to 2 MB
               </p>
             </div>
@@ -450,27 +448,27 @@ const GalleryPage = () => {
                 event.stopPropagation();
                 if (!hasReachedImageLimit) open();
               }}
-              className={`inline-flex items-center space-x-2 px-5 py-2 rounded-full font-medium shadow-sm ${
+              className={`inline-flex items-center space-x-2 rounded-full px-5 py-2 font-medium shadow-sm ${
                 hasReachedImageLimit
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-primary-600 text-white hover:bg-primary-700"
+                  ? "cursor-not-allowed bg-slate-700 text-slate-400"
+                  : "bg-primary-500 text-white hover:bg-primary-400"
               }`}
             >
               <span>Browse Files</span>
             </button>
           </div>
           {hasReachedImageLimit && (
-            <p className="mt-4 text-sm text-amber-600">
+            <p className="mt-4 text-sm text-amber-300">
               You already have {maxImages} images. Delete one to upload more.
             </p>
           )}
         </div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-slate-200">
               Image Title
-              <span className="ml-1 text-xs text-gray-400">(optional)</span>
+              <span className="ml-1 text-xs text-slate-500">(optional)</span>
             </label>
             <input
               type="text"
@@ -478,18 +476,18 @@ const GalleryPage = () => {
               onChange={(event) => setImageTitle(event.target.value)}
               maxLength={80}
               placeholder="Add a short title for the image"
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              className="w-full rounded-lg border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 shadow-sm transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
               disabled={hasReachedImageLimit}
             />
-            <div className="mt-1 text-xs text-gray-400 flex justify-between">
+            <div className="mt-1 flex justify-between text-xs text-slate-500">
               <span>Helps identify the image in your gallery.</span>
               <span>{imageTitle.length}/80</span>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-slate-200">
               Image Description
-              <span className="ml-1 text-xs text-gray-400">(optional)</span>
+              <span className="ml-1 text-xs text-slate-500">(optional)</span>
             </label>
             <textarea
               value={imageDescription}
@@ -497,29 +495,31 @@ const GalleryPage = () => {
               maxLength={160}
               rows={3}
               placeholder="Describe the context, project, or story behind this image"
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              className="w-full rounded-lg border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 shadow-sm transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
               disabled={hasReachedImageLimit}
             />
-            <div className="mt-1 text-xs text-gray-400 flex justify-end">
+            <div className="mt-1 flex justify-end text-xs text-slate-500">
               <span>{imageDescription.length}/160</span>
             </div>
           </div>
         </div>
 
         {uploading.length > 0 && (
-          <div className="mt-10 bg-white border border-gray-200 rounded-2xl p-6">
+          <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Upload Progress</h2>
-                <p className="text-sm text-gray-500">
-                  {uploading.filter((item) => item.status === "success").length}/
-                  {uploading.length} files uploaded
+                <h2 className="text-lg font-semibold text-slate-100">
+                  Upload Progress
+                </h2>
+                <p className="text-sm text-slate-400">
+                  {uploading.filter((item) => item.status === "success").length}
+                  /{uploading.length} files uploaded
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setUploading([])}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm text-slate-400 hover:text-slate-200"
               >
                 Clear all
               </button>
@@ -529,19 +529,19 @@ const GalleryPage = () => {
               {uploading.map((file) => (
                 <div
                   key={file.id}
-                  className="bg-gray-50 rounded-xl border border-gray-200 p-4 shadow-sm"
+                  className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 shadow-sm"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="truncate text-sm font-medium text-slate-100">
                       {file.name}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-slate-400">
                       {formatBytes(file.size)}
                     </p>
                     {file.error && (
-                      <p className="text-xs text-red-500 mt-1">{file.error}</p>
+                      <p className="mt-1 text-xs text-red-400">{file.error}</p>
                     )}
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mt-3">
+                    <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-800">
                       <div
                         className={`h-full transition-all duration-500 ${
                           file.status === "error"
@@ -556,16 +556,16 @@ const GalleryPage = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     {file.status === "uploading" && (
-                      <Loader2 className="w-5 h-5 text-primary-500 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin text-primary-400" />
                     )}
                     {file.status === "success" && (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                      <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                     )}
                     {file.status === "error" ? (
                       <button
                         type="button"
                         onClick={() => removeUploadEntry(file.id)}
-                        className="text-sm text-red-500 hover:text-red-600"
+                        className="text-sm text-red-400 hover:text-red-300"
                       >
                         Dismiss
                       </button>
@@ -573,7 +573,7 @@ const GalleryPage = () => {
                       <button
                         type="button"
                         onClick={() => removeUploadEntry(file.id)}
-                        className="text-sm text-gray-500 hover:text-gray-700"
+                        className="text-sm text-slate-400 hover:text-slate-200"
                       >
                         Hide
                       </button>
@@ -586,36 +586,36 @@ const GalleryPage = () => {
         )}
 
         <form onSubmit={handleAddVideo} className="mt-10">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">
+          <h2 className="mb-3 text-lg font-semibold text-slate-100">
             Add your video links here:
           </h2>
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:space-x-3 space-y-3 md:space-y-0">
+          <div className="flex flex-col space-y-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-4 md:flex-row md:items-center md:space-x-3 md:space-y-0">
             <div className="flex-1">
               <div className="relative">
-                <Link2 className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
                   type="url"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
                   placeholder="https://www.youtube.com/paste-your-video-url-here"
-                  className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 py-3 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  className="w-full rounded-xl border border-slate-800 bg-slate-900/70 py-3 pl-9 pr-3 text-sm text-slate-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                   required
                 />
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mt-3 space-y-3 sm:space-y-0">
+              <div className="mt-3 flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
                 <input
                   type="text"
                   value={videoTitle}
                   onChange={(e) => setVideoTitle(e.target.value)}
                   placeholder="Title (optional)"
-                  className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  className="flex-1 rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
                 <input
                   type="text"
                   value={videoDescription}
                   onChange={(e) => setVideoDescription(e.target.value)}
                   placeholder="Description (optional)"
-                  className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  className="flex-1 rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 />
               </div>
             </div>
@@ -624,8 +624,8 @@ const GalleryPage = () => {
               disabled={hasReachedVideoLimit}
               className={`inline-flex items-center justify-center space-x-2 rounded-full px-6 py-3 text-sm font-semibold shadow-sm ${
                 hasReachedVideoLimit
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-primary-600 text-white hover:bg-primary-700"
+                  ? "cursor-not-allowed bg-slate-700 text-slate-400"
+                  : "bg-primary-500 text-white hover:bg-primary-400"
               }`}
             >
               <Plus className="w-4 h-4" />
@@ -633,7 +633,7 @@ const GalleryPage = () => {
             </button>
           </div>
           {hasReachedVideoLimit && (
-            <p className="mt-3 text-sm text-amber-600">
+            <p className="mt-3 text-sm text-amber-300">
               You already have {maxVideos} video links. Delete one to add more.
             </p>
           )}
@@ -642,14 +642,14 @@ const GalleryPage = () => {
 
       <div className="mt-10">
         {items.length === 0 ? (
-          <div className="text-center py-16 bg-white border border-dashed border-gray-200 rounded-3xl">
-            <div className="mx-auto w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-              <Image className="w-8 h-8 text-gray-400" />
+          <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-950/60 py-16 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-900/80">
+              <Image className="h-8 w-8 text-slate-500" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-medium text-slate-100">
               No items in your gallery yet
             </h3>
-            <p className="mt-1 text-gray-500">
+            <p className="mt-1 text-slate-400">
               Upload images or add a video link to see them here.
             </p>
           </div>
@@ -657,15 +657,19 @@ const GalleryPage = () => {
           <div className="space-y-12">
             {imageItems.length > 0 && (
               <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">Photos</h2>
-                  <span className="text-sm text-gray-500">{imageUsageText}</span>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-slate-100">
+                    Photos
+                  </h2>
+                  <span className="text-sm text-slate-400">
+                    {imageUsageText}
+                  </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {imageItems.map((item) => (
                     <article
                       key={item._id}
-                      className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden group"
+                      className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-md shadow-slate-950/50"
                     >
                       <div className="relative">
                         <button
@@ -682,16 +686,16 @@ const GalleryPage = () => {
                       </div>
                       <div className="p-5">
                         <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 truncate">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="truncate font-semibold text-slate-100">
                               {item.title || "Untitled image"}
                             </h3>
                             {item.description ? (
-                              <p className="mt-1 text-sm text-gray-500 line-clamp-3">
+                              <p className="mt-1 line-clamp-3 text-sm text-slate-300">
                                 {item.description}
                               </p>
                             ) : (
-                              <p className="mt-1 text-xs text-gray-400">
+                              <p className="mt-1 text-xs text-slate-500">
                                 No description provided
                               </p>
                             )}
@@ -699,15 +703,17 @@ const GalleryPage = () => {
                           <button
                             type="button"
                             onClick={() => handleDelete(item._id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600"
+                            className="text-red-400 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
                             aria-label={`Delete ${item.title || "image"}`}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
-                        <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
+                        <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
                           <span>{formatBytes(item.size)}</span>
-                          <span>{new Date(item.createdAt).toLocaleString()}</span>
+                          <span>
+                            {new Date(item.createdAt).toLocaleString()}
+                          </span>
                         </div>
                       </div>
                     </article>
@@ -718,17 +724,21 @@ const GalleryPage = () => {
 
             {videoItems.length > 0 && (
               <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">Videos</h2>
-                  <span className="text-sm text-gray-500">{videoUsageText}</span>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-slate-100">
+                    Videos
+                  </h2>
+                  <span className="text-sm text-slate-400">
+                    {videoUsageText}
+                  </span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   {videoItems.map((item) => (
                     <article
                       key={item._id}
-                      className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden"
+                      className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-md shadow-slate-950/50"
                     >
-                      <div className="relative w-full h-56 bg-black flex items-center justify-center overflow-hidden">
+                      <div className="relative flex h-56 w-full items-center justify-center overflow-hidden bg-black">
                         {renderVideoEmbed(item.url) || (
                           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center px-6 text-center text-white">
                             <Link2 className="w-10 h-10 mb-3" />
@@ -746,13 +756,13 @@ const GalleryPage = () => {
                           </div>
                         )}
                       </div>
-                      <div className="p-5 flex justify-between items-start gap-4">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 truncate">
+                      <div className="flex items-start justify-between gap-4 p-5">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate font-semibold text-slate-100">
                             {item.title || "Untitled video"}
                           </h3>
                           {item.description && (
-                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                            <p className="mt-1 line-clamp-2 text-sm text-slate-300">
                               {item.description}
                             </p>
                           )}
@@ -760,14 +770,14 @@ const GalleryPage = () => {
                         <button
                           type="button"
                           onClick={() => handleDelete(item._id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          className="text-slate-500 transition-colors hover:text-red-400"
                           title="Delete"
                         >
-                          <Trash2 className="w-5 h-5" />
+                          <Trash2 className="h-5 w-5" />
                         </button>
                       </div>
                       <div className="px-5 pb-5">
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-slate-500">
                           {new Date(item.createdAt).toLocaleString()}
                         </p>
                       </div>
@@ -781,20 +791,20 @@ const GalleryPage = () => {
       </div>
       {selectedPhoto && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
           onClick={() => setSelectedPhoto(null)}
         >
           <div
-            className="max-w-4xl w-full bg-white rounded-3xl overflow-hidden shadow-2xl"
+            className="w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-slate-950/90 shadow-2xl shadow-slate-950/80"
             onClick={(event) => event.stopPropagation()}
           >
             <button
               type="button"
               aria-label="Close image preview"
               onClick={() => setSelectedPhoto(null)}
-              className="absolute -top-4 -right-4 rounded-full bg-white text-gray-700 shadow-lg p-2 hover:text-gray-900"
+              className="absolute -top-4 -right-4 rounded-full bg-slate-900 text-slate-200 shadow-lg shadow-slate-950/70 p-2 hover:text-white"
             >
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
             <img
               src={selectedPhoto.url}
@@ -802,14 +812,14 @@ const GalleryPage = () => {
               className="max-h-[80vh] w-full object-contain"
             />
             {(selectedPhoto.title || selectedPhoto.description) && (
-              <div className="mt-4 text-center text-white px-6 pb-6">
+              <div className="mt-4 px-6 pb-6 text-center text-white">
                 {selectedPhoto.title && (
                   <h3 className="text-lg font-semibold">
                     {selectedPhoto.title}
                   </h3>
                 )}
                 {selectedPhoto.description && (
-                  <p className="text-sm text-gray-200 mt-1">
+                  <p className="mt-1 text-sm text-slate-200">
                     {selectedPhoto.description}
                   </p>
                 )}

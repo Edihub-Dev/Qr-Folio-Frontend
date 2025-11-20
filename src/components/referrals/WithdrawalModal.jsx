@@ -10,8 +10,6 @@ const WithdrawalModal = ({
   pendingRewards = 0,
   totalWithdrawable = 0,
   isEligible = true,
-  withdrawals = [],
-  withdrawalsLoading = false,
 }) => {
   const [amount, setAmount] = useState("");
   const [payoutMethod, setPayoutMethod] = useState("upi");
@@ -35,7 +33,10 @@ const WithdrawalModal = ({
     }
     if (
       payoutMethod === "bank" &&
-      (!accountNumber.trim() || !ifsc.trim() || !bankName.trim() || !accountHolderName.trim())
+      (!accountNumber.trim() ||
+        !ifsc.trim() ||
+        !bankName.trim() ||
+        !accountHolderName.trim())
     ) {
       return true;
     }
@@ -92,32 +93,32 @@ const WithdrawalModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4">
       <form
         onSubmit={handleSubmit}
-        className="flex w-full max-w-xl max-h-[90vh] flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-2xl"
+        className="flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-slate-900/80 shadow-2xl shadow-slate-950/70 backdrop-blur"
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-4">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">
+            <h3 className="text-lg font-semibold text-white">
               Request withdrawal
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               Minimum withdrawal ₹{minWithdrawal.toLocaleString("en-IN")}
             </p>
           </div>
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-full p-2 text-slate-400 hover:bg-slate-100"
+            className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-800"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 text-sm text-slate-600">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 text-sm text-slate-200">
           {!isEligible && (
-            <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+            <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-100">
               You need at least ₹{minWithdrawal.toLocaleString("en-IN")} to
               place a withdrawal. You can still submit your payout details so
               they’re ready once you meet the minimum.
@@ -125,27 +126,27 @@ const WithdrawalModal = ({
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-primary-100 bg-primary-50 p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-primary-500">
+            <div className="rounded-2xl border border-primary-500/40 bg-primary-500/10 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-primary-200">
                 Wallet balance
               </p>
-              <p className="mt-2 text-2xl font-semibold text-primary-600">
+              <p className="mt-2 text-2xl font-semibold text-primary-100">
                 ₹{walletBalance.toLocaleString("en-IN")}
               </p>
-              <p className="mt-1 text-xs text-primary-500">
+              <p className="mt-1 text-xs text-primary-100/90">
                 Pending rewards: ₹{pendingRewards.toLocaleString("en-IN")}
               </p>
-              <p className="mt-1 text-xs text-primary-500">
+              <p className="mt-1 text-xs text-primary-100/90">
                 Total withdrawable: ₹{totalWithdrawable.toLocaleString("en-IN")}
               </p>
             </div>
-            <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 flex gap-3">
-              <Info className="h-5 w-5 text-amber-500" />
+            <div className="flex gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
+              <Info className="h-5 w-5 text-amber-300" />
               <div>
-                <p className="text-sm font-semibold text-amber-600">
+                <p className="text-sm font-semibold text-amber-100">
                   Payout timeline
                 </p>
-                <p className="text-xs text-amber-600 mt-1">
+                <p className="mt-1 text-xs text-amber-100/90">
                   Withdrawals are reviewed by our team. You’ll receive an update
                   within 2-3 business days.
                 </p>
@@ -155,27 +156,27 @@ const WithdrawalModal = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                 Amount (INR)
               </span>
               <input
                 type="number"
                 min={minWithdrawal}
-                step="100"
+                step="1"
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
-                className="rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-primary-400"
                 placeholder={`Min ₹${minWithdrawal}`}
               />
             </label>
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                 Payout method
               </span>
               <select
                 value={payoutMethod}
                 onChange={(event) => setPayoutMethod(event.target.value)}
-                className="rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-primary-400"
               >
                 <option value="upi">UPI transfer</option>
                 <option value="bank">Bank account</option>
@@ -185,64 +186,64 @@ const WithdrawalModal = ({
 
           {payoutMethod === "upi" ? (
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                 UPI ID
               </span>
               <input
                 type="text"
                 value={upiId}
                 onChange={(event) => setUpiId(event.target.value)}
-                className="rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-primary-400"
                 placeholder="name@upi"
               />
             </label>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                   Bank name
                 </span>
                 <input
                   type="text"
                   value={bankName}
                   onChange={(event) => setBankName(event.target.value)}
-                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-primary-400"
                   placeholder="HDFC Bank"
                 />
               </label>
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                   Account holder name
                 </span>
                 <input
                   type="text"
                   value={accountHolderName}
                   onChange={(event) => setAccountHolderName(event.target.value)}
-                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-primary-400"
                   placeholder="John Doe"
                 />
               </label>
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                   Account number
                 </span>
                 <input
                   type="text"
                   value={accountNumber}
                   onChange={(event) => setAccountNumber(event.target.value)}
-                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-primary-400"
                   placeholder="000000000000"
                 />
               </label>
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                   IFSC code
                 </span>
                 <input
                   type="text"
                   value={ifsc}
                   onChange={(event) => setIfsc(event.target.value)}
-                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-primary-200"
+                  className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-sm uppercase text-slate-100 outline-none focus:ring-2 focus:ring-primary-400"
                   placeholder="ABCD0123456"
                 />
               </label>
@@ -250,103 +251,31 @@ const WithdrawalModal = ({
           )}
 
           <label className="flex flex-col gap-2">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
               Notes for admin (optional)
             </span>
             <textarea
               rows={3}
               value={note}
               onChange={(event) => setNote(event.target.value)}
-              className="rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+              className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 outline-none focus:ring-2 focus:ring-primary-400"
               placeholder="Add any remarks for faster processing"
             />
           </label>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-slate-700">
-                Recent withdrawal requests
-              </h4>
-              <span className="text-xs text-slate-400">
-                Showing up to 20 latest entries
-              </span>
-            </div>
-            <div className="rounded-2xl border border-slate-100 bg-slate-50">
-              <div className="max-h-48 overflow-y-auto">
-                {withdrawalsLoading ? (
-                  <div className="px-4 py-6 text-center text-xs text-slate-500">
-                    Loading withdrawal history…
-                  </div>
-                ) : withdrawals.length === 0 ? (
-                  <div className="px-4 py-6 text-center text-xs text-slate-500">
-                    No withdrawal requests yet.
-                  </div>
-                ) : (
-                  <table className="min-w-full text-xs text-slate-600">
-                    <thead>
-                      <tr className="bg-slate-100 text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                        <th className="px-4 py-2 text-left">Date</th>
-                        <th className="px-4 py-2 text-right">Amount</th>
-                        <th className="px-4 py-2 text-left">Status</th>
-                        <th className="px-4 py-2 text-left">Note</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {withdrawals.map((entry) => {
-                        const created = entry.createdAt
-                          ? new Date(entry.createdAt).toLocaleString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : "—";
-                        const statusLabel = entry.status || "pending";
-                        return (
-                          <tr
-                            key={
-                              entry.id || `${entry.createdAt}-${entry.amount}`
-                            }
-                            className="text-xs"
-                          >
-                            <td className="px-4 py-2">{created}</td>
-                            <td className="px-4 py-2 text-right">
-                              ₹
-                              {Number(entry.amount || 0).toLocaleString(
-                                "en-IN"
-                              )}
-                            </td>
-                            <td className="px-4 py-2 capitalize">
-                              {statusLabel}
-                            </td>
-                            <td className="px-4 py-2 truncate max-w-[140px]">
-                              {entry.note ||
-                                entry.metadata?.payoutDetails?.method ||
-                                "—"}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 px-6 py-4">
+        <div className="flex shrink-0 justify-end gap-3 border-t border-white/10 px-6 py-4">
           <button
             type="button"
             onClick={handleClose}
-            className="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            className="inline-flex items-center justify-center rounded-2xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={disableSubmit}
-            className="inline-flex items-center justify-center rounded-2xl bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary-700 disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-2xl bg-primary-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-primary-500/40 hover:bg-primary-400 disabled:opacity-50"
           >
             Submit request
           </button>

@@ -183,16 +183,22 @@ const PublicProfilePage = () => {
     setActiveGalleryIndex((prev) => Math.min(prev, maxIndex));
   }, [featuredGallery.length, visibleGalleryCount]);
 
+  // Lightweight auto-scroll for the gallery: desktop/tablet only, slower interval
   useEffect(() => {
-    if (selectedPhoto || featuredGallery.length <= visibleGalleryCount) {
-      return undefined;
-    }
+    if (selectedPhoto) return undefined;
+    if (featuredGallery.length <= visibleGalleryCount) return undefined;
+
+    // Only auto-scroll on screens >= 768px to keep mobile very smooth
+    const width = window.innerWidth;
+    if (width < 568) return undefined;
 
     const intervalId = window.setInterval(() => {
       setActiveGalleryIndex((prev) => prev + 1);
-    }, 1000);
+    }, 3000);
 
-    return () => window.clearInterval(intervalId);
+    return () => {
+      window.clearInterval(intervalId);
+    };
   }, [featuredGallery.length, selectedPhoto, visibleGalleryCount]);
 
   useEffect(() => {
@@ -378,6 +384,7 @@ const PublicProfilePage = () => {
               title={`YouTube video ${cleanId}`}
               src={`https://www.youtube.com/embed/${cleanId}?${params.toString()}`}
               className="w-full h-full"
+              loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               frameBorder="0"
@@ -396,6 +403,7 @@ const PublicProfilePage = () => {
               title={`Vimeo video ${videoId}`}
               src={`https://player.vimeo.com/video/${videoId}`}
               className="w-full h-full"
+              loading="lazy"
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
               frameBorder="0"
@@ -945,18 +953,25 @@ const PublicProfilePage = () => {
                   <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(129,140,248,0.7),_transparent_55%)]" />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/10 via-indigo-900/10 to-slate-950/60" />
                   <div className="relative flex flex-col items-center text-center">
-                    <div className="rounded-3xl bg-white/95 p-3 shadow-[0_28px_50px_rgba(15,23,42,0.65)]">
-                      <Suspense
-                        fallback={
-                          <div className="h-[175px] w-[175px] rounded-2xl bg-slate-200/80" />
-                        }
-                      >
-                        <QRCodeGenerator
-                          value={profileUrl}
-                          size={175}
-                          level="M"
-                        />
-                      </Suspense>
+                    <div className="rounded-3xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-emerald-400 p-[1px] shadow-[0_28px_50px_rgba(15,23,42,0.65)]">
+                      <div className="flex items-center justify-center rounded-[26px] bg-slate-950/95 p-3">
+                        <Suspense
+                          fallback={
+                            <div className="h-[175px] w-[175px] rounded-2xl bg-slate-800/80" />
+                          }
+                        >
+                          <QRCodeGenerator
+                            value={profileUrl}
+                            size={175}
+                            level="H"
+                            color="#000000"
+                            background="#FFFFFF"
+                            logoSrc="/assets/QrLogo.png"
+                            logoSizeRatio={0.22}
+                            className="overflow-hidden rounded-2xl"
+                          />
+                        </Suspense>
+                      </div>
                     </div>
                     <div className="mt-6 text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-indigo-100/90">
                       Powered by

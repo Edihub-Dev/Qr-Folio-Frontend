@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { Download, Edit3, Copy, Share2, Eye } from "lucide-react";
-import { motion } from "../utils/motion";
 import QRCodeGenerator from "./QRCodeGenerator";
 import { useAuth } from "../context/AuthContext";
 import api from "../api";
@@ -131,6 +130,7 @@ const Dashboard = () => {
   const [copied, setCopied] = useState(false);
   const qrWrapperRef = useRef(null);
   const qrGeneratorRef = useRef(null);
+  const qrCardRef = useRef(null);
 
   const hasRefreshed = useRef(false);
   const nfcFormInitializedRef = useRef(false);
@@ -564,7 +564,34 @@ const Dashboard = () => {
     }
   };
 
-  const handleSaveQR = () => {
+  const handleSaveQR = async () => {
+    const safeName = (user.name || "User").replace(/\s+/g, "_");
+
+    // Preferred: capture the full QR card (gradient frame + QR + text)
+    if (qrCardRef.current) {
+      try {
+        const { toPng } = await import("html-to-image");
+        const dataUrl = await toPng(qrCardRef.current, {
+          cacheBust: true,
+          backgroundColor: "#020617",
+          pixelRatio: 2,
+          skipFonts: true,
+        });
+
+        const link = document.createElement("a");
+        link.download = `${safeName}_QR_Code.png`;
+        link.href = dataUrl;
+        link.click();
+        return;
+      } catch (error) {
+        console.error(
+          "dashboard QR card PNG download failed, falling back:",
+          error
+        );
+      }
+    }
+
+    // Fallback: raw QR canvas only
     if (!qrGeneratorRef.current) {
       return;
     }
@@ -576,7 +603,6 @@ const Dashboard = () => {
 
     const url = canvas.toDataURL("image/png");
     const link = document.createElement("a");
-    const safeName = (user.name || "User").replace(/\s+/g, "_");
     link.download = `${safeName}_QR_Code.png`;
     link.href = url;
     link.click();
@@ -599,11 +625,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-6 text-white"
-      >
+      <div className="rounded-3xl border border-white/10 bg-gradient-to-r from-primary-500/30 via-primary-500/20 to-emerald-500/30 p-6 text-white shadow-xl shadow-primary-500/30 backdrop-blur">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold mb-2">
@@ -613,80 +635,69 @@ const Dashboard = () => {
               Manage your digital business card and track your networking
               success.
             </p>
-            <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-white bg-opacity-20 text-xs font-semibold uppercase tracking-wide text-white/90">
+            {/* <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-white bg-opacity-20 text-xs font-semibold uppercase tracking-wide text-white/90">
               Current Plan: {currentPlanLabel}
-            </div>
+            </div> */}
           </div>
           <div className="hidden md:block">
-            <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border border-white/25 bg-white/10 shadow-lg shadow-slate-950/40">
               <QRCodeGenerator
                 value={profileUrl}
                 size={60}
                 level="M"
+                color="#000000"
+                background="#FFFFFF"
                 className="opacity-80"
               />
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {nextPlanKey && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white border border-primary-100 rounded-xl p-6 shadow-sm"
-        >
+        <div className="rounded-2xl border border-primary-500/40 bg-primary-500/10 p-6 shadow-xl shadow-primary-500/30 backdrop-blur">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-white">
                 Upgrade to {nextPlanLabel}
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="mt-1 text-sm text-primary-100/90">
                 Unlock additional features and benefits available in the{" "}
                 {nextPlanLabel} plan.
               </p>
             </div>
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
+            <button
               onClick={handleUpgradeClick}
               disabled={!nextUpgradePath}
               className={`inline-flex items-center justify-center px-5 py-3 rounded-lg font-medium transition-colors ${
                 nextUpgradePath
-                  ? "bg-primary-600 text-white hover:bg-primary-700"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  ? "bg-primary-500 text-white hover:bg-primary-400"
+                  : "cursor-not-allowed bg-slate-600/60 text-slate-300"
               }`}
             >
               Upgrade Plan
-            </motion.button>
+            </button>
           </div>
-        </motion.div>
+        </div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="lg:col-span-2 bg-white rounded-xl p-6 border border-gray-100 shadow-sm"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Your Profile</h2>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/50 backdrop-blur">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">Your Profile</h2>
+            <button
               onClick={() => navigate("/dashboard/profile")}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 transition-colors"
+              className="flex items-center space-x-2 rounded-lg border border-primary-500/60 bg-primary-500/15 px-4 py-2 text-sm font-medium text-primary-100 transition-colors hover:bg-primary-500/25"
             >
               <Edit3 className="w-4 h-4" />
               <span>Edit Profile</span>
-            </motion.button>
+            </button>
           </div>
 
           <div className="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
             <div className="flex-shrink-0">
               <div className="relative w-24 h-24">
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-200 rounded-full">
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-800">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="48"
@@ -697,7 +708,7 @@ const Dashboard = () => {
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-gray-500"
+                    className="text-slate-500"
                   >
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
@@ -707,7 +718,7 @@ const Dashboard = () => {
                   <img
                     src={safeAvatar}
                     alt={user.name}
-                    className="w-full h-full rounded-full object-cover border-4 border-white relative z-10"
+                    className="relative z-10 h-full w-full rounded-full border-4 border-slate-900 object-cover shadow-[0_18px_45px_rgba(15,23,42,0.9)]"
                   />
                 )}
               </div>
@@ -720,11 +731,11 @@ const Dashboard = () => {
                 className="text-left"
                 title="View Public Profile"
               >
-                <h3 className="text-2xl font-bold text-gray-900 hover:underline">
+                <h3 className="text-2xl font-bold text-white hover:underline">
                   {user.name}
                 </h3>
               </button>
-              <p className="text-lg text-primary-600 font-medium">
+              <p className="text-sm font-medium text-primary-300">
                 {user.designation || "—"}
               </p>
             </div>
@@ -732,31 +743,31 @@ const Dashboard = () => {
 
           <div className="mt-6 space-y-6">
             <div>
-              <div className="text-sm font-semibold text-gray-900 mb-3">
+              <div className="mb-3 text-sm font-semibold text-slate-100">
                 Personal Details
               </div>
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <div className="text-xs text-gray-500">Full Name</div>
-                  <div className="text-sm text-gray-900">{user.name}</div>
+                  <div className="text-xs text-slate-400">Full Name</div>
+                  <div className="text-sm text-slate-100">{user.name}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500">Email</div>
-                  <div className="text-sm text-gray-900">{user.email}</div>
+                  <div className="text-xs text-slate-400">Email</div>
+                  <div className="text-sm text-slate-100">{user.email}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500">Phone Number</div>
-                  <div className="text-sm text-gray-900">{user.phone}</div>
+                  <div className="text-xs text-slate-400">Phone Number</div>
+                  <div className="text-sm text-slate-100">{user.phone}</div>
                 </div>
               </div>
-              <div className="grid md:grid-cols-2 gap-4 border-b border-gray-200 pb-4 mt-4">
+              <div className="mt-4 grid gap-4 border-b border-slate-800 pb-4 md:grid-cols-2">
                 <div>
-                  <div className="text-xs text-gray-500">Address</div>
-                  <div className="text-sm text-gray-900">{user.address}</div>
+                  <div className="text-xs text-slate-400">Address</div>
+                  <div className="text-sm text-slate-100">{user.address}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500">Date of Birth</div>
-                  <div className="text-sm text-gray-900">
+                  <div className="text-xs text-slate-400">Date of Birth</div>
+                  <div className="text-sm text-slate-100">
                     {user.dateOfBirth}
                   </div>
                 </div>
@@ -764,33 +775,33 @@ const Dashboard = () => {
             </div>
 
             <div>
-              <div className="text-sm font-semibold text-gray-900 mb-3">
+              <div className="mb-3 text-sm font-semibold text-slate-100">
                 Professional Details
               </div>
-              <div className="grid md:grid-cols-4 gap-4 border-b border-gray-200 pb-4">
+              <div className="grid gap-4 border-b border-slate-800 pb-4 md:grid-cols-4">
                 <div>
-                  <div className="text-xs text-gray-500">Company Name</div>
-                  <div className="text-sm text-gray-900">
+                  <div className="text-xs text-slate-400">Company Name</div>
+                  <div className="text-sm text-slate-100">
                     {user.companyName}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500">Designation</div>
-                  <div className="text-sm text-gray-900">
+                  <div className="text-xs text-slate-400">Designation</div>
+                  <div className="text-sm text-slate-100">
                     {user.designation || "—"}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500">Experience</div>
-                  <div className="text-sm text-gray-900">
+                  <div className="text-xs text-slate-400">Experience</div>
+                  <div className="text-sm text-slate-100">
                     {user.companyExperience || "—"}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-slate-400">
                     Company Referral Code
                   </div>
-                  <div className="text-sm text-gray-900">
+                  <div className="text-sm text-slate-100">
                     {user.companyReferralCode || "—"}
                   </div>
                 </div>
@@ -798,11 +809,11 @@ const Dashboard = () => {
             </div>
 
             {user.description && (
-              <div className="border-b border-gray-200 pb-4">
-                <div className="text-sm font-semibold text-gray-900 mb-2">
+              <div className="border-b border-slate-800 pb-4">
+                <div className="mb-2 text-sm font-semibold text-slate-100">
                   Professional Summary
                 </div>
-                <p className="text-sm text-gray-700 leading-relaxed">
+                <p className="text-sm leading-relaxed text-slate-300">
                   {user.description}
                 </p>
               </div>
@@ -816,36 +827,55 @@ const Dashboard = () => {
                   target="_blank"
                   rel="noreferrer"
                   aria-label={s.label}
-                  className={`w-9 h-9 rounded-full ${s.bg} ${s.fg} flex items-center justify-center`}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full ${s.bg} ${s.fg} shadow-sm shadow-slate-950/30`}
                 >
                   <BrandIcon name={s.key} className="w-5 h-5" />
                 </a>
               ))}
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm"
-        >
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Your QR Code</h3>
+        <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/50 backdrop-blur">
+          <h3 className="mb-4 text-lg font-bold text-white">Your QR Code</h3>
 
           <div className="space-y-4">
             <div className="flex justify-center" ref={qrWrapperRef}>
-              <div className="p-4 bg-white rounded-xl border-2 border-gray-100">
-                <QRCodeGenerator
-                  ref={qrGeneratorRef}
-                  value={profileUrl}
-                  size={qrSize}
-                  level="H"
-                />
+              <div
+                ref={qrCardRef}
+                className="rounded-3xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-emerald-400 p-[1px] shadow-inner shadow-slate-950/60"
+              >
+                <div className="flex flex-col items-center rounded-[22px] border border-slate-900 bg-slate-950/95 p-4 pb-5">
+                  <div className="flex items-center justify-center">
+                    <QRCodeGenerator
+                      ref={qrGeneratorRef}
+                      value={profileUrl}
+                      size={qrSize}
+                      level="H"
+                      color="#000000"
+                      background="#FFFFFF"
+                      logoSrc="/assets/QrLogo.png"
+                      logoSizeRatio={0.22}
+                      className="overflow-hidden rounded-2xl"
+                    />
+                  </div>
+                  <div className="mt-4 text-center">
+                    <p className="text-sm font-medium text-slate-100">
+                      {user.name || "—"}
+                    </p>
+                    {/* <p className="text-xs text-slate-400">
+                      {user.designation || "—"}
+                    </p>
+                    <p className="mt-2 text-xs text-slate-500">
+                      Scan to view public profile
+                    </p> */}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
+            <div className="space-y-2 ">
+              <label className="text-sm font-medium text-slate-200">
                 QR Code Size
               </label>
               <input
@@ -854,30 +884,26 @@ const Dashboard = () => {
                 max="300"
                 value={qrSize}
                 onChange={(e) => setQrSize(parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"
               />
-              <div className="text-xs text-gray-500 text-center">
+              <div className="text-center text-xs text-slate-400">
                 {qrSize}px
               </div>
             </div>
 
             <div className="space-y-2">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={handleSaveQR}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="flex w-full items-center justify-center space-x-2 rounded-lg bg-primary-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-400"
               >
                 <Download className="w-4 h-4" />
                 <span>Save QR Code</span>
-              </motion.button>
+              </button>
 
               <div className="grid grid-cols-2 gap-2">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
                   onClick={handleCopyLink}
-                  className="relative group flex items-center justify-center space-x-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                  className="group relative flex items-center justify-center space-x-1 rounded-lg bg-slate-800/80 px-3 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-700"
                 >
                   <Copy className="w-3 h-3" />
                   <span>Copy</span>
@@ -888,69 +914,56 @@ const Dashboard = () => {
                   >
                     {copied ? "Copied!" : "Copy"}
                   </span>
-                </motion.button>
-                <motion.button
+                </button>
+                <button
                   onClick={handleShareProfile}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center justify-center space-x-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                  className="flex items-center justify-center space-x-1 rounded-lg bg-slate-800/80 px-3 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-700"
                 >
                   <Share2 className="w-3 h-3" />
                   <span>Share</span>
-                </motion.button>
+                </button>
               </div>
             </div>
 
-            <div className="text-xs text-gray-500 text-center">
-              Scan to view public profile
-            </div>
+            <div className="text-xs text-gray-500 text-center" />
           </div>
-        </motion.div>
+        </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm"
-      >
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+      <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/50 backdrop-blur">
+        <h3 className="mb-4 text-lg font-bold text-white">Quick Actions</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <button
             onClick={() => user.id && navigate(`/profile/${user.id}`)}
-            className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-primary-200 hover:bg-primary-50 transition-all"
+            className="flex items-center space-x-3 rounded-2xl border border-white/10 bg-slate-900/80 p-4 text-slate-100 transition-all hover:border-primary-400 hover:bg-primary-500/10"
           >
-            <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-              <Eye className="w-5 h-5 text-primary-600" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-500/20 text-primary-200">
+              <Eye className="h-5 w-5" />
             </div>
             <div className="text-left">
-              <div className="font-medium text-gray-900">
+              <div className="font-medium text-slate-100">
                 Generate QR ID Card
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-slate-400">
                 See how others view your profile
               </div>
             </div>
-          </motion.button>
+          </button>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={handleShareProfile}
-            className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-primary-200 hover:bg-primary-50 transition-all"
+            className="flex items-center space-x-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-emerald-50 transition-all hover:bg-emerald-500/20"
           >
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <Share2 className="w-5 h-5 text-green-600" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/25 text-emerald-100">
+              <Share2 className="h-5 w-5" />
             </div>
             <div className="text-left">
-              <div className="font-medium text-gray-900">Share Profile</div>
-              <div className="text-sm text-gray-500">
+              <div className="font-medium text-emerald-50">Share Profile</div>
+              <div className="text-sm text-emerald-100/80">
                 Send your digital card to contacts
               </div>
             </div>
-          </motion.button>
+          </button>
 
           {/* <motion.button
             whileHover={{ scale: 1.02 }}
@@ -966,44 +979,39 @@ const Dashboard = () => {
             </div>
           </motion.button> */}
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-        className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm"
-      >
+      <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/50 backdrop-blur">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">NFC Card</h3>
-            <p className="mt-1 text-sm text-gray-600">
+            <h3 className="text-lg font-bold text-white">NFC Card</h3>
+            <p className="mt-1 text-sm text-slate-300">
               Track the status of your physical NFC card linked to this profile.
             </p>
-            <div className="mt-3 inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
-              <span className="mr-2 text-gray-500">Current status:</span>
-              <span className="capitalize">
+            <div className="mt-3 inline-flex items-center rounded-full bg-slate-900/80 px-3 py-1 text-xs font-medium text-slate-200">
+              <span className="mr-2 text-slate-400">Current status:</span>
+              <span className="capitalize text-slate-100">
                 {nfcLoading ? "Checking..." : nfcStatusLabel}
               </span>
             </div>
-            <div className="mt-3 grid gap-2 text-xs text-gray-500 sm:grid-cols-3">
+            <div className="mt-3 grid gap-2 text-xs text-slate-400 sm:grid-cols-3">
               <div>
-                <div className="font-medium text-gray-700">Requested</div>
+                <div className="font-medium text-slate-200">Requested</div>
                 <div>{formatNfcDate(nfcStatus.requestedAt)}</div>
               </div>
               <div>
-                <div className="font-medium text-gray-700">Shipped</div>
+                <div className="font-medium text-slate-200">Shipped</div>
                 <div>{formatNfcDate(nfcStatus.shippedAt)}</div>
               </div>
               <div>
-                <div className="font-medium text-gray-700">Delivered</div>
+                <div className="font-medium text-slate-200">Delivered</div>
                 <div>{formatNfcDate(nfcStatus.deliveredAt)}</div>
               </div>
             </div>
             {nfcStatus.trackingNumber && (
-              <div className="mt-3 text-xs text-gray-600">
+              <div className="mt-3 text-xs text-slate-300">
                 Tracking number:{" "}
-                <span className="font-mono font-medium">
+                <span className="font-mono font-medium text-slate-100">
                   {nfcStatus.trackingNumber}
                 </span>
               </div>
@@ -1016,13 +1024,13 @@ const Dashboard = () => {
                   type="button"
                   disabled={nfcLoading || nfcRequesting}
                   onClick={() => setNfcFormVisible(true)}
-                  className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300"
+                  className="inline-flex items-center justify-center rounded-lg bg-primary-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary-500/40 hover:bg-primary-400 disabled:cursor-not-allowed disabled:bg-primary-300"
                 >
                   {nfcFormVisible
                     ? "Fill shipping details below"
                     : "Request NFC card"}
                 </button>
-                <p className="text-xs text-gray-500 max-w-xs text-right">
+                <p className="max-w-xs text-right text-xs text-slate-400">
                   NFC cards are available for Premium (Platinum) users. We will
                   ship to the address you provide in the form.
                 </p>
@@ -1030,21 +1038,21 @@ const Dashboard = () => {
             )}
             {!isPremiumPlan && nfcStatus.status === "not_requested" && (
               <>
-                <p className="text-xs text-gray-500 max-w-xs text-right">
+                <p className="max-w-xs text-right text-xs text-slate-400">
                   Physical NFC cards are available on the Premium (Platinum)
                   plan. Upgrade your plan to request a card.
                 </p>
                 <button
                   type="button"
                   onClick={handleUpgradeToPremiumClick}
-                  className="inline-flex items-center justify-center rounded-lg border border-primary-600 px-4 py-1.5 text-xs font-semibold text-primary-700 shadow-sm hover:bg-primary-50"
+                  className="inline-flex items-center justify-center rounded-lg border border-primary-500 px-4 py-1.5 text-xs font-semibold text-primary-200 shadow-sm hover:bg-primary-500/10"
                 >
                   Upgrade to Premium
                 </button>
               </>
             )}
             {nfcStatus.status !== "not_requested" && (
-              <p className="text-xs text-gray-500 max-w-xs text-right">
+              <p className="max-w-xs text-right text-xs text-slate-400">
                 You have already submitted a request. You will receive your card
                 once it is produced and shipped.
               </p>
@@ -1158,7 +1166,7 @@ const Dashboard = () => {
               </div>
             </div>
           )}
-      </motion.div>
+      </div>
     </div>
   );
 };

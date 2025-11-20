@@ -8,6 +8,7 @@ import React, {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Shield, ArrowLeft, CheckCircle, QrCode } from "lucide-react";
+import { motion } from "framer-motion";
 import {
   normalizePlan,
   getPlanRank,
@@ -765,8 +766,18 @@ const PaymentForm = () => {
     availablePhonePePlanKeys.length > 0 || availableChainpayPlanKeys.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <motion.div
+      className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white py-10 px-4 sm:px-6 lg:px-8"
+      initial={{ opacity: 0, y: 32 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      <div className="relative max-w-5xl mx-auto">
+        <div className="pointer-events-none absolute -z-10 inset-0">
+          <div className="absolute -top-24 -right-16 h-52 w-52 rounded-full bg-primary-500/25 blur-3xl" />
+          <div className="absolute bottom-0 -left-20 h-52 w-52 rounded-full bg-emerald-500/20 blur-3xl" />
+        </div>
+
         <button
           onClick={async () => {
             try {
@@ -776,24 +787,24 @@ const PaymentForm = () => {
             }
             navigate("/signup", { replace: true });
           }}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
+          className="flex items-center space-x-2 text-slate-300 hover:text-white mb-6 transition-colors"
           type="button"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to signup</span>
         </button>
 
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center space-x-3 mb-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/40">
               <QrCode className="w-7 h-7 text-white" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">QR Folio</span>
+            <span className="text-2xl font-bold text-white">QR Folio</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-white mb-2">
             Complete Your Purchase
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-slate-300">
             {hasUpgradeOptions
               ? `Choose the plan you would like to upgrade to. Your current plan is ${
                   PLAN_LABELS[currentPlan] || PLAN_LABELS.basic
@@ -802,25 +813,30 @@ const PaymentForm = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <div className="flex items-center space-x-2 mb-6">
-              <Shield className="w-5 h-5 text-purple-500" />
+        <motion.div
+          className="grid lg:grid-cols-2 gap-6 lg:gap-8"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
+        >
+          <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 sm:p-7 shadow-xl shadow-slate-950/40 backdrop-blur">
+            <div className="flex items-center space-x-2 mb-5">
+              <Shield className="w-5 h-5 text-emerald-400" />
 
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-semibold text-white">
                 Select Your Plan (ChainPay MSTC)
               </h2>
             </div>
 
             {errors.chainpay && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm">{errors.chainpay}</p>
+              <div className="mb-4 p-4 rounded-xl border border-red-500/40 bg-red-500/10">
+                <p className="text-red-300 text-sm">{errors.chainpay}</p>
               </div>
             )}
 
             {chainpayStatusMessage && !errors.chainpay && (
-              <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-                <p className="text-indigo-700 text-sm">
+              <div className="mb-4 p-4 rounded-xl border border-indigo-500/40 bg-indigo-500/10">
+                <p className="text-indigo-200 text-sm">
                   {chainpayStatusMessage}
                 </p>
               </div>
@@ -828,7 +844,7 @@ const PaymentForm = () => {
 
             <div className="space-y-4">
               {availableChainpayPlanKeys.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 text-center">
+                <div className="rounded-xl border border-dashed border-white/20 bg-slate-900/40 p-4 text-sm text-slate-300 text-center">
                   No ChainPay upgrade options available.
                 </div>
               ) : (
@@ -842,33 +858,33 @@ const PaymentForm = () => {
                       onClick={() => setSelectedChainpayPlan(key)}
                       className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
                         isSelected
-                          ? "border-primary-500 bg-primary-50"
-                          : "border-gray-200 hover:border-gray-300"
+                          ? "border-emerald-400/80 bg-emerald-500/10 shadow-inner shadow-emerald-500/20"
+                          : "border-white/10 bg-slate-900/60 hover:border-white/20"
                       }`}
                     >
                       <div className="flex flex-col gap-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className="text-lg font-semibold text-gray-900">
+                            <div className="text-lg font-semibold text-white">
                               {plan.name}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-slate-300">
                               {plan.description}
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xl font-bold text-indigo-600">
+                            <div className="text-xl font-bold text-emerald-400">
                               {`${plan.coins} MSTC`}
                             </div>
                           </div>
                         </div>
-                        <ul className="space-y-1 text-sm text-gray-600">
+                        <ul className="space-y-1 text-sm text-slate-300">
                           {plan.features.map((feature) => (
                             <li
                               key={feature}
                               className="flex items-start space-x-2"
                             >
-                              <CheckCircle className="w-4 h-4 text-indigo-500 mt-0.5" />
+                              <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5" />
                               <span>{feature}</span>
                             </li>
                           ))}
@@ -889,8 +905,8 @@ const PaymentForm = () => {
                             processingGateway === "chainpay" ||
                             isProcessing ||
                             selectedChainpayPlan !== key
-                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              : "bg-primary-600 hover:bg-primary-700"
+                              ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
+                              : "bg-emerald-500 hover:bg-emerald-400"
                           }`}
                         >
                           {processingGateway === "chainpay"
@@ -906,22 +922,22 @@ const PaymentForm = () => {
               )}
             </div>
 
-            <div className="mt-4 text-xs text-gray-500 text-center">
+            <div className="mt-4 text-xs text-slate-400 text-center">
               Payments powered by ChainPay (MSTC)
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <div className="flex items-center space-x-2 mb-6">
-              <Shield className="w-5 h-5 text-primary-500" />
+          <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 sm:p-7 shadow-xl shadow-slate-950/40 backdrop-blur">
+            <div className="flex items-center space-x-2 mb-5">
+              <Shield className="w-5 h-5 text-primary-400" />
 
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-semibold text-white">
                 Select Your Plan (PhonePe)
               </h2>
             </div>
             <div className="space-y-4">
               {availablePhonePePlanKeys.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-500 text-center">
+                <div className="rounded-xl border border-dashed border-white/20 bg-slate-900/40 p-4 text-sm text-slate-300 text-center">
                   No PhonePe upgrade options available.
                 </div>
               ) : (
@@ -937,39 +953,39 @@ const PaymentForm = () => {
                       onClick={() => setSelectedPlan(key)}
                       className={`border-2 rounded-xl p-4 transition-all cursor-pointer ${
                         isSelected
-                          ? "border-primary-500 bg-primary-50"
-                          : "border-gray-200 hover-border-gray-300"
+                          ? "border-primary-400/80 bg-primary-500/10 shadow-inner shadow-primary-500/20"
+                          : "border-white/10 bg-slate-900/60 hover:border-white/20"
                       }`}
                     >
                       <div className="flex flex-col gap-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className="text-lg font-semibold text-gray-900">
+                            <div className="text-lg font-semibold text-white">
                               {plan.name}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-slate-300">
                               {plan.description}
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xl font-bold text-primary-600">
+                            <div className="text-xl font-bold text-primary-400">
                               {formatCurrencyDisplay(
                                 breakdown.totalAmount,
                                 "INR"
                               )}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-slate-400">
                               Inclusive of GST
                             </div>
                           </div>
                         </div>
-                        <ul className="space-y-1 text-sm text-gray-600">
+                        <ul className="space-y-1 text-sm text-slate-300">
                           {plan.features.map((feature) => (
                             <li
                               key={feature}
                               className="flex items-start space-x-2"
                             >
-                              <CheckCircle className="w-4 h-4 text-primary-500 mt-0.5" />
+                              <CheckCircle className="w-4 h-4 text-primary-400 mt-0.5" />
                               <span>{feature}</span>
                             </li>
                           ))}
@@ -990,8 +1006,8 @@ const PaymentForm = () => {
                             processingGateway === "phonepe" ||
                             isProcessing ||
                             selectedPlan !== key
-                              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              : "bg-primary-600 hover:bg-primary-700"
+                              ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
+                              : "bg-primary-500 hover:bg-primary-400"
                           }`}
                         >
                           {processingGateway === "phonepe"
@@ -1007,31 +1023,29 @@ const PaymentForm = () => {
               )}
             </div>
 
-            <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-              <h3 className="font-semibold text-gray-900 mb-2">
-                Order Summary
-              </h3>
+            <div className="mt-6 p-4 rounded-xl border border-white/10 bg-slate-900/80">
+              <h3 className="font-semibold text-white mb-2">Order Summary</h3>
               {selectedPlan && plans[selectedPlan] ? (
                 <>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-gray-600">
+                    <span className="text-slate-300">
                       {plans[selectedPlan].name}
                     </span>
 
-                    <span className="font-semibold">
+                    <span className="font-semibold text-white">
                       {formatINR(selectedPlanPricing.baseAmount)} / year
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center text-sm text-gray-600">
+                  <div className="flex justify-between items-center text-sm text-slate-300">
                     <span>Transaction Fee</span>
                     <span>0%</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+                  <div className="flex justify-between items-center text-sm text-slate-300 mb-2">
                     <span>GST (18%)</span>
                     <span>{formatINR(selectedPlanPricing.gstAmount)}</span>
                   </div>
-                  <div className="flex justify-between items-center text-lg font-bold text-gray-900 border-t border-gray-200 pt-2">
+                  <div className="flex justify-between items-center text-lg font-bold text-white border-t border-slate-700 pt-2">
                     <span>Total</span>
                     <span>
                       {formatINR(selectedPlanPricing.totalAmount)} / year
@@ -1039,21 +1053,21 @@ const PaymentForm = () => {
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-slate-400">
                   No active PhonePe upgrade selection.
                 </p>
               )}
             </div>
 
             {errors.phonepe && (
-              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm">{errors.phonepe}</p>
+              <div className="mt-6 p-4 rounded-xl border border-red-500/40 bg-red-500/10">
+                <p className="text-red-300 text-sm">{errors.phonepe}</p>
               </div>
             )}
 
             {statusMessage && !errors.phonepe && (
-              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-amber-700 text-sm">{statusMessage}</p>
+              <div className="mt-6 p-4 rounded-xl border border-amber-500/40 bg-amber-500/10">
+                <p className="text-amber-200 text-sm">{statusMessage}</p>
               </div>
             )}
 
@@ -1065,8 +1079,8 @@ const PaymentForm = () => {
               }
               className={`w-full mt-6 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-white transition-colors ${
                 processingGateway === "phonepe" || isProcessing || !selectedPlan
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-primary-600 hover:bg-primary-700"
+                  ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
+                  : "bg-primary-500 hover:bg-primary-400"
               }`}
             >
               {processingGateway === "phonepe" ? (
@@ -1085,18 +1099,19 @@ const PaymentForm = () => {
               )}
             </button>
 
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-blue-700 text-sm">
-                <strong>Note:</strong> You may see some technical warnings in
-                the browser console during payment. These are from PhonePe's
-                payment system and don't affect the payment process. Your
-                payment will work normally.
+            <div className="mt-6 p-4 rounded-xl border border-blue-500/40 bg-blue-500/10">
+              <p className="text-blue-200 text-sm">
+                <strong className="font-semibold text-blue-100">Note:</strong>{" "}
+                You may see some technical warnings in the browser console
+                during payment. These are from PhonePe's payment system and
+                don't affect the payment process. Your payment will work
+                normally.
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

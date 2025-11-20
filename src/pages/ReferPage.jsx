@@ -32,6 +32,7 @@ const ReferPage = () => {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [withdrawals, setWithdrawals] = useState([]);
   const [withdrawalsLoading, setWithdrawalsLoading] = useState(false);
+  const [activeHistoryTab, setActiveHistoryTab] = useState("referrals");
 
   const referralLink = overview?.referralLink;
   const referralCode = overview?.referralCode;
@@ -222,11 +223,11 @@ const ReferPage = () => {
   };
 
   useEffect(() => {
-    if (withdrawOpen) {
+    if (activeHistoryTab === "withdrawals") {
       loadWithdrawals();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [withdrawOpen]);
+  }, [activeHistoryTab]);
 
   const handleWithdrawalSubmit = async ({
     amount,
@@ -244,6 +245,9 @@ const ReferPage = () => {
       if (refreshed?.data?.success) {
         setOverview(refreshed.data.data);
       }
+      if (activeHistoryTab === "withdrawals") {
+        loadWithdrawals();
+      }
     } catch (error) {
       const message =
         error?.response?.data?.message || "Unable to submit withdrawal";
@@ -260,23 +264,24 @@ const ReferPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="space-y-6 xl:col-span-2">
           <ReferralCard
             referralCode={referralCode}
             referralLink={effectiveReferralLink}
             qrCodeDataUrl={qrDataUrl}
+            qrValue={effectiveReferralLink}
             onCopy={handleCopyLink}
             onShare={handleShare}
           />
 
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-lg overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-4">
+          <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 shadow-xl shadow-slate-950/50 backdrop-blur">
+            <div className="flex items-center justify-between gap-4 border-b border-white/10 px-6 py-5">
               <div>
-                <h3 className="text-lg font-semibold text-slate-900">
+                <h3 className="text-lg font-semibold text-white">
                   Reward summary
                 </h3>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-300">
                   Track total invites, completed referrals, and your
                   withdrawable wallet balance.
                 </p>
@@ -293,7 +298,7 @@ const ReferPage = () => {
                         )} to withdraw`
                       : undefined
                   }
-                  className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300 disabled:text-primary-50"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-primary-500/40 hover:bg-primary-400 disabled:cursor-not-allowed disabled:bg-primary-300 disabled:text-primary-50"
                 >
                   Withdraw
                 </button>
@@ -306,40 +311,40 @@ const ReferPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-6 py-6">
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+            <div className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-2xl border border-slate-700 bg-slate-900/70 p-4">
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
                   Total invites
                 </p>
-                <p className="mt-2 text-3xl font-semibold text-slate-900">
+                <p className="mt-2 text-3xl font-semibold text-slate-100">
                   {overview?.totalReferrals ?? "—"}
                 </p>
               </div>
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
-                <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">
+              <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4">
+                <p className="text-xs uppercase tracking-[0.3em] text-emerald-300">
                   Completed
                 </p>
-                <p className="mt-2 text-3xl font-semibold text-emerald-600">
+                <p className="mt-2 text-3xl font-semibold text-emerald-300">
                   {overview?.completedReferrals ?? "—"}
                 </p>
               </div>
-              <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
-                <p className="text-xs uppercase tracking-[0.3em] text-amber-500">
+              <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
+                <p className="text-xs uppercase tracking-[0.3em] text-amber-300">
                   Pending
                 </p>
-                <p className="mt-2 text-3xl font-semibold text-amber-600">
+                <p className="mt-2 text-3xl font-semibold text-amber-300">
                   {overview?.pendingReferrals ?? "—"}
                 </p>
               </div>
-              <div className="rounded-2xl border border-primary-100 bg-primary-50 p-4">
-                <p className="text-xs uppercase tracking-[0.3em] text-primary-500">
+              <div className="rounded-2xl border border-primary-500/40 bg-primary-500/10 p-4">
+                <p className="text-xs uppercase tracking-[0.3em] text-primary-200">
                   Wallet balance
                 </p>
-                <p className="mt-2 text-3xl font-semibold text-primary-600">
+                <p className="mt-2 text-3xl font-semibold text-primary-200">
                   ₹
                   {Number(overview?.walletBalance || 0).toLocaleString("en-IN")}
                 </p>
-                <p className="mt-1 text-xs text-primary-500">
+                <p className="mt-1 text-xs text-primary-100">
                   Pending rewards: ₹
                   {Number(overview?.pendingRewards || 0).toLocaleString(
                     "en-IN"
@@ -349,16 +354,133 @@ const ReferPage = () => {
             </div>
           </div>
 
-          <ReferralHistoryTable
-            entries={history}
-            page={pagination.page || 1}
-            pageSize={pagination.limit || 10}
-            totalItems={pagination.total || 0}
-            totalPages={pagination.totalPages || 1}
-            onPageChange={loadHistory}
-            loading={historyLoading}
-            onResendInvite={handleResendInvite}
-          />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-white">
+                  Activity history
+                </h3>
+                <p className="text-sm text-slate-300">
+                  Quickly review your referral rewards or past withdrawal
+                  requests.
+                </p>
+              </div>
+              <div className="inline-flex items-center rounded-full bg-slate-900/80 p-1 text-xs font-medium text-slate-300">
+                <button
+                  type="button"
+                  onClick={() => setActiveHistoryTab("referrals")}
+                  className={`px-3 py-1 rounded-full transition-all duration-150 ${
+                    activeHistoryTab === "referrals"
+                      ? "bg-slate-800 shadow text-slate-50"
+                      : "text-slate-400 hover:text-slate-100"
+                  }`}
+                >
+                  Referral history
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveHistoryTab("withdrawals")}
+                  className={`ml-1 px-3 py-1 rounded-full transition-all duration-150 ${
+                    activeHistoryTab === "withdrawals"
+                      ? "bg-slate-800 shadow text-slate-50"
+                      : "text-slate-400 hover:text-slate-100"
+                  }`}
+                >
+                  Withdraw history
+                </button>
+              </div>
+            </div>
+
+            {activeHistoryTab === "referrals" && (
+              <ReferralHistoryTable
+                entries={history}
+                page={pagination.page || 1}
+                pageSize={pagination.limit || 10}
+                totalItems={pagination.total || 0}
+                totalPages={pagination.totalPages || 1}
+                onPageChange={loadHistory}
+                loading={historyLoading}
+                onResendInvite={handleResendInvite}
+              />
+            )}
+
+            {activeHistoryTab === "withdrawals" && (
+              <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 shadow-xl shadow-slate-950/50 backdrop-blur">
+                <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">
+                      Withdrawal history
+                    </h3>
+                    <p className="text-sm text-slate-300">
+                      Review your recent payout requests and their status.
+                    </p>
+                  </div>
+                  <span className="text-xs text-slate-400">
+                    Showing up to 20 latest entries
+                  </span>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {withdrawalsLoading ? (
+                    <div className="px-6 py-8 text-center text-sm text-slate-400">
+                      Loading withdrawal history…
+                    </div>
+                  ) : withdrawals.length === 0 ? (
+                    <div className="px-6 py-8 text-center text-sm text-slate-400">
+                      No withdrawal requests yet.
+                    </div>
+                  ) : (
+                    <table className="min-w-full text-sm text-slate-100">
+                      <thead>
+                        <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          <th className="px-6 py-3 text-left">Date</th>
+                          <th className="px-6 py-3 text-right">Amount</th>
+                          <th className="px-6 py-3 text-left">Status</th>
+                          <th className="px-6 py-3 text-left">Note</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {withdrawals.map((entry) => {
+                          const created = entry.createdAt
+                            ? new Date(entry.createdAt).toLocaleString(
+                                "en-IN",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )
+                            : "—";
+                          const statusLabel = entry.status || "pending";
+                          const key =
+                            entry.id || `${entry.createdAt}-${entry.amount}`;
+                          return (
+                            <tr key={key} className="hover:bg-slate-50/70">
+                              <td className="px-6 py-3">{created}</td>
+                              <td className="px-6 py-3 text-right">
+                                ₹
+                                {Number(entry.amount || 0).toLocaleString(
+                                  "en-IN"
+                                )}
+                              </td>
+                              <td className="px-6 py-3 capitalize">
+                                {statusLabel}
+                              </td>
+                              <td className="px-6 py-3 truncate max-w-[220px]">
+                                {entry.note ||
+                                  entry.metadata?.payoutDetails?.method ||
+                                  "—"}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -387,8 +509,6 @@ const ReferPage = () => {
         pendingRewards={Number(overview?.pendingRewards || 0)}
         totalWithdrawable={totalWithdrawable}
         isEligible={isWithdrawalEligible}
-        withdrawals={withdrawals}
-        withdrawalsLoading={withdrawalsLoading}
       />
     </div>
   );

@@ -29,6 +29,7 @@ const MyQRCode = () => {
   const [previewDevice, setPreviewDevice] = useState("desktop");
   const qrContainerRef = useRef(null);
   const qrCodeRef = useRef(null);
+  const qrCardRef = useRef(null);
 
   const baseClientUrl = useMemo(() => {
     const envUrl = import.meta.env.VITE_CLIENT_BASE_URL;
@@ -96,15 +97,90 @@ const MyQRCode = () => {
   };
 
   const handleDownload = async (format = "png") => {
+    const safeName = (user?.name || "QR_Code").replace(/\s+/g, "_");
+
+    // For PNG, capture the full preview card (gradient frame + QR + text)
+    if (format === "png") {
+      if (!qrCardRef.current) {
+        showToast("QR card not ready yet");
+        return;
+      }
+
+      try {
+        const { toPng } = await import("html-to-image");
+        const dataUrl = await toPng(qrCardRef.current, {
+          cacheBust: true,
+          backgroundColor: "#020617",
+          pixelRatio: 2,
+          skipFonts: true,
+        });
+
+        const link = document.createElement("a");
+        link.download = `${safeName}.png`;
+        link.href = dataUrl;
+        link.click();
+        showToast("Downloaded PNG file");
+      } catch (e) {
+        console.error("QR card PNG download failed:", e);
+        showToast("Unable to download PNG. Please try again.");
+      }
+
+      return;
+    }
+
+    // SVG and other formats fall back to the raw QR canvas/dataUrl
     if (!qrCodeRef.current) {
       showToast("QR not ready yet");
       return;
     }
 
-    const safeName = (user?.name || "QR_Code").replace(/\s+/g, "_");
-
     if (format === "svg") {
-      const svg =
+      // Preferred: capture the full card (gradient frame + QR + text) as SVG
+      if (qrCardRef.current) {
+        try {
+          const { toSvg } = await import("html-to-image");
+          let svgMarkup = await toSvg(qrCardRef.current, {
+            cacheBust: true,
+            backgroundColor: "#020617",
+            pixelRatio: 2,
+            skipFonts: true,
+          });
+
+          // html-to-image returns a data URL string for SVG, so we need to
+          // strip the prefix and decode the payload to get raw SVG markup.
+          if (
+            typeof svgMarkup === "string" &&
+            svgMarkup.startsWith("data:image/svg+xml")
+          ) {
+            const commaIndex = svgMarkup.indexOf(",");
+            if (commaIndex !== -1) {
+              const encoded = svgMarkup.slice(commaIndex + 1);
+              try {
+                svgMarkup = decodeURIComponent(encoded);
+              } catch {
+                svgMarkup = encoded;
+              }
+            }
+          }
+
+          const blob = new Blob([svgMarkup], {
+            type: "image/svg+xml;charset=utf-8",
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.download = `${safeName}.svg`;
+          link.href = url;
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          showToast("Downloaded SVG file");
+          return;
+        } catch (e) {
+          console.error("QR card SVG download failed, falling back:", e);
+          // fall through to raw QR SVG fallback below
+        }
+      }
+
+      const rawSvg =
         `<?xml version="1.0" encoding="UTF-8"?>\n` +
         `<svg xmlns='http://www.w3.org/2000/svg' width='${qrConfig.size}' height='${qrConfig.size}'>\n` +
         `<rect width='100%' height='100%' fill='${qrConfig.background}'/>\n` +
@@ -112,7 +188,7 @@ const MyQRCode = () => {
           qrConfig.size
         }' height='${qrConfig.size}' />\n` +
         `</svg>`;
-      const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+      const blob = new Blob([rawSvg], { type: "image/svg+xml;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.download = `${safeName}.svg`;
@@ -156,12 +232,16 @@ const MyQRCode = () => {
 
   const colorPresets = [
     { name: "Classic Black", color: "#000000", bg: "#FFFFFF" },
+    { name: "QrFolio Brand", color: "#6366F1", bg: "#FFFFFF" },
     { name: "Ocean Blue", color: "#0066CC", bg: "#F0F8FF" },
     { name: "Forest Green", color: "#228B22", bg: "#F0FFF0" },
     { name: "Royal Purple", color: "#6A0DAD", bg: "#F8F0FF" },
     { name: "Sunset Orange", color: "#FF6347", bg: "#FFF8F0" },
     { name: "Wine Red", color: "#722F37", bg: "#FDF2F8" },
   ];
+
+  // Served from public/assets/QrLogo.png at runtime
+  const qrfolioLogoSrc = "/assets/QrLogo.png";
 
   return (
     <motion.div
@@ -176,17 +256,17 @@ const MyQRCode = () => {
           </div>
         </div>
       )}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/50 backdrop-blur sm:p-7">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">QR Code Preview</h2>
+            <h2 className="text-xl font-bold text-white">QR Code Preview</h2>
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setPreviewDevice("desktop")}
                 className={`p-2 rounded-lg ${
                   previewDevice === "desktop"
-                    ? "bg-primary-100 text-primary-600"
-                    : "text-gray-400 hover:text-gray-600"
+                    ? "bg-primary-500/20 text-primary-300"
+                    : "text-slate-500 hover:text-slate-200"
                 }`}
               >
                 <Monitor className="w-4 h-4" />
@@ -195,8 +275,8 @@ const MyQRCode = () => {
                 onClick={() => setPreviewDevice("tablet")}
                 className={`p-2 rounded-lg ${
                   previewDevice === "tablet"
-                    ? "bg-primary-100 text-primary-600"
-                    : "text-gray-400 hover:text-gray-600"
+                    ? "bg-primary-500/20 text-primary-300"
+                    : "text-slate-500 hover:text-slate-200"
                 }`}
               >
                 <Tablet className="w-4 h-4" />
@@ -205,8 +285,8 @@ const MyQRCode = () => {
                 onClick={() => setPreviewDevice("mobile")}
                 className={`p-2 rounded-lg ${
                   previewDevice === "mobile"
-                    ? "bg-primary-100 text-primary-600"
-                    : "text-gray-400 hover:text-gray-600"
+                    ? "bg-primary-500/20 text-primary-300"
+                    : "text-slate-500 hover:text-slate-200"
                 }`}
               >
                 <Smartphone className="w-4 h-4" />
@@ -214,10 +294,11 @@ const MyQRCode = () => {
             </div>
           </div>
 
-          <div className="flex justify-center mb-6">
+          <div className="mb-6 flex justify-center">
             <div
+              ref={qrCardRef}
               className={`
-                p-6 rounded-2xl border-2 border-gray-100 transition-all duration-300
+                relative rounded-3xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-emerald-400 p-[1px] shadow-[0_22px_50px_rgba(15,23,42,0.9)] transition-all duration-300
                 ${
                   previewDevice === "mobile"
                     ? "max-w-xs"
@@ -226,35 +307,42 @@ const MyQRCode = () => {
                     : "max-w-md"
                 }
               `}
-              style={{ backgroundColor: qrConfig.background }}
             >
-              <div ref={qrContainerRef} className="flex justify-center">
-                <QRCodeGenerator
-                  ref={qrCodeRef}
-                  value={profileUrl}
-                  size={
-                    previewDevice === "mobile"
-                      ? 200
-                      : previewDevice === "tablet"
-                      ? 250
-                      : qrConfig.size
-                  }
-                  level={qrConfig.level}
-                  margin={qrConfig.margin}
-                  color={qrConfig.color}
-                  background={qrConfig.background}
-                />
-              </div>
-              <div className="text-center mt-4">
-                <p className="text-sm font-medium text-gray-900">
-                  {user?.name || "—"}
-                </p>
-                <p className="text-xs text-gray-600">
-                  {user?.designation || "—"}
-                </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  Scan to view profile
-                </p>
+              <div
+                className="rounded-[26px] border border-slate-900 bg-slate-950/95 p-6"
+                // style={{ backgroundColor: qrConfig.background }}
+              >
+                <div ref={qrContainerRef} className="flex justify-center">
+                  <QRCodeGenerator
+                    ref={qrCodeRef}
+                    value={profileUrl}
+                    size={
+                      previewDevice === "mobile"
+                        ? 200
+                        : previewDevice === "tablet"
+                        ? 250
+                        : qrConfig.size
+                    }
+                    level={qrConfig.level}
+                    margin={qrConfig.margin}
+                    color={qrConfig.color}
+                    background={qrConfig.background}
+                    logoSrc={qrfolioLogoSrc}
+                    logoSizeRatio={0.24}
+                    className="overflow-hidden rounded-2xl"
+                  />
+                </div>
+                <div className="mt-4 text-center">
+                  <p className="text-sm font-medium text-slate-100">
+                    {user?.name || "—"}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {user?.designation || "—"}
+                  </p>
+                  <p className="mt-2 text-xs text-slate-500">
+                    Scan to view profile
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -265,7 +353,7 @@ const MyQRCode = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleDownload("png")}
-                className="flex items-center justify-center space-x-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="flex items-center justify-center space-x-2 rounded-lg bg-primary-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-400"
               >
                 <Download className="w-4 h-4" />
                 <span>Download PNG</span>
@@ -274,7 +362,7 @@ const MyQRCode = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleDownload("svg")}
-                className="flex items-center justify-center space-x-2 px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex items-center justify-center space-x-2 rounded-lg bg-slate-700 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-slate-600"
               >
                 <Download className="w-4 h-4" />
                 <span>Download SVG</span>
@@ -286,7 +374,7 @@ const MyQRCode = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleCopyLink}
-                className="flex items-center justify-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="flex items-center justify-center space-x-2 rounded-lg bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-700"
               >
                 <Copy className="w-4 h-4" />
                 <span>Copy Link</span>
@@ -307,7 +395,7 @@ const MyQRCode = () => {
               onClick={() => userId && navigate(`/profile/${userId}`)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center justify-center space-x-2 px-4 py-2 border border-primary-200 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors w-full"
+              className="flex w-full items-center justify-center space-x-2 rounded-lg border border-primary-500/60 px-4 py-2 text-sm font-medium text-primary-200 transition-colors hover:bg-primary-500/10"
             >
               <Eye className="w-4 h-4" />
               <span>Generate QR ID Card</span>
@@ -315,17 +403,15 @@ const MyQRCode = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-2 mb-6">
-            <Palette className="w-5 h-5 text-primary-600" />
-            <h2 className="text-xl font-bold text-gray-900">
-              Customize QR Code
-            </h2>
+        <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/50 backdrop-blur sm:p-7">
+          <div className="mb-6 flex items-center space-x-2">
+            <Palette className="w-5 h-5 text-primary-300" />
+            <h2 className="text-xl font-bold text-white">Customize QR Code</h2>
           </div>
 
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="mb-3 block text-sm font-medium text-slate-200">
                 Size: {qrConfig.size}px
               </label>
               <input
@@ -337,18 +423,18 @@ const MyQRCode = () => {
                 onChange={(e) =>
                   handleConfigChange("size", parseInt(e.target.value))
                 }
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="mb-3 block text-sm font-medium text-slate-200">
                 Error Correction Level
               </label>
               <select
                 value={qrConfig.level}
                 onChange={(e) => handleConfigChange("level", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-slate-50 focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
               >
                 <option value="L">Low (7%)</option>
                 <option value="M">Medium (15%)</option>
@@ -358,7 +444,7 @@ const MyQRCode = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="mb-3 block text-sm font-medium text-slate-200">
                 Margin: {qrConfig.margin}
               </label>
               <input
@@ -369,12 +455,12 @@ const MyQRCode = () => {
                 onChange={(e) =>
                   handleConfigChange("margin", parseInt(e.target.value))
                 }
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="mb-3 block text-sm font-medium text-slate-200">
                 Color Presets
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -385,13 +471,13 @@ const MyQRCode = () => {
                       handleConfigChange("color", preset.color);
                       handleConfigChange("background", preset.bg);
                     }}
-                    className="flex items-center space-x-2 p-2 border border-gray-200 rounded-lg hover:border-primary-300 transition-colors"
+                    className="flex items-center space-x-2 rounded-lg border border-slate-700 bg-slate-900/60 p-2 transition-colors hover:border-primary-400"
                   >
                     <div
-                      className="w-4 h-4 rounded border border-gray-300"
+                      className="h-4 w-4 rounded border border-slate-600"
                       style={{ backgroundColor: preset.color }}
                     />
-                    <span className="text-xs font-medium text-gray-700">
+                    <span className="text-xs font-medium text-slate-100">
                       {preset.name}
                     </span>
                   </button>
@@ -401,7 +487,7 @@ const MyQRCode = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Foreground Color
                 </label>
                 <div className="flex items-center space-x-2">
@@ -411,7 +497,7 @@ const MyQRCode = () => {
                     onChange={(e) =>
                       handleConfigChange("color", e.target.value)
                     }
-                    className="w-10 h-10 border border-gray-300 rounded cursor-pointer"
+                    className="h-10 w-10 cursor-pointer rounded border border-slate-600 bg-slate-900"
                   />
                   <input
                     type="text"
@@ -419,13 +505,13 @@ const MyQRCode = () => {
                     onChange={(e) =>
                       handleConfigChange("color", e.target.value)
                     }
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                    className="flex-1 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm font-mono text-slate-50"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Background Color
                 </label>
                 <div className="flex items-center space-x-2">
@@ -443,15 +529,15 @@ const MyQRCode = () => {
                     onChange={(e) =>
                       handleConfigChange("background", e.target.value)
                     }
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                    className="flex-1 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm font-mono text-slate-50"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="bg-primary-50 rounded-lg p-4">
-              <h4 className="font-medium text-primary-900 mb-2">Usage Tips</h4>
-              <ul className="text-sm text-primary-700 space-y-1">
+            <div className="rounded-lg border border-primary-500/30 bg-primary-500/10 p-4">
+              <h4 className="mb-2 font-medium text-primary-100">Usage Tips</h4>
+              <ul className="space-y-1 text-sm text-primary-100/90">
                 <li>
                   • Higher error correction allows for better scanning with
                   damage

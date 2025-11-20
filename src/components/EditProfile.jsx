@@ -1,30 +1,30 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Save, Upload } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from "react";
+import { Save, Upload } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const EditProfile = () => {
   const { user, editProfile, uploadPhoto } = useAuth();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    bloodGroup: '',
-    dateOfBirth: '',
-    description: '',
-    linkedin: '',
-    twitter: '',
-    website: '',
-    github: '',
-    instagram: '',
-    facebook: '',
-    whatsapp: ''
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    bloodGroup: "",
+    dateOfBirth: "",
+    description: "",
+    linkedin: "",
+    twitter: "",
+    website: "",
+    github: "",
+    instagram: "",
+    facebook: "",
+    whatsapp: "",
   });
 
-  const [avatar, setAvatar] = useState('');
+  const [avatar, setAvatar] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -32,22 +32,24 @@ const EditProfile = () => {
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        address: user.address || '',
-        bloodGroup: user.bloodGroup || '',
-        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().slice(0,10) : '',
-        description: user.description || '',
-        linkedin: user.linkedin || '',
-        twitter: user.twitter || '',
-        website: user.website || '',
-        github: user.github || '',
-        instagram: user.instagram || '',
-        facebook: user.facebook || '',
-        whatsapp: user.whatsapp || ''
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        bloodGroup: user.bloodGroup || "",
+        dateOfBirth: user.dateOfBirth
+          ? new Date(user.dateOfBirth).toISOString().slice(0, 10)
+          : "",
+        description: user.description || "",
+        linkedin: user.linkedin || "",
+        twitter: user.twitter || "",
+        website: user.website || "",
+        github: user.github || "",
+        instagram: user.instagram || "",
+        facebook: user.facebook || "",
+        whatsapp: user.whatsapp || "",
       });
-      setAvatar(user.profilePhoto || '');
+      setAvatar(user.profilePhoto || "");
     }
   }, [user]);
 
@@ -58,12 +60,12 @@ const EditProfile = () => {
   const safeAvatar = useMemo(() => {
     const src = avatar || user?.profilePhoto;
     if (src) return src;
-    const initials = (user?.name || 'User')
-      .split(' ')
+    const initials = (user?.name || "User")
+      .split(" ")
       .filter(Boolean)
       .map((s) => s[0])
       .slice(0, 2)
-      .join('')
+      .join("")
       .toUpperCase();
     const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\n  <rect width='100%' height='100%' fill='%23e5e7eb'/>\n  <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='72' fill='%236b7280' font-family='Arial, sans-serif'>${initials}</text>\n</svg>`;
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -71,9 +73,9 @@ const EditProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -81,7 +83,7 @@ const EditProfile = () => {
     e.preventDefault();
     const trimmedPhone = formData.phone.trim();
     if (!trimmedPhone) {
-      alert('Phone number is required');
+      alert("Phone number is required");
       return;
     }
     setSaving(true);
@@ -101,11 +103,11 @@ const EditProfile = () => {
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       } else {
-        alert(res.error || 'Failed to update profile');
+        alert(res.error || "Failed to update profile");
       }
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Something went wrong while saving');
+      alert(err.message || "Something went wrong while saving");
     } finally {
       setSaving(false);
     }
@@ -130,11 +132,13 @@ const EditProfile = () => {
           </div>
         </div>
       )}
-      <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+      <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 shadow-xl shadow-slate-950/50 backdrop-blur">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Profile</h1>
-            <p className="text-gray-600">Update your personal and professional information</p>
+            <h1 className="text-2xl font-bold text-white">Edit Profile</h1>
+            <p className="text-sm text-slate-300">
+              Update your personal and professional information
+            </p>
           </div>
         </div>
 
@@ -142,18 +146,18 @@ const EditProfile = () => {
           <div className="flex items-center space-x-6">
             <div className="relative">
               <div className="relative w-24 h-24">
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-200 rounded-full">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="48" 
-                    height="48" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="1.5" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className="text-gray-500"
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-800">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-slate-500"
                   >
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
@@ -163,12 +167,12 @@ const EditProfile = () => {
                   <img
                     src={safeAvatar}
                     alt="Profile"
-                    className="w-full h-full rounded-full object-cover border-4 border-white relative z-10"
+                    className="relative z-10 h-full w-full rounded-full border-4 border-slate-900 object-cover"
                   />
                 ) : null}
               </div>
-              <label 
-                className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-700 transition-colors shadow-md z-20"
+              <label
+                className="absolute -bottom-2 -right-2 z-20 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary-500 shadow-md transition-colors hover:bg-primary-400"
                 title="Change profile photo"
               >
                 <Upload className="w-4 h-4 text-white" />
@@ -181,46 +185,53 @@ const EditProfile = () => {
               </label>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">Profile Photo</h3>
-              <p className="text-sm text-gray-500">
-                Upload a professional photo (max 5MB) to personalize your public profile.
+              <h3 className="font-medium text-slate-100">Profile Photo</h3>
+              <p className="text-sm text-slate-400">
+                Upload a professional photo (max 1MB) to personalize your
+                profile.
               </p>
             </div>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+            <h3 className="mb-4 text-lg font-semibold text-slate-100">
+              Personal Information
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Full Name
                 </label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                  className="w-full cursor-not-allowed rounded-lg border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-400"
                   disabled
                 />
-                 <p className="text-xs text-gray-500 mt-1">Your name cannot be changed.</p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Your name cannot be changed.
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Email Address
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                  className="w-full cursor-not-allowed rounded-lg border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-400"
                   disabled
                 />
-                 <p className="text-xs text-gray-500 mt-1">Your email cannot be changed.</p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Your email cannot be changed.
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Phone Number
                 </label>
                 <input
@@ -229,12 +240,12 @@ const EditProfile = () => {
                   value={formData.phone}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Blood Group
                 </label>
                 <input
@@ -242,13 +253,13 @@ const EditProfile = () => {
                   name="bloodGroup"
                   value={formData.bloodGroup}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                   placeholder="e.g., O+, A-, B+"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Date of Birth
                 </label>
                 <input
@@ -256,12 +267,12 @@ const EditProfile = () => {
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Address
                 </label>
                 <input
@@ -269,12 +280,12 @@ const EditProfile = () => {
                   name="address"
                   value={formData.address}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Professional Description
                 </label>
                 <textarea
@@ -282,7 +293,7 @@ const EditProfile = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                   placeholder="Tell others about your professional background and expertise..."
                 />
               </div>
@@ -290,10 +301,12 @@ const EditProfile = () => {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Links</h3>
+            <h3 className="mb-4 text-lg font-semibold text-slate-100">
+              Social Links
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   LinkedIn Profile
                 </label>
                 <input
@@ -301,13 +314,13 @@ const EditProfile = () => {
                   name="linkedin"
                   value={formData.linkedin}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                   placeholder="https://linkedin.com/in/yourprofile"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Twitter Profile
                 </label>
                 <input
@@ -315,13 +328,13 @@ const EditProfile = () => {
                   name="twitter"
                   value={formData.twitter}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                   placeholder="https://twitter.com/yourhandle"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Personal Website
                 </label>
                 <input
@@ -329,13 +342,13 @@ const EditProfile = () => {
                   name="website"
                   value={formData.website}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                   placeholder="https://yourwebsite.com"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   GitHub Profile
                 </label>
                 <input
@@ -343,13 +356,13 @@ const EditProfile = () => {
                   name="github"
                   value={formData.github}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                   placeholder="https://github.com/username"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Instagram Profile
                 </label>
                 <input
@@ -357,13 +370,13 @@ const EditProfile = () => {
                   name="instagram"
                   value={formData.instagram}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                   placeholder="https://instagram.com/username"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   Facebook Profile
                 </label>
                 <input
@@ -371,13 +384,13 @@ const EditProfile = () => {
                   name="facebook"
                   value={formData.facebook}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                   placeholder="https://facebook.com/username"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-200">
                   WhatsApp Link
                 </label>
                 <input
@@ -385,32 +398,36 @@ const EditProfile = () => {
                   name="whatsapp"
                   value={formData.whatsapp}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                   placeholder="https://wa.me/<phone-number>"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex justify-end space-x-4 border-t border-slate-800 pt-6">
             <button
               type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                window.location.href = '/dashboard';
+                window.location.href = "/dashboard";
               }}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="rounded-lg border border-slate-700 px-6 py-3 text-slate-200 transition-colors hover:bg-slate-800/80"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-colors ${saving ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700 text-white'}`}
+              className={`flex items-center space-x-2 rounded-lg px-6 py-3 transition-colors ${
+                saving
+                  ? "bg-primary-300 cursor-not-allowed text-white/80"
+                  : "bg-primary-500 text-white hover:bg-primary-400"
+              }`}
             >
               <Save className="w-4 h-4" />
-              <span>{saving ? 'Saving...' : 'Save Changes'}</span>
+              <span>{saving ? "Saving..." : "Save Changes"}</span>
             </button>
           </div>
         </form>

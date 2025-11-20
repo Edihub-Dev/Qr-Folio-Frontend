@@ -1,24 +1,24 @@
 import React from "react";
 
 const RewardRulesCard = () => (
-  <div className="bg-white rounded-3xl border border-slate-100 shadow-lg overflow-hidden">
-    <div className="px-6 py-5 border-b border-slate-100">
-      <h3 className="text-lg font-semibold text-slate-900">How rewards work</h3>
+  <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/50 backdrop-blur">
+    <div className="border-b border-white/10 pb-4">
+      <h3 className="text-lg font-semibold text-white">How rewards work</h3>
     </div>
-    <div className="p-6 space-y-4 text-sm text-slate-600">
+    <div className="mt-4 space-y-4 text-sm text-slate-200">
       <div>
-        <h4 className="text-sm font-semibold text-slate-900">Reward summary</h4>
+        <h4 className="text-sm font-semibold text-slate-100">Reward summary</h4>
         <p className="mt-1">
-          You earn <span className="font-semibold text-primary-600">₹100</span>{" "}
+          You earn <span className="font-semibold text-primary-300">₹100</span>{" "}
           when your friend signs up through your link and completes their first
           paid plan. They receive ₹50 off their first purchase.
         </p>
       </div>
       <div>
-        <h4 className="text-sm font-semibold text-slate-900">
+        <h4 className="text-sm font-semibold text-slate-100">
           Things to remember
         </h4>
-        <ul className="mt-2 space-y-2 list-disc list-inside">
+        <ul className="mt-2 list-inside list-disc space-y-2">
           <li>
             Rewards move from pending to wallet once the referral passes
             anti-fraud checks.
@@ -32,7 +32,7 @@ const RewardRulesCard = () => (
           </li>
         </ul>
       </div>
-      <div className="bg-primary-50 border border-primary-100 rounded-2xl px-4 py-3 text-xs text-primary-700">
+      <div className="rounded-2xl border border-primary-500/30 bg-primary-500/10 px-4 py-3 text-xs text-primary-100">
         Need help or want to review full terms? Email{" "}
         <a className="underline" href="mailto:support@qrfolio.net">
           tech.qrfolio@gmail.com

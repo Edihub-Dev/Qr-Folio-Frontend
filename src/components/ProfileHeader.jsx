@@ -11,14 +11,14 @@ const ProfileHeader = ({
   contactItems,
 }) => (
   <div className="space-y-6">
-    <div className="rounded-[32px] bg-white p-8 shadow-[0_32px_60px_-20px_rgba(79,70,229,0.35)]">
+    <div className="rounded-[32px] border border-white/10 bg-slate-900/70 p-8 shadow-xl shadow-slate-950/60 backdrop-blur">
       <div className="flex flex-col items-center text-center">
-        <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-[0_20px_40px_rgba(79,70,229,0.2)]">
+        <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-slate-800 shadow-[0_20px_40px_rgba(15,23,42,0.7)] bg-slate-900/80">
           <img src={avatar} alt={name} className="h-full w-full object-cover" />
         </div>
         <div className="mt-6 space-y-2">
-          <h1 className="text-2xl font-semibold text-slate-900">{name}</h1>
-          <p className="text-sm font-medium text-slate-500">
+          <h1 className="text-2xl font-semibold text-white">{name}</h1>
+          <p className="text-sm font-medium text-slate-300">
             {designation || "—"} at {companyName || "Company"}
           </p>
         </div>
@@ -41,10 +41,10 @@ const ProfileHeader = ({
           </div>
         )}
         {contactItems?.length > 0 && (
-          <div className="mt-6 w-full space-y-3 text-left text-sm text-slate-600">
+          <div className="mt-6 w-full space-y-3 text-left text-sm text-slate-300">
             {contactItems.map(({ key, icon: Icon, value }) => (
               <div key={key} className="flex items-center gap-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-500">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500/10 text-primary-300">
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="break-words">{value?.trim() || "—"}</span>

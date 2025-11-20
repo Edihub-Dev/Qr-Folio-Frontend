@@ -2,10 +2,10 @@ import React from "react";
 import { ArrowUpRight, RefreshCcw, AlertTriangle } from "lucide-react";
 
 const statusStyles = {
-  pending: "bg-amber-50 text-amber-700 border border-amber-100",
-  completed: "bg-blue-50 text-blue-700 border border-blue-100",
-  rewarded: "bg-emerald-50 text-emerald-700 border border-emerald-100",
-  rejected: "bg-rose-50 text-rose-700 border border-rose-100",
+  pending: "border border-amber-500/40 bg-amber-500/15 text-amber-100",
+  completed: "border border-blue-500/40 bg-blue-500/15 text-blue-100",
+  rewarded: "border border-emerald-500/40 bg-emerald-500/15 text-emerald-100",
+  rejected: "border border-rose-500/40 bg-rose-500/10 text-rose-100",
 };
 
 const ReferralHistoryTable = ({
@@ -36,13 +36,11 @@ const ReferralHistoryTable = ({
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-100 shadow-lg overflow-hidden">
-      <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+    <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 shadow-xl shadow-slate-950/50 backdrop-blur">
+      <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">
-            Referral history
-          </h3>
-          <p className="text-sm text-slate-500">
+          <h3 className="text-lg font-semibold text-white">Referral history</h3>
+          <p className="text-sm text-slate-300">
             Track each invite and reward status. Resend invites to friends who
             haven’t finished signing up yet.
           </p>
@@ -51,16 +49,16 @@ const ReferralHistoryTable = ({
           type="button"
           onClick={() => onPageChange?.(page)}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-slate-800 disabled:opacity-50"
         >
           <RefreshCcw className="h-4 w-4" /> Refresh
         </button>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full">
+        <table className="min-w-full text-sm text-slate-100">
           <thead>
-            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 bg-slate-50">
+            <tr className="bg-slate-900/80 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">
               <th className="px-6 py-3">Referred user</th>
               <th className="px-6 py-3">Plan</th>
               <th className="px-6 py-3">Signup date</th>
@@ -69,12 +67,12 @@ const ReferralHistoryTable = ({
               <th className="px-6 py-3">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+          <tbody className="divide-y divide-slate-800 text-sm text-slate-200">
             {entries.length === 0 && !loading && (
               <tr>
                 <td
                   colSpan={6}
-                  className="px-6 py-8 text-center text-slate-500"
+                  className="px-6 py-8 text-center text-slate-400"
                 >
                   You haven’t invited anyone yet. Share your link to start
                   earning rewards.
@@ -99,21 +97,24 @@ const ReferralHistoryTable = ({
               const planLabel = entry.referredUserPlan || "—";
 
               return (
-                <tr key={entry._id} className="hover:bg-slate-50/70 transition">
+                <tr
+                  key={entry._id}
+                  className="transition hover:bg-slate-900/60"
+                >
                   <td className="px-6 py-4">
-                    <div className="font-semibold text-slate-900">
+                    <div className="font-semibold text-slate-100">
                       {displayName}
                     </div>
-                    <div className="text-xs text-slate-500">{displayEmail}</div>
+                    <div className="text-xs text-slate-400">{displayEmail}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-600 capitalize">
+                  <td className="px-6 py-4 text-sm capitalize text-slate-300">
                     {planLabel || "—"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
+                  <td className="px-6 py-4 text-sm text-slate-300">
                     {formattedSignup}
                   </td>
                   <td className="px-6 py-4">{renderStatusBadge(entry)}</td>
-                  <td className="px-6 py-4 font-semibold text-slate-900">
+                  <td className="px-6 py-4 font-semibold text-slate-100">
                     ₹{Number(entry.rewardAmount || 0).toLocaleString("en-IN")}
                   </td>
                   <td className="px-6 py-4">
@@ -121,13 +122,13 @@ const ReferralHistoryTable = ({
                       <button
                         type="button"
                         onClick={() => onResendInvite(entry)}
-                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:bg-slate-800"
                       >
                         <ArrowUpRight className="h-4 w-4" /> Resend invite
                       </button>
                     ) : (
                       entry.status === "rejected" && (
-                        <div className="flex flex-col gap-1 text-xs text-rose-500">
+                        <div className="flex flex-col gap-1 text-xs text-rose-300">
                           <div className="flex items-center gap-1">
                             <AlertTriangle className="h-4 w-4" />
                             <span>
@@ -139,7 +140,7 @@ const ReferralHistoryTable = ({
                           </div>
                           {Array.isArray(entry.riskSignals) &&
                             entry.riskSignals.length > 0 && (
-                              <div className="text-[11px] text-rose-400">
+                              <div className="text-[11px] text-rose-300/90">
                                 Signals: {entry.riskSignals.join(", ")}
                               </div>
                             )}
@@ -154,7 +155,7 @@ const ReferralHistoryTable = ({
         </table>
       </div>
 
-      <div className="px-6 py-4 border-t border-slate-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm text-slate-600">
+      <div className="flex flex-col gap-3 border-t border-slate-800 px-6 py-4 text-sm text-slate-300 sm:flex-row sm:items-center sm:justify-between">
         <div>
           Showing {(page - 1) * pageSize + 1}-
           {Math.min(page * pageSize, totalItems)} of {totalItems}
@@ -162,18 +163,18 @@ const ReferralHistoryTable = ({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="rounded-full border border-slate-200 px-3 py-1 disabled:opacity-50"
+            className="rounded-full border border-slate-700 px-3 py-1 disabled:opacity-50"
             onClick={() => onPageChange?.(Math.max(page - 1, 1))}
             disabled={page <= 1 || loading}
           >
             Prev
           </button>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-400">
             Page {page} of {totalPages}
           </span>
           <button
             type="button"
-            className="rounded-full border border-slate-200 px-3 py-1 disabled:opacity-50"
+            className="rounded-full border border-slate-700 px-3 py-1 disabled:opacity-50"
             onClick={() => onPageChange?.(Math.min(page + 1, totalPages))}
             disabled={page >= totalPages || loading}
           >

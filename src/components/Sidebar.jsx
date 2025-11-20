@@ -123,12 +123,12 @@ const Sidebar = ({
       {isMobile && (
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`fixed top-4 left-4 z-50 border border-gray-200 bg-white p-2 shadow-lg lg:hidden transition-opacity duration-300 ${
+          className={`fixed top-4 left-4 z-50 border border-white/15 bg-slate-950/80 p-2 shadow-lg shadow-slate-950/60 lg:hidden transition-opacity duration-300 ${
             isMobile ? "opacity-100" : "opacity-0"
           }`}
           aria-label={`${isCollapsed ? "Open" : "Close"} sidebar`}
         >
-          <Menu className="w-6 h-6 text-gray-600" />
+          <Menu className="w-6 h-6 text-slate-100" />
         </button>
       )}
 
@@ -145,7 +145,7 @@ const Sidebar = ({
       />
 
       <div
-        className={`fixed top-0 left-0 z-40 h-full bg-white shadow-xl transition-[transform,width] duration-300 ease-out ${
+        className={`fixed top-0 left-0 z-40 h-full bg-slate-950/90 border-r border-white/10 shadow-xl shadow-slate-950/70 backdrop-blur transition-[transform,width] duration-300 ease-out ${
           isMobile ? "lg:hidden" : ""
         }`}
         style={{
@@ -161,7 +161,7 @@ const Sidebar = ({
         }}
       >
         <div className="flex h-full flex-col">
-          <div className="border-b border-gray-100 p-6">
+          <div className="border-b border-white/10 p-6">
             <div className="flex items-center justify-between">
               {!isCollapsed && (
                 <div className="flex items-center space-x-3">
@@ -169,14 +169,12 @@ const Sidebar = ({
                     <QrCode className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold text-gray-900">
-                      QR Folio
-                    </h1>
-                    <p className="text-xs text-gray-500">
+                    <h1 className="text-xl font-bold text-white">QR Folio</h1>
+                    <p className="text-xs text-slate-400">
                       Digital Business Cards
                     </p>
                     {user?.subscriptionPlan && (
-                      <span className="mt-1 inline-flex items-center text-[11px] font-medium uppercase tracking-wide text-primary-600">
+                      <span className="mt-1 inline-flex items-center text-[11px] font-medium uppercase tracking-wide text-primary-300">
                         {PLAN_LABELS[user.subscriptionPlan] || "Basic (Silver)"}
                       </span>
                     )}
@@ -186,7 +184,7 @@ const Sidebar = ({
               <div className="absolute top-4 right-4">
                 <button
                   onClick={() => setIsCollapsed(!isCollapsed)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 active:scale-95"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/80 text-slate-300 transition hover:bg-slate-700 active:scale-95"
                   aria-label={
                     isCollapsed ? "Expand sidebar" : "Collapse sidebar"
                   }
@@ -212,8 +210,8 @@ const Sidebar = ({
                     key={item.id}
                     className={`flex w-full items-center space-x-3 rounded-xl px-4 py-3 transition-colors duration-150 ${
                       isActive
-                        ? "bg-primary-50 text-primary-600 border border-primary-200"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        ? "border border-primary-400/70 bg-primary-500/15 text-primary-100 shadow-lg shadow-primary-500/20"
+                        : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
                     } ${isCollapsed && !isMobile ? "justify-center px-2" : ""}`}
                     onClick={() => {
                       if (!item.external) {
@@ -235,11 +233,11 @@ const Sidebar = ({
                   >
                     <Icon
                       className={`w-5 h-5 ${
-                        isActive ? "text-primary-600" : ""
+                        isActive ? "text-primary-300" : "text-slate-400"
                       }`}
                     />
                     {!isCollapsed && (
-                      <span className="font-medium">{item.label}</span>
+                      <span className="font-medium text-sm">{item.label}</span>
                     )}
                   </button>
                 );
@@ -248,10 +246,10 @@ const Sidebar = ({
           </nav>
 
           {!isCollapsed && user && (
-            <div className="mt-auto space-y-4 border-t border-gray-100 px-6 pb-6 pt-6">
-              <div className="flex min-h-[72px] items-center space-x-3 rounded-xl bg-gray-50 p-3">
+            <div className="mt-auto space-y-4 border-t border-white/10 px-6 pb-6 pt-6">
+              <div className="flex min-h-[72px] items-center space-x-3 rounded-xl bg-slate-900/80 p-3">
                 <div className="relative h-10 w-10">
-                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-gray-200">
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-800">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -262,7 +260,7 @@ const Sidebar = ({
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="text-gray-500"
+                      className="text-slate-400"
                     >
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                       <circle cx="12" cy="7" r="4"></circle>
@@ -277,10 +275,10 @@ const Sidebar = ({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">
+                  <p className="truncate text-sm font-medium text-slate-100">
                     {user?.name || "—"}
                   </p>
-                  <p className="truncate text-xs text-gray-500">
+                  <p className="truncate text-xs text-slate-400">
                     {user?.email || "—"}
                   </p>
                 </div>
@@ -288,7 +286,7 @@ const Sidebar = ({
 
               <button
                 onClick={handleLogout}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/20 transition hover:bg-black active:scale-95"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-500/30 transition hover:bg-primary-400 active:scale-95"
               >
                 <LogOut className="h-4 w-4" />
                 <span>{isCollapsed ? "" : "Log out"}</span>
