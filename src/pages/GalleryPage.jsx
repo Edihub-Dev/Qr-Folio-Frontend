@@ -247,6 +247,7 @@ const GalleryPage = () => {
               key={cleanId}
               title={`YouTube video ${cleanId}`}
               src={`https://www.youtube.com/embed/${cleanId}?${params.toString()}`}
+              loading="lazy"
               className="w-full h-full rounded-t-2xl border-b border-gray-200"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -265,6 +266,7 @@ const GalleryPage = () => {
               key={videoId}
               title={`Vimeo video ${videoId}`}
               src={`https://player.vimeo.com/video/${videoId}`}
+              loading="lazy"
               className="w-full h-full rounded-t-2xl border-b border-gray-200"
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
@@ -395,7 +397,7 @@ const GalleryPage = () => {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/60 backdrop-blur md:p-10">
+      <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-950/60 md:p-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-white">Gallery</h1>
@@ -791,7 +793,7 @@ const GalleryPage = () => {
       </div>
       {selectedPhoto && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
           onClick={() => setSelectedPhoto(null)}
         >
           <div

@@ -300,7 +300,7 @@ const PublicProfilePage = () => {
       fg: "text-gray-700",
     });
     addLink("website", user?.website || user?.companyWebsite, {
-      label: "Website",
+      label: "Personal website",
       bg: "bg-amber-100",
       fg: "text-amber-700",
     });
@@ -496,7 +496,11 @@ const PublicProfilePage = () => {
   const companyExperience = user?.companyExperience || "—";
   const companyDescription = user?.companyDescription?.trim() || "—";
   const companyAddress = user?.companyAddress?.trim() || "—";
-  const companyWebsiteRaw = user?.companyWebsite?.trim() || "";
+  const companyWebsiteRaw = (
+    user?.website ||
+    user?.companyWebsite ||
+    ""
+  ).trim();
   const companyWebsiteUrl = normalizeLink(companyWebsiteRaw);
   const userSummary = user?.description?.trim() || "";
   const professionalSummary =
@@ -967,21 +971,33 @@ const PublicProfilePage = () => {
                       </div>
                     </div>
                     {socialLinks.length > 0 && (
-                      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                        {socialLinks.map((link) => (
+                      <>
+                        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                          {socialLinks.map((link) => (
+                            <a
+                              key={link.key}
+                              href={link.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={link.label}
+                              className={`group flex h-9 w-9 items-center justify-center rounded-full ${link.bg} ${link.fg} text-[15px] shadow-md shadow-slate-900/70 ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-1 hover:scale-105 hover:ring-indigo-200/70`}
+                            >
+                              <BrandIcon name={link.key} className="h-4 w-4" />
+                              <span className="sr-only">{link.label}</span>
+                            </a>
+                          ))}
+                        </div>
+                        {companyWebsiteUrl && (
                           <a
-                            key={link.key}
-                            href={link.href}
+                            href={companyWebsiteUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            aria-label={link.label}
-                            className={`group flex h-9 w-9 items-center justify-center rounded-full ${link.bg} ${link.fg} text-[15px] shadow-md shadow-slate-900/70 ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-1 hover:scale-105 hover:ring-indigo-200/70`}
+                            className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-slate-950/70 hover:bg-indigo-400"
                           >
-                            <BrandIcon name={link.key} className="h-4 w-4" />
-                            <span className="sr-only">{link.label}</span>
+                            Visit website
                           </a>
-                        ))}
-                      </div>
+                        )}
+                      </>
                     )}
                     <div className="mt-6 w-full space-y-3 text-left text-xs text-slate-200/90">
                       <div className="flex items-center gap-3 rounded-2xl bg-slate-900/70 px-3 py-2 ring-1 ring-white/5">
