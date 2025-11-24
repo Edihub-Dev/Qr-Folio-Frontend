@@ -99,3 +99,21 @@ export const updateAdminNfcStatus = async (userId, payload = {}) => {
   const response = await api.patch(`/admin/nfc/${userId}`, payload);
   return response.data;
 };
+
+export const fetchAdminCoupons = async (params = {}) => {
+  const response = await api.get("/admin/coupons", { params });
+  return response.data;
+};
+
+export const generateAdminCoupons = async (payload = {}) => {
+  const response = await api.post("/admin/coupons/generate", payload);
+  return response.data;
+};
+
+export const downloadCouponsCsv = async (params = {}) => {
+  const response = await api.get("/admin/coupons/export", {
+    params,
+    responseType: "blob",
+  });
+  return response;
+};

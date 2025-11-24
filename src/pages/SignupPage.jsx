@@ -18,6 +18,13 @@ const SignupPage = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const referralSource = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("ref")) return "ref";
+    if (params.get("coupon")) return "coupon";
+    return "";
+  }, [location.search]);
+
   const referralCode = useMemo(() => {
     const params = new URLSearchParams(location.search);
     return params.get("ref") || params.get("coupon") || "";
@@ -66,7 +73,7 @@ const SignupPage = () => {
   };
 
   const validateReferral = useCallback(
-    async (code, { isAutoPrefill = false } = {}) => {
+    async (code, { isAutoPrefill = false, source } = {}) => {
       const trimmed = (code || "").trim().toUpperCase();
       if (!trimmed) {
         lastValidatedRef.current = "";
@@ -99,16 +106,23 @@ const SignupPage = () => {
         }
       } catch (error) {
         lastValidatedRef.current = "";
-        setReferralState({
-          status: "invalid",
-          info: null,
-          message:
-            error?.response?.data?.message ||
-            error.message ||
-            "Invalid referral code",
-        });
-        if (isAutoPrefill) {
-          setFormData((prev) => ({ ...prev, couponCode: "" }));
+        if (source === "ref") {
+          setReferralState({
+            status: "invalid",
+            info: null,
+            message:
+              error?.response?.data?.message ||
+              error.message ||
+              "Invalid referral code",
+          });
+          if (isAutoPrefill) {
+            setFormData((prev) => ({ ...prev, couponCode: "" }));
+          }
+        } else {
+          // For coupon-only flows or manual input, treat an invalid referral
+          // validation as "no referral" and do not show a referral-specific
+          // error message.
+          setReferralState({ status: "idle", info: null, message: "" });
         }
       }
     },
@@ -118,7 +132,10 @@ const SignupPage = () => {
   useEffect(() => {
     if (referralCode) {
       setFormData((prev) => ({ ...prev, couponCode: referralCode }));
-      validateReferral(referralCode, { isAutoPrefill: true });
+      validateReferral(referralCode, {
+        isAutoPrefill: true,
+        source: referralSource,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [referralCode]);
@@ -314,16 +331,21 @@ const SignupPage = () => {
 
               {referralState.status === "valid" && referralState.info && (
                 <div className="mb-3 rounded-2xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-                  You were referred by{" "}
-                  <span className="font-semibold">
-                    {referralState.info.referrerName || "a QR Folio member"}
-                  </span>
-                  {referralState.info.referralCode && (
-                    <span>
-                      {" "}
-                      - referral code {referralState.info.referralCode}
+                  <p className="font-semibold mb-0.5">
+                    Referral code applied successfully.
+                  </p>
+                  <p>
+                    You were referred by{" "}
+                    <span className="font-semibold">
+                      {referralState.info.referrerName || "a QR Folio member"}
                     </span>
-                  )}
+                    {referralState.info.referralCode && (
+                      <span>
+                        {" "}
+                        - referral code {referralState.info.referralCode}
+                      </span>
+                    )}
+                  </p>
                 </div>
               )}
 

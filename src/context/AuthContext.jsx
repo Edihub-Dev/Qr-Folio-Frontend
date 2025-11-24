@@ -342,7 +342,7 @@ export const AuthProvider = ({ children }) => {
       console.log("OTP verification response:", res.data);
 
       if (res.data?.success) {
-        const { token, user: userData } = res.data;
+        const { token, user: userData, couponApplied, couponError } = res.data;
 
         if (!token) {
           throw new Error("No token received from server");
@@ -366,6 +366,8 @@ export const AuthProvider = ({ children }) => {
           requiresPayment: !hasPaymentFlag(normalizedUser),
           requiresRenewal: normalizedUser.requiresRenewal,
           user: normalizedUser,
+          couponApplied: Boolean(couponApplied),
+          couponError: couponApplied ? null : couponError || null,
         };
       }
 

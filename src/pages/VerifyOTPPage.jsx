@@ -13,6 +13,7 @@ const VerifyOTPPage = () => {
   const [errors, setErrors] = useState({});
   const [otp, setOTP] = useState("");
   const [countdown, setCountdown] = useState(0);
+  const [couponNotice, setCouponNotice] = useState(null);
 
   const email = location.state?.email || signupData?.email;
   const name = location.state?.name || signupData?.name;
@@ -52,6 +53,7 @@ const VerifyOTPPage = () => {
 
     setLoading(true);
     setErrors({});
+    setCouponNotice(null);
 
     try {
       console.log("Verifying OTP...");
@@ -60,6 +62,17 @@ const VerifyOTPPage = () => {
 
       if (result.success) {
         console.log("OTP verification successful, checking payment status...");
+        if (result.couponApplied) {
+          setCouponNotice({
+            type: "success",
+            message: "Coupon applied successfully! You now have full access.",
+          });
+        } else if (result.couponError) {
+          setCouponNotice({
+            type: "error",
+            message: result.couponError,
+          });
+        }
         if (result.requiresPayment) {
           console.log("Payment required, redirecting to payment page");
           navigate("/payment");
@@ -160,6 +173,18 @@ const VerifyOTPPage = () => {
               Enter the 6-digit OTP below to continue.
             </p>
           </div>
+
+          {couponNotice && (
+            <div
+              className={`mb-4 rounded-2xl border px-4 py-3 text-sm ${
+                couponNotice.type === "success"
+                  ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+                  : "border-rose-500/40 bg-rose-500/10 text-rose-200"
+              }`}
+            >
+              <p>{couponNotice.message}</p>
+            </div>
+          )}
 
           {errors.submit && (
             <div className="mb-4 p-4 rounded-xl border border-red-500/40 bg-red-500/10">

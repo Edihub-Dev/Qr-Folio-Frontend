@@ -30,6 +30,7 @@ const AdminReferralsPage = lazy(() =>
 const AdminWithdrawalsPage = lazy(() =>
   import("./pages/admin/AdminWithdrawalsPage")
 );
+const AdminCouponsPage = lazy(() => import("./pages/admin/AdminCouponsPage"));
 const AdminNfcPage = lazy(() => import("./pages/admin/AdminNfcPage"));
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
@@ -287,6 +288,7 @@ function App() {
                   <Route path="invoices" element={<AdminInvoicesPage />} />
                   <Route path="refer" element={<AdminReferralsPage />} />
                   <Route path="nfc" element={<AdminNfcPage />} />
+                  <Route path="coupons" element={<AdminCouponsPage />} />
                   <Route
                     path="withdrawals"
                     element={<AdminWithdrawalsPage />}

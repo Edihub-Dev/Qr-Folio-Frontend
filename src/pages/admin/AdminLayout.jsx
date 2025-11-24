@@ -11,6 +11,7 @@ import {
   LogOut,
   ShieldCheck,
   CreditCard,
+  Tag,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import AdminDashboardPage from "./AdminDashboardPage";
@@ -62,6 +63,7 @@ const AdminLayout = () => {
       { to: "/admin/users", label: "Users", icon: Users },
       { to: "/admin/invoices", label: "Invoices", icon: FileText },
       { to: "/admin/refer", label: "Referrals", icon: Share2 },
+      { to: "/admin/coupons", label: "Coupons", icon: Tag },
       { to: "/admin/nfc", label: "NFC cards", icon: CreditCard },
       { to: "/admin/withdrawals", label: "Withdrawals", icon: Wallet },
       {

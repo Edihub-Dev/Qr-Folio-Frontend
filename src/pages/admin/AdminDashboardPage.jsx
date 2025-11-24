@@ -23,7 +23,27 @@ const formatCurrency = (value = 0) => {
   }).format(amount);
 };
 
-const StatCard = ({ title, value, subtitle, icon: Icon, accent, isLoading }) => (
+const formatMSTC = (value = 0) => {
+  const amount = Number(value) || 0;
+  return `${amount.toFixed(2)} MSTC`;
+};
+
+const MSTCIcon = ({ className = "" }) => (
+  <span
+    className={`inline-flex items-center justify-center rounded-full border border-current px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.18em] uppercase ${className}`}
+  >
+    MSTC
+  </span>
+);
+
+const StatCard = ({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  accent,
+  isLoading,
+}) => (
   <div className="relative min-h-[168px] overflow-hidden rounded-3xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md">
     <div
       className={`absolute -right-6 -top-6 h-28 w-28 rounded-full opacity-10 ${accent}`}
@@ -36,12 +56,16 @@ const StatCard = ({ title, value, subtitle, icon: Icon, accent, isLoading }) => 
         {isLoading ? (
           <div className="mt-4 space-y-2">
             <div className="h-6 w-32 rounded-md bg-gray-100 animate-pulse" />
-            {subtitle && <div className="h-4 w-40 rounded-md bg-gray-100 animate-pulse" />}
+            {subtitle && (
+              <div className="h-4 w-40 rounded-md bg-gray-100 animate-pulse" />
+            )}
           </div>
         ) : (
           <>
             <p className="mt-3 text-2xl font-semibold text-gray-900">{value}</p>
-            {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
+            {subtitle && (
+              <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+            )}
           </>
         )}
       </div>
@@ -115,14 +139,27 @@ const AdminDashboardPage = () => {
     return `${Math.round((paid / total) * 100)}%`;
   }, [stats.totalUsers, stats.paidUsers]);
 
+  const combinedRevenue = useMemo(() => {
+    const phonepe = Number(stats.phonepeRevenue ?? stats.totalRevenue ?? 0);
+    const chainpay = Number(stats.chainpayRevenue ?? 0);
+    return phonepe + chainpay;
+  }, [stats.phonepeRevenue, stats.totalRevenue, stats.chainpayRevenue]);
+
   const statCards = useMemo(
     () => [
       {
-        title: "Total Revenue",
-        value: formatCurrency(stats.totalRevenue),
-        subtitle: "Aggregated across all invoices",
+        title: "Total Phonepe Revenue",
+        value: formatCurrency(stats.phonepeRevenue ?? stats.totalRevenue),
+        subtitle: "Revenue collected via PhonePe",
         icon: IndianRupee,
         accent: "bg-cyan-500",
+      },
+      {
+        title: "Total ChainPay Revenue",
+        value: formatMSTC(stats.chainpayRevenue || 0),
+        subtitle: "Revenue collected via ChainPay",
+        icon: MSTCIcon,
+        accent: "bg-amber-500",
       },
       {
         title: "Active Users",
@@ -199,7 +236,7 @@ const AdminDashboardPage = () => {
                 Revenue overview
               </p>
               <h2 className="mt-2 text-2xl font-semibold text-gray-900">
-                {formatCurrency(stats.totalRevenue || 0)}
+                {formatCurrency(combinedRevenue || 0)}
               </h2>
               <p className="mt-1 text-sm text-gray-500">
                 Combined invoice revenue from all payment gateways.
@@ -256,7 +293,7 @@ const AdminDashboardPage = () => {
               </p>
               <p className="mt-2 text-lg font-semibold text-slate-900">
                 {stats.totalUsers
-                  ? formatCurrency((stats.totalRevenue || 0) / stats.totalUsers)
+                  ? formatCurrency((combinedRevenue || 0) / stats.totalUsers)
                   : formatCurrency(0)}
               </p>
               <p className="mt-1 text-sm text-slate-500">
@@ -298,7 +335,7 @@ const AdminDashboardPage = () => {
               {
                 label: "Revenue per user",
                 value: stats.totalUsers
-                  ? formatCurrency((stats.totalRevenue || 0) / stats.totalUsers)
+                  ? formatCurrency((combinedRevenue || 0) / stats.totalUsers)
                   : formatCurrency(0),
                 iconBg: "bg-cyan-100 text-cyan-600",
                 icon: IndianRupee,
