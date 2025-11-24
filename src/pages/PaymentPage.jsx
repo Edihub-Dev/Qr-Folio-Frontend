@@ -113,9 +113,9 @@ const PaymentForm = () => {
   });
 
   const CHAINPAY_NETWORK_MSTC = Object.freeze({
-    starter: 10.764062501525615,
-    growth: 20.52812500305123,
-    enterprise: 30.292187504576845,
+    starter: 9.812,
+    growth: 19.624,
+    enterprise: 29.436,
   });
 
   const chainpayPlans = useMemo(
