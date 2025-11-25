@@ -11,7 +11,10 @@ import {
   ShieldCheck,
   TrendingUp,
 } from "lucide-react";
-import { fetchAdminUsers } from "../../services/adminApi";
+import {
+  fetchAdminUsers,
+  fetchAdminRevenueOverview,
+} from "../../services/adminApi";
 
 const formatCurrency = (value = 0) => {
   const amount = Number(value) || 0;
@@ -83,33 +86,201 @@ const StatCard = ({
   </div>
 );
 
-const RevenueSparkline = () => (
-  <svg viewBox="0 0 400 120" className="h-40 w-full">
-    <defs>
-      <linearGradient id="revenueGradient" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.35" />
-        <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
-      </linearGradient>
-    </defs>
-    <path
-      d="M0 95 C 60 80, 120 70, 180 75 C 240 80, 300 60, 360 40 L 360 120 L 0 120 Z"
-      fill="url(#revenueGradient)"
-    />
-    <path
-      d="M0 95 C 60 80, 120 70, 180 75 C 240 80, 300 60, 360 40"
-      stroke="rgb(14 165 233)"
-      strokeWidth="4"
-      fill="none"
-      strokeLinecap="round"
-    />
-    <circle cx="300" cy="60" r="6" fill="rgb(14 165 233)" />
-  </svg>
-);
+const RevenueSparkline = ({
+  periods = [],
+  showRecurring = true,
+  showOneTime = true,
+}) => {
+  const width = 400;
+  const height = 120;
+  const paddingX = 24;
+  const paddingY = 16;
+  const innerWidth = width - paddingX * 2;
+  const innerHeight = height - paddingY * 2;
+
+  const values = [];
+  if (showRecurring) {
+    values.push(...periods.map((p) => Number(p.recurring || 0)));
+  }
+  if (showOneTime) {
+    values.push(...periods.map((p) => Number(p.oneTime || 0)));
+  }
+  const maxValue = values.length ? Math.max(...values, 0) : 0;
+  const count = periods.length;
+
+  if (!count || maxValue <= 0 || (!showRecurring && !showOneTime)) {
+    return (
+      <svg viewBox="0 0 400 120" className="h-40 w-full">
+        <text
+          x="50%"
+          y="50%"
+          dominantBaseline="middle"
+          textAnchor="middle"
+          fill="#9ca3af"
+          fontSize="12"
+        >
+          No revenue data
+        </text>
+      </svg>
+    );
+  }
+
+  const getXPosition = (index) => {
+    if (count === 1) {
+      return paddingX + innerWidth / 2;
+    }
+    return paddingX + (innerWidth * index) / (count - 1);
+  };
+
+  const getPoints = (key) => {
+    if (!count) {
+      return "";
+    }
+    if (count === 1) {
+      const value = Number(periods[0][key] || 0);
+      const ratio = maxValue ? value / maxValue : 0;
+      const x = getXPosition(0);
+      const y = paddingY + innerHeight * (1 - ratio);
+      return `${x},${y}`;
+    }
+    return periods
+      .map((period, index) => {
+        const value = Number(period[key] || 0);
+        const ratio = maxValue ? value / maxValue : 0;
+        const x = getXPosition(index);
+        const y = paddingY + innerHeight * (1 - ratio);
+        return `${x},${y}`;
+      })
+      .join(" ");
+  };
+
+  const recurringPoints = showRecurring ? getPoints("recurring") : "";
+  const oneTimePoints = showOneTime ? getPoints("oneTime") : "";
+
+  const xAxisY = paddingY + innerHeight;
+  const yAxisX = paddingX;
+
+  const yTicks = (() => {
+    const ticks = [];
+    const steps = 4;
+    if (!maxValue) return ticks;
+
+    const formatter = new Intl.NumberFormat("en-IN", {
+      maximumFractionDigits: 1,
+      notation: "compact",
+    });
+
+    for (let i = 0; i <= steps; i += 1) {
+      const ratio = i / steps;
+      const y = paddingY + innerHeight * ratio;
+      const value = maxValue * (1 - ratio);
+      ticks.push({
+        y,
+        label: formatter.format(value),
+      });
+    }
+
+    return ticks;
+  })();
+
+  return (
+    <svg viewBox="0 0 400 120" className="h-40 w-full">
+      <line
+        x1={yAxisX}
+        y1={paddingY}
+        x2={yAxisX}
+        y2={xAxisY}
+        stroke="#e5e7eb"
+        strokeWidth="1"
+      />
+      <line
+        x1={yAxisX}
+        y1={xAxisY}
+        x2={paddingX + innerWidth}
+        y2={xAxisY}
+        stroke="#e5e7eb"
+        strokeWidth="1"
+      />
+
+      {yTicks.map((tick, index) => (
+        <g key={`y-${index}`}>
+          <line
+            x1={yAxisX}
+            y1={tick.y}
+            x2={paddingX + innerWidth}
+            y2={tick.y}
+            stroke="#f1f5f9"
+            strokeWidth="0.5"
+          />
+          <text
+            x={yAxisX - 6}
+            y={tick.y + 3}
+            textAnchor="end"
+            fill="#9ca3af"
+            fontSize="8"
+          >
+            {tick.label}
+          </text>
+        </g>
+      ))}
+
+      {periods.map((period, index) => {
+        const x = getXPosition(index);
+        return (
+          <g key={period.period || period.label || index}>
+            <line
+              x1={x}
+              y1={paddingY}
+              x2={x}
+              y2={xAxisY}
+              stroke="#f1f5f9"
+              strokeWidth="0.5"
+            />
+            <text
+              x={x}
+              y={xAxisY + 10}
+              textAnchor="middle"
+              fill="#9ca3af"
+              fontSize="8"
+            >
+              {(period.label || period.period || "").toString()}
+            </text>
+          </g>
+        );
+      })}
+
+      {showRecurring && recurringPoints && (
+        <polyline
+          points={recurringPoints}
+          fill="none"
+          stroke="rgb(14 165 233)"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+      )}
+      {showOneTime && oneTimePoints && (
+        <polyline
+          points={oneTimePoints}
+          fill="none"
+          stroke="rgb(148 163 184)"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      )}
+    </svg>
+  );
+};
 
 const AdminDashboardPage = () => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [revenueOverview, setRevenueOverview] = useState(null);
+  const [revenueGranularity, setRevenueGranularity] = useState("monthly");
+  const [revenueLoading, setRevenueLoading] = useState(true);
+  const [revenueError, setRevenueError] = useState(null);
+  const [showRecurring, setShowRecurring] = useState(true);
+  const [showOneTime, setShowOneTime] = useState(true);
 
   const loadStats = useCallback(async () => {
     try {
@@ -126,11 +297,34 @@ const AdminDashboardPage = () => {
     }
   }, []);
 
+  const loadRevenueOverview = useCallback(async () => {
+    try {
+      setRevenueLoading(true);
+      const response = await fetchAdminRevenueOverview({
+        granularity: revenueGranularity,
+      });
+      setRevenueOverview(response?.data || null);
+      setRevenueError(null);
+    } catch (err) {
+      setRevenueError(
+        err?.response?.data?.message ||
+          err.message ||
+          "Failed to load revenue overview"
+      );
+    } finally {
+      setRevenueLoading(false);
+    }
+  }, [revenueGranularity]);
+
   useEffect(() => {
     loadStats();
     const interval = setInterval(loadStats, 60000);
     return () => clearInterval(interval);
   }, [loadStats]);
+
+  useEffect(() => {
+    loadRevenueOverview();
+  }, [loadRevenueOverview]);
 
   const conversionRate = useMemo(() => {
     const total = Number(stats.totalUsers || 0);
@@ -144,6 +338,115 @@ const AdminDashboardPage = () => {
     const chainpay = Number(stats.chainpayRevenue ?? 0);
     return phonepe + chainpay;
   }, [stats.phonepeRevenue, stats.totalRevenue, stats.chainpayRevenue]);
+
+  const visiblePeriods = useMemo(() => {
+    const periods = revenueOverview?.periods || [];
+    if (!Array.isArray(periods) || periods.length === 0) {
+      return [];
+    }
+
+    let maxPoints;
+    if (revenueGranularity === "yearly") {
+      maxPoints = 5;
+    } else if (revenueGranularity === "quarterly") {
+      maxPoints = 6;
+    } else {
+      maxPoints = 6;
+    }
+
+    if (periods.length <= maxPoints) {
+      return periods;
+    }
+
+    return periods.slice(periods.length - maxPoints);
+  }, [revenueOverview, revenueGranularity]);
+
+  const { revenueGrowth, revenueTrendDescription } = useMemo(() => {
+    const periods = revenueOverview?.periods || [];
+    if (!Array.isArray(periods) || periods.length === 0) {
+      return {
+        revenueGrowth: "+0.0%",
+        revenueTrendDescription:
+          "Waiting for enough billing data to detect a revenue trend.",
+      };
+    }
+
+    let windowSize;
+    let windowUnit;
+    if (revenueGranularity === "yearly") {
+      windowSize = 2;
+      windowUnit = "years";
+    } else if (revenueGranularity === "quarterly") {
+      windowSize = 2;
+      windowUnit = "quarters";
+    } else {
+      windowSize = 3;
+      windowUnit = "months";
+    }
+
+    const count = periods.length;
+    const hasWindowComparison = count >= windowSize * 2;
+
+    let latestTotal;
+    let previousTotal;
+    let comparisonLabel;
+
+    if (hasWindowComparison) {
+      const latestSlice = periods.slice(count - windowSize, count);
+      const prevSlice = periods.slice(
+        count - windowSize * 2,
+        count - windowSize
+      );
+      latestTotal = latestSlice.reduce(
+        (sum, period) => sum + Number(period.total || 0),
+        0
+      );
+      previousTotal = prevSlice.reduce(
+        (sum, period) => sum + Number(period.total || 0),
+        0
+      );
+      comparisonLabel = `last ${windowSize} ${windowUnit} vs previous ${windowSize} ${windowUnit}`;
+    } else if (count >= 2) {
+      latestTotal = Number(periods[count - 1]?.total || 0);
+      previousTotal = Number(periods[count - 2]?.total || 0);
+      comparisonLabel = "latest period vs previous period";
+    } else {
+      latestTotal = Number(periods[0]?.total || 0);
+      previousTotal = 0;
+      comparisonLabel = "latest period (no previous data)";
+    }
+
+    let growthLabel = "+0.0%";
+    let trendDescription = "Trend appears stable based on available data.";
+
+    if (!previousTotal || previousTotal <= 0) {
+      if (!latestTotal || latestTotal <= 0) {
+        growthLabel = "+0.0%";
+        trendDescription = "No recent revenue activity detected yet.";
+      } else {
+        growthLabel = "+100.0%";
+        trendDescription = `Strong upward trend (${comparisonLabel}).`;
+      }
+    } else {
+      const change = ((latestTotal - previousTotal) / previousTotal) * 100;
+      const rounded = Math.round(change * 10) / 10;
+      const sign = rounded > 0 ? "+" : "";
+      growthLabel = `${sign}${rounded.toFixed(1)}%`;
+
+      if (rounded > 2) {
+        trendDescription = `Upward trend (${comparisonLabel}).`;
+      } else if (rounded < -2) {
+        trendDescription = `Downward trend (${comparisonLabel}).`;
+      } else {
+        trendDescription = `Stable trend (${comparisonLabel}).`;
+      }
+    }
+
+    return {
+      revenueGrowth: growthLabel,
+      revenueTrendDescription: trendDescription,
+    };
+  }, [revenueOverview, revenueGranularity]);
 
   const statCards = useMemo(
     () => [
@@ -198,12 +501,19 @@ const AdminDashboardPage = () => {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={loadStats}
-            disabled={loading}
+            onClick={() => {
+              loadStats();
+              loadRevenueOverview();
+            }}
+            disabled={loading || revenueLoading}
             className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            {loading ? "Refreshing..." : "Refresh"}
+            <RefreshCw
+              className={`h-4 w-4 ${
+                loading || revenueLoading ? "animate-spin" : ""
+              }`}
+            />
+            {loading || revenueLoading ? "Refreshing..." : "Refresh"}
           </button>
           <button
             type="button"
@@ -250,27 +560,86 @@ const AdminDashboardPage = () => {
 
           <div className="mt-6 rounded-2xl border border-dashed border-gray-200 bg-gradient-to-b from-white to-cyan-50 p-4">
             <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-gray-500">
-              <span className="inline-flex items-center gap-2 rounded-full bg-cyan-100 px-3 py-1 text-cyan-700">
-                <span className="h-2 w-2 rounded-full bg-cyan-500"></span>
+              <button
+                type="button"
+                onClick={() => setShowRecurring((prev) => !prev)}
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
+                  showRecurring
+                    ? "bg-cyan-100 text-cyan-700"
+                    : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    showRecurring ? "bg-cyan-500" : "bg-gray-300"
+                  }`}
+                ></span>
                 Recurring
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-gray-600">
-                <span className="h-2 w-2 rounded-full bg-gray-400"></span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowOneTime((prev) => !prev)}
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${
+                  showOneTime
+                    ? "bg-gray-100 text-gray-600"
+                    : "bg-gray-50 text-gray-400"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    showOneTime ? "bg-gray-400" : "bg-gray-300"
+                  }`}
+                ></span>
                 One-time
-              </span>
+              </button>
               <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-gray-600">
-                <button className="rounded-full bg-primary-600 px-2 py-0.5 text-white">
+                <button
+                  type="button"
+                  onClick={() => setRevenueGranularity("monthly")}
+                  className={`rounded-full px-2 py-0.5 ${
+                    revenueGranularity === "monthly"
+                      ? "bg-primary-600 text-white"
+                      : ""
+                  }`}
+                >
                   Monthly
                 </button>
-                <button className="px-2 py-0.5">Quarterly</button>
-                <button className="px-2 py-0.5">Yearly</button>
+                <button
+                  type="button"
+                  onClick={() => setRevenueGranularity("quarterly")}
+                  className={`px-2 py-0.5 ${
+                    revenueGranularity === "quarterly"
+                      ? "rounded-full bg-primary-600 text-white"
+                      : ""
+                  }`}
+                >
+                  Quarterly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRevenueGranularity("yearly")}
+                  className={`px-2 py-0.5 ${
+                    revenueGranularity === "yearly"
+                      ? "rounded-full bg-primary-600 text-white"
+                      : ""
+                  }`}
+                >
+                  Yearly
+                </button>
               </div>
             </div>
+            {revenueError && (
+              <p className="mt-3 text-xs text-red-500">{revenueError}</p>
+            )}
             <div className="mt-4">
-              {loading ? (
+              {revenueLoading ? (
                 <div className="h-40 w-full animate-pulse rounded-2xl bg-white/60" />
               ) : (
-                <RevenueSparkline />
+                <RevenueSparkline
+                  periods={visiblePeriods}
+                  showRecurring={showRecurring}
+                  showOneTime={showOneTime}
+                />
               )}
             </div>
           </div>
@@ -281,10 +650,12 @@ const AdminDashboardPage = () => {
                 Monthly growth
               </p>
               <p className="mt-2 text-lg font-semibold text-slate-900">
-                +12.4%
+                {revenueLoading ? "+0.0%" : revenueGrowth}
               </p>
               <p className="mt-1 text-sm text-slate-500">
-                Based on last billing period compared to previous month.
+                {revenueLoading
+                  ? "Waiting for revenue data..."
+                  : revenueTrendDescription}
               </p>
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">

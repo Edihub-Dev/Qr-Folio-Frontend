@@ -14,6 +14,7 @@ import {
   getPlanRank,
   PLAN_LABELS,
 } from "../utils/subscriptionPlan";
+import PageSEO from "../components/PageSEO";
 
 const GST_RATE = 0.18;
 
@@ -1115,6 +1116,21 @@ const PaymentForm = () => {
   );
 };
 
-const PaymentPage = () => <PaymentForm />;
+const PaymentPage = () => (
+  <>
+    <PageSEO
+      title="Plans & pricing"
+      description="Choose a QR Folio digital business card plan – Basic (Silver), Standard (Gold), or Premium (Platinum) with QR and NFC options."
+      keywords={[
+        "qr folio pricing",
+        "digital business card plans",
+        "qrfolio subscription",
+        "qr code business card pricing",
+      ]}
+      canonicalPath="/payment"
+    />
+    <PaymentForm />
+  </>
+);
 
 export default PaymentPage;

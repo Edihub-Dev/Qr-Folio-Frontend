@@ -1,12 +1,18 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import PageSEO from "../components/PageSEO";
 
 const TermsConditions = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
+      <PageSEO
+        title="Terms & Conditions"
+        description="Terms and Conditions for using the QR Folio digital business card platform."
+        canonicalPath="/terms"
+      />
       <div className="max-w-4xl mx-auto px-4 text-gray-800">
         <button
           onClick={() => navigate("/")}

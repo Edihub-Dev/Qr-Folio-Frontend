@@ -70,6 +70,11 @@ export const fetchAdminSubscriptionAnalytics = async () => {
   return response.data;
 };
 
+export const fetchAdminRevenueOverview = async (params = {}) => {
+  const response = await api.get('/admin/revenue/overview', { params });
+  return response.data;
+};
+
 export const fetchAdminInvoices = async (params = {}) => {
   const response = await api.get("/admin/invoices", { params });
   return response.data;

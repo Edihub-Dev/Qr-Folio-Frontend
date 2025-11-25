@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import api from "../api";
+import PageSEO from "../components/PageSEO";
+import { buildAbsoluteUrl } from "../utils/seoConfig";
 
 const QRCodeGenerator = lazy(() => import("../components/QRCodeGenerator"));
 
@@ -589,7 +591,7 @@ const PublicProfilePage = () => {
             className={className}
             aria-hidden="true"
           >
-            <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.93 9h-2.18a15.6 15.6 0 00-1.03-4.14A8.03 8.03 0 0118.93 11zm-4.22 0h-4.42A13.7 13.7 0 0112 4.06 13.7 13.7 0 0114.71 11zm-6.42 2h4.42A13.7 13.7 0 0112 19.94 13.7 13.7 0 018.29 13zm6.42 0h2.18a8.03 8.03 0 01-3.21 4.14A15.6 15.6 0 0014.71 13zm-8.9-2H4.07a8.03 8.03 0 013.21-4.14A15.6 15.6 0 006.1 11zm0 2h2.18a15.6 15.6 0 001.03 4.14A8.03 8.03 0 016.1 13zM19.93 13h-2.18a15.6 15.6 0 01-1.03 4.14A8.03 8.03 0 0019.93 13z" />
+            <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.93 9h-2.18a15.6 15.6 0 00-1.03-4.14A8.03 8.03 0 0118.93 11zm-4.22 0h-4.42A13.7 13.7 0 0112 4.06 13.7 13.7 0 0114.71 11zm-6.42 2h4.42A13.7 13.7 0 0112 19.94 13.7 13.7 0 018.29 13zm6.42 0h2.18a8.03 8.03 0 01-3.21 4.14A15.6 15.6 0 0114.71 13zm-8.9-2H4.07a8.03 8.03 0 013.21-4.14A15.6 15.6 0 006.1 11zm0 2h2.18a15.6 15.6 0 001.03 4.14A8.03 8.03 0 016.1 13zM19.93 13h-2.18a15.6 15.6 0 01-1.03 4.14A8.03 8.03 0 0119.93 13z" />
           </svg>
         );
       default:
@@ -914,8 +916,31 @@ const PublicProfilePage = () => {
     touchStartXRef.current = null;
   };
 
+  const profileSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": buildAbsoluteUrl(`/profile/${id}#person`),
+    name: displayName,
+    description:
+      professionalSummary ||
+      `${displayName}'s digital business card on QR Folio.`,
+    url: buildAbsoluteUrl(`/profile/${id}`),
+    image: avatar,
+    sameAs: socialLinks.map((link) => link.href),
+  };
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-slate-950">
+      <PageSEO
+        title={`${displayName}'s digital business card`}
+        description={
+          professionalSummary ||
+          `${displayName}'s QR Folio profile with contact details, links, and media.`
+        }
+        canonicalPath={`/profile/${id}`}
+        ogType="profile"
+        structuredData={profileSchema}
+      />
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-950" />
       </div>
@@ -926,7 +951,7 @@ const PublicProfilePage = () => {
             <button
               type="button"
               onClick={handleBackClick}
-              className="no-print inline-flex items-center gap-2 rounded-full border border-indigo-500/40 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-indigo-100 shadow-lg shadow-indigo-900/40 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/70 hover:bg-slate-900/80 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-indigo-500/40 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-indigo-100 shadow-lg shadow-indigo-900/40 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/70 hover:bg-slate-900/80 hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
               Back

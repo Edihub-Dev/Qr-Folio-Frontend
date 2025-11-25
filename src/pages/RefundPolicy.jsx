@@ -2,12 +2,18 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Shield } from "lucide-react";
 import { motion } from "../utils/motion";
+import PageSEO from "../components/PageSEO";
 
 const RefundPolicy = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <PageSEO
+        title="Refund & Cancellation Policy"
+        description="Refund and cancellation policy for QR Folio digital services and subscriptions."
+        canonicalPath="/RefundPolicy"
+      />
       <div className="max-w-4xl mx-auto">
         <motion.button
           initial={{ opacity: 0, x: -20 }}

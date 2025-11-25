@@ -322,7 +322,6 @@ export const AuthProvider = ({ children }) => {
       if (!isOtpString(otpValue))
         return { success: false, error: "Invalid or missing OTP" };
 
-      console.log("Sending OTP verification request for:", userEmail);
       const payload = { email: userEmail, otp: otpValue };
       const trimmedCoupon = signupData?.couponCode?.trim();
       const trimmedReferral = signupData?.referralCode?.trim();
@@ -339,7 +338,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       const res = await api.post("/auth/verify-otp", payload);
-      console.log("OTP verification response:", res.data);
 
       if (res.data?.success) {
         const { token, user: userData, couponApplied, couponError } = res.data;
@@ -349,14 +347,11 @@ export const AuthProvider = ({ children }) => {
         }
 
         localStorage.setItem("token", token);
-
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         const normalizedUser = normalizeUser(userData, {
           isVerified: true,
         });
-
-        console.log("Setting user state:", normalizedUser);
 
         setUser(normalizedUser);
         localStorage.setItem("qr_folio_user", JSON.stringify(normalizedUser));
@@ -376,14 +371,8 @@ export const AuthProvider = ({ children }) => {
         error: res.data?.message || "Invalid OTP",
       };
     } catch (err) {
-      console.error("OTP Verification Error:", err);
       const errorMessage =
         err.response?.data?.message || err.message || "Failed to verify OTP";
-      console.error("Error details:", {
-        response: err.response?.data,
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-      });
       return {
         success: false,
         error: errorMessage,
@@ -421,6 +410,7 @@ export const AuthProvider = ({ children }) => {
         const { success, ...rest } = res.data;
         return { success: true, data: rest };
       }
+
       return {
         success: false,
         error: res.data?.message || "Failed to create order",
@@ -561,44 +551,36 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      console.log("Clearing existing auth data...");
-      localStorage.removeItem("token");
-      localStorage.removeItem("qr_folio_user");
-      localStorage.clear();
-      sessionStorage.clear();
-      document.cookie = "token=; Max-Age=0; path=/";
-    } catch (error) {
-      console.warn("Error clearing auth data:", error);
-    }
+      try {
+        localStorage.removeItem("token");
+        localStorage.removeItem("qr_folio_user");
+        localStorage.clear();
+        sessionStorage.clear();
+        document.cookie = "token=; Max-Age=0; path=/";
+      } catch (_) {
+        // ignore storage errors
+      }
 
-    console.log("Attempting login for:", email);
+      const normalizedEmail = email ? email.trim().toLowerCase() : "";
 
-    const normalizedEmail = email ? email.trim().toLowerCase() : "";
-
-    try {
       const res = await api.post("/auth/login", {
         email: normalizedEmail,
-        password: password,
+        password,
       });
 
-      console.log("Login API response:", res.data);
-
       if (res.data?.success) {
-        console.log("Login successful for:", normalizedEmail);
         const {
           token,
           user: u,
           requiresRenewal,
           planExpired,
           planStatus,
+          requiresPayment: resRequiresPayment,
         } = res.data;
 
         if (token) {
-          console.log("Token received, saving to localStorage");
           localStorage.setItem("token", token);
           api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        } else {
-          console.warn("No token received in login response");
         }
 
         const normalized = normalizeUser(
@@ -613,26 +595,25 @@ export const AuthProvider = ({ children }) => {
           }
         );
 
-        console.log("Normalized user data:", normalized);
         setUser(normalized);
         localStorage.setItem("qr_folio_user", JSON.stringify(normalized));
 
         const requiresPayment =
-          res.data?.requiresPayment ?? !hasPaymentFlag(normalized);
+          typeof resRequiresPayment === "boolean"
+            ? resRequiresPayment
+            : !hasPaymentFlag(normalized);
 
         if (requiresRenewal || planExpired) {
-          console.log("Subscription renewal required for:", normalizedEmail);
           return {
             success: true,
             requiresPayment: requiresPayment || requiresRenewal,
             requiresRenewal: true,
-            planExpired,
+            planExpired: Boolean(planExpired),
             user: normalized,
           };
         }
 
         if (requiresPayment) {
-          console.log("Payment required for user:", normalizedEmail);
           return {
             success: true,
             requiresPayment: true,
@@ -646,14 +627,12 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      console.error("Login response indicates failure:", res.data);
       return {
         success: false,
         error: res.data?.message || "Login failed. Please try again.",
         errorCode: res.data?.error,
       };
     } catch (apiError) {
-      console.error("API Error:", apiError);
       const data = apiError.response?.data;
 
       if (data?.user) {
@@ -663,7 +642,6 @@ export const AuthProvider = ({ children }) => {
           planExpired: data.planExpired,
         });
 
-        console.log("User requires follow-up action:", normalized);
         setUser(normalized);
         localStorage.setItem("qr_folio_user", JSON.stringify(normalized));
 
@@ -678,22 +656,13 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      // Handle specific error cases
       let errorMessage = "An error occurred during login. Please try again.";
       let errorCode = "unknown_error";
 
       if (apiError.response) {
-        // Server responded with an error status code
-        console.error("Server error response:", {
-          status: apiError.response.status,
-          data: apiError.response.data,
-          headers: apiError.response.headers,
-        });
-
         errorMessage = data?.message || apiError.message;
         errorCode = data?.error || `http_${apiError.response.status}`;
 
-        // Handle common error cases
         if (apiError.response.status === 400) {
           if (data?.error === "invalid_credentials") {
             errorMessage =
@@ -701,7 +670,7 @@ export const AuthProvider = ({ children }) => {
           } else if (data?.error === "email_not_verified") {
             errorMessage =
               "Please verify your email before logging in. Check your inbox for the verification link.";
-          } else if (data?.missingFields) {
+          } else if (Array.isArray(data?.missingFields)) {
             errorMessage = `Missing required fields: ${data.missingFields.join(
               ", "
             )}`;
@@ -710,20 +679,17 @@ export const AuthProvider = ({ children }) => {
           errorMessage = "Your session has expired. Please log in again.";
         } else if (apiError.response.status === 403) {
           errorMessage = "You don't have permission to access this resource.";
-        } else if (apiError.response.status === 404) {
-          errorMessage = "Please change your password.";
-        } else if (apiError.response.status >= 500) {
+        } else if (
+          apiError.response.status === 404 ||
+          apiError.response.status >= 500
+        ) {
           errorMessage = "Please change your password.";
         }
       } else if (apiError.request) {
-        // Request was made but no response received
-        console.error("No response received:", apiError.request);
         errorMessage =
           "Unable to connect to the server. Please check your internet connection.";
         errorCode = "no_response";
       } else {
-        // Something happened in setting up the request
-        console.error("Request setup error:", apiError.message);
         errorMessage = `Request error: ${apiError.message}`;
         errorCode = "request_error";
       }
@@ -731,7 +697,7 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         error: errorMessage,
-        errorCode: errorCode,
+        errorCode,
         originalError:
           process.env.NODE_ENV === "development" ? apiError : undefined,
       };

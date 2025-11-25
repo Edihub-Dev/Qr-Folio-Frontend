@@ -682,6 +682,8 @@ const GalleryPage = () => {
                           <img
                             src={item.url}
                             alt={item.title || "Gallery image"}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-56 object-cover cursor-zoom-in"
                           />
                         </button>
@@ -811,6 +813,8 @@ const GalleryPage = () => {
             <img
               src={selectedPhoto.url}
               alt={selectedPhoto.title || "Gallery image"}
+              loading="lazy"
+              decoding="async"
               className="max-h-[80vh] w-full object-contain"
             />
             {(selectedPhoto.title || selectedPhoto.description) && (
