@@ -257,6 +257,7 @@ const ForgotPasswordPage = () => {
                         newPassword: e.target.value,
                       }))
                     }
+                    autoComplete="new-password"
                     placeholder="New Password"
                     className={`w-full px-4 py-3.5 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pr-12 ${
                       errors.newPassword
@@ -298,6 +299,7 @@ const ForgotPasswordPage = () => {
                         confirmPassword: e.target.value,
                       }))
                     }
+                    autoComplete="new-password"
                     placeholder="Confirm Password"
                     className={`w-full px-4 py-3.5 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pr-12 ${
                       errors.confirmPassword

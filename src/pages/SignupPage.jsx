@@ -417,6 +417,7 @@ const SignupPage = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
+                      autoComplete="new-password"
                       placeholder="Password"
                       className={`w-full px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pr-12 ${
                         errors.password
@@ -453,6 +454,7 @@ const SignupPage = () => {
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
+                      autoComplete="new-password"
                       placeholder="Confirm Password"
                       className={`w-full px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pr-12 ${
                         errors.confirmPassword
