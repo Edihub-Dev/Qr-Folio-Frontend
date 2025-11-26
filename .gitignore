@@ -5,7 +5,6 @@
 # production
 /build
 
-dist
 /.pnp
 .pnp.js
 
