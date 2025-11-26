@@ -334,9 +334,7 @@ const LandingPage = () => {
                   </a>
                 </div>
                 <span className="text-xl font-semibold tracking-tight text-white">
-                  <a href="/" target="_blank" rel="noopener noreferrer">
-                    QR Folio
-                  </a>
+                  <a href="/">QR Folio</a>
                 </span>
               </div>
 
