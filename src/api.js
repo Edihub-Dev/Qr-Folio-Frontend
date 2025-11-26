@@ -9,7 +9,7 @@ const apiBaseUrl = (envBaseUrl || defaultBaseUrl).replace(/\/$/, "");
 
 const api = axios.create({
   baseURL: `${apiBaseUrl}/api`,
-  withCredentials: true,
+  // withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
