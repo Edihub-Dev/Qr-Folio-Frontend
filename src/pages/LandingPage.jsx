@@ -332,7 +332,13 @@ const LandingPage = () => {
                   <QrCode className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-xl font-semibold tracking-tight text-white">
-                  QR Folio
+                  <a
+                    href="https://www.qrfolio.net"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    QR Folio
+                  </a>
                 </span>
               </div>
 
