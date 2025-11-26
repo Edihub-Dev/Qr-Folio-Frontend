@@ -329,7 +329,9 @@ const LandingPage = () => {
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/40">
-                  <QrCode className="w-6 h-6 text-white" />
+                  <a href="/">
+                    <QrCode className="w-6 h-6 text-white" />
+                  </a>
                 </div>
                 <span className="text-xl font-semibold tracking-tight text-white">
                   <a href="/" target="_blank" rel="noopener noreferrer">
