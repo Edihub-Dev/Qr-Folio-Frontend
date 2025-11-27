@@ -384,9 +384,9 @@ const LandingPage = () => {
                   </span>
                 </div>
 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-normal">
                   Your identity,
-                  <span className="block bg-gradient-to-r from-primary-300 via-emerald-300 to-sky-300 bg-clip-text text-transparent">
+                  <span className="block pb-2 bg-gradient-to-r from-primary-300 via-emerald-300 to-sky-300 bg-clip-text text-transparent">
                     one QR away.
                   </span>
                 </h1>

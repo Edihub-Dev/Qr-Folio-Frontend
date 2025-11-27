@@ -236,7 +236,7 @@ const SignupPage = () => {
 
           <div className="flex flex-col lg:flex-row items-center lg:items-stretch justify-between gap-10 lg:gap-16">
             <motion.div
-              className="flex-1 max-w-xl text-center lg:text-left space-y-6"
+              className="flex-1 max-w-xl text-center lg:text-left space-y-6 order-2 lg:order-1"
               initial={{ opacity: 0, x: -40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
@@ -246,9 +246,9 @@ const SignupPage = () => {
                 <span>Create your QR Folio in minutes</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-normal">
                 <span className="block">Turn your profile into</span>
-                <span className="mt-1 block bg-gradient-to-r from-primary-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                <span className="mt-1 block pb-2 bg-gradient-to-r from-primary-400 via-emerald-400 to-cyan-400 bg-clip-text text-transparent">
                   a scannable QR identity
                 </span>
               </h1>
@@ -313,7 +313,7 @@ const SignupPage = () => {
             </motion.div>
 
             <motion.div
-              className="flex-1 max-w-xl w-full space-y-4 flex flex-col lg:-mt-12"
+              className="flex-1 max-w-xl w-full space-y-4 flex flex-col lg:-mt-12 order-1 lg:order-2"
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
