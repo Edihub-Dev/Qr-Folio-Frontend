@@ -476,14 +476,14 @@ const GalleryPage = () => {
               type="text"
               value={imageTitle}
               onChange={(event) => setImageTitle(event.target.value)}
-              maxLength={80}
+              maxLength={100}
               placeholder="Add a short title for the image"
               className="w-full rounded-lg border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 shadow-sm transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
               disabled={hasReachedImageLimit}
             />
             <div className="mt-1 flex justify-between text-xs text-slate-500">
               <span>Helps identify the image in your gallery.</span>
-              <span>{imageTitle.length}/80</span>
+              <span>{imageTitle.length}/100</span>
             </div>
           </div>
           <div>
@@ -494,14 +494,14 @@ const GalleryPage = () => {
             <textarea
               value={imageDescription}
               onChange={(event) => setImageDescription(event.target.value)}
-              maxLength={160}
+              maxLength={300}
               rows={3}
               placeholder="Describe the context, project, or story behind this image"
               className="w-full rounded-lg border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 shadow-sm transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
               disabled={hasReachedImageLimit}
             />
             <div className="mt-1 flex justify-end text-xs text-slate-500">
-              <span>{imageDescription.length}/160</span>
+              <span>{imageDescription.length}/300</span>
             </div>
           </div>
         </div>
