@@ -4,7 +4,6 @@ import AdminSearchBar from "../../components/admin/AdminSearchBar";
 import AdminFilterDropdown from "../../components/admin/AdminFilterDropdown";
 import AdminPagination from "../../components/admin/AdminPagination";
 import AdminTable from "../../components/admin/AdminTable";
-import AdminModal from "../../components/admin/AdminModal";
 import {
   fetchAdminInvoices,
   downloadInvoicesCsv,
@@ -104,8 +103,6 @@ const AdminInvoicesPage = () => {
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const [csvLoading, setCsvLoading] = useState(false);
 
   const loadInvoices = useCallback(async () => {
@@ -134,36 +131,51 @@ const AdminInvoicesPage = () => {
   const columns = useMemo(
     () => [
       {
-        key: "invoiceNumber",
-        label: "Invoice",
-        sortable: true,
-        sortKey: "invoiceNumber",
-      },
-      {
-        key: "invoiceDate",
-        label: "Date",
+        key: "invoiceAndDate",
         sortable: true,
         sortKey: "date",
-        render: (value) =>
-          value
-            ? new Date(value).toLocaleDateString("en-IN", {
-                dateStyle: "medium",
-              })
-            : "—",
+        label: (
+          <div className="flex flex-col leading-tight">
+            <span>Invoice/</span>
+            <span className="text-gray-400 text-xs">Date</span>
+          </div>
+        ),
+        render: (_, row) => (
+          <div className="flex flex-col">
+            <span className="font-medium text-gray-900">
+              {row.invoiceNumber || "—"}
+            </span>
+            <span className="text-xs text-gray-500">
+              {row.invoiceDate
+                ? new Date(row.invoiceDate).toLocaleDateString("en-IN", {
+                    dateStyle: "medium",
+                  })
+                : "—"}
+            </span>
+          </div>
+        ),
       },
+
       {
-        key: "gateway",
-        label: "Method",
+        key: "methodAndPlan",
         sortable: true,
         sortKey: "gateway",
-        render: (value) => (value ? value.toUpperCase() : "—"),
+        label: (
+          <div className="flex flex-col leading-tight">
+            <span>Method/</span>
+            <span className="text-gray-400 text-xs">Plan</span>
+          </div>
+        ),
+        render: (_, row) => (
+          <div className="flex flex-col">
+            <span className="uppercase text-gray-900">
+              {row.gateway || "—"}
+            </span>
+            <span className="text-xs text-gray-500">{row.planName || "—"}</span>
+          </div>
+        ),
       },
-      {
-        key: "planName",
-        label: "Plan",
-        sortable: false,
-        render: (value) => value || "—",
-      },
+
       {
         key: "totalAmount",
         label: "Total",
@@ -171,12 +183,14 @@ const AdminInvoicesPage = () => {
         sortKey: "amount",
         render: (value, row) => formatCurrency(value, row.currency),
       },
+
       {
         key: "transactionId",
         label: "Transaction",
         sortable: false,
         render: (value, row) => value || row.orderId || "—",
       },
+
       {
         key: "email",
         label: "Email",
@@ -236,16 +250,6 @@ const AdminInvoicesPage = () => {
     }
   };
 
-  const openInvoiceModal = (invoice) => {
-    setSelectedInvoice(invoice);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-    setSelectedInvoice(null);
-  };
-
   const handleOpenPdf = useCallback(
     async (invoice) => {
       if (!invoice?._id) return;
@@ -253,7 +257,15 @@ const AdminInvoicesPage = () => {
         const response = await downloadInvoicePdf(invoice._id);
         const blob = new Blob([response.data], { type: "application/pdf" });
         const url = window.URL.createObjectURL(blob);
-        window.open(url, "_blank", "noopener");
+        const link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link);
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 60000);
       } catch (err) {
         setError(
           err?.response?.data?.message ||
@@ -358,7 +370,7 @@ const AdminInvoicesPage = () => {
         renderActions={(invoice) => (
           <button
             type="button"
-            onClick={() => openInvoiceModal(invoice)}
+            onClick={() => handleOpenPdf(invoice)}
             className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-100"
           >
             <Eye className="h-4 w-4" />
@@ -378,128 +390,6 @@ const AdminInvoicesPage = () => {
           Loading invoices...
         </div>
       )}
-
-      <AdminModal
-        open={modalOpen}
-        onClose={closeModal}
-        title="Invoice details"
-        footer={
-          selectedInvoice && (
-            <button
-              type="button"
-              onClick={() => handleOpenPdf(selectedInvoice)}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700"
-            >
-              Open PDF
-            </button>
-          )
-        }
-      >
-        {selectedInvoice && (
-          <div className="space-y-6 text-sm text-gray-700">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Invoice
-                </p>
-                <p className="mt-1 font-medium text-gray-900">
-                  {selectedInvoice.invoiceNumber}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Date
-                </p>
-                <p className="mt-1 font-medium text-gray-900">
-                  {selectedInvoice.invoiceDate
-                    ? new Date(selectedInvoice.invoiceDate).toLocaleString(
-                        "en-IN"
-                      )
-                    : "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Payment method
-                </p>
-                <p className="mt-1 font-medium text-gray-900">
-                  {selectedInvoice.gateway
-                    ? selectedInvoice.gateway.toUpperCase()
-                    : "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Total Amount
-                </p>
-                <p className="mt-1 font-medium text-gray-900">
-                  {formatCurrency(
-                    selectedInvoice.totalAmount,
-                    selectedInvoice.currency
-                  )}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Transaction ID
-                </p>
-                <p className="mt-1 font-medium text-gray-900">
-                  {selectedInvoice.transactionId ||
-                    selectedInvoice.orderId ||
-                    "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  User Email
-                </p>
-                <p className="mt-1 font-medium text-gray-900">
-                  {selectedInvoice.email || "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Plan
-                </p>
-                <p className="mt-1 font-medium text-gray-900">
-                  {selectedInvoice.planName || "—"}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Key: {selectedInvoice.planKey || "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  User ID
-                </p>
-                <p className="mt-1 font-medium text-gray-900">
-                  {selectedInvoice.userId || "—"}
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-xs uppercase tracking-wide text-gray-500">
-                Invoice Preview
-              </p>
-              <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                {selectedInvoice.invoiceHtml ? (
-                  <div
-                    className="invoice-preview max-h-[400px] overflow-auto rounded-lg bg-white p-4 shadow-inner"
-                    dangerouslySetInnerHTML={{
-                      __html: selectedInvoice.invoiceHtml,
-                    }}
-                  />
-                ) : (
-                  <p className="text-sm text-gray-500">
-                    No invoice HTML stored for this record.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </AdminModal>
     </div>
   );
 };

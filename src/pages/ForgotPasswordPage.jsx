@@ -122,7 +122,7 @@ const ForgotPasswordPage = () => {
         canonicalPath="/forgot-password"
       />
       <motion.div
-        className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white flex items-center py-10 px-4 sm:px-6 lg:px-8"
+        className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white flex items-center py-10 px-4 sm:px-6 lg:px-8"
         initial={{ opacity: 0, y: 32 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}

@@ -20,9 +20,9 @@ const MyQRCode = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [qrConfig, setQrConfig] = useState({
-    size: 300,
+    size: 100,
     level: "H",
-    margin: 4,
+    margin: 2,
     color: "#000000",
     background: "#FFFFFF",
   });
@@ -31,6 +31,18 @@ const MyQRCode = () => {
   const qrContainerRef = useRef(null);
   const qrCodeRef = useRef(null);
   const qrCardRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const width = window.innerWidth;
+    if (width < 640) {
+      setPreviewDevice("mobile");
+    } else if (width < 1024) {
+      setPreviewDevice("tablet");
+    } else {
+      setPreviewDevice("desktop");
+    }
+  }, []);
 
   const baseClientUrl = useMemo(() => {
     const envUrl = import.meta.env.VITE_CLIENT_BASE_URL;
@@ -116,7 +128,7 @@ const MyQRCode = () => {
         const dataUrl = await toPng(qrCardRef.current, {
           cacheBust: true,
           backgroundColor: "#020617",
-          pixelRatio: 2,
+          pixelRatio: 6,
           skipFonts: true,
         });
 
@@ -147,7 +159,7 @@ const MyQRCode = () => {
           let svgMarkup = await toSvg(qrCardRef.current, {
             cacheBust: true,
             backgroundColor: "#020617",
-            pixelRatio: 2,
+            pixelRatio: 3,
             skipFonts: true,
           });
 
@@ -250,7 +262,15 @@ const MyQRCode = () => {
     { name: "Wine Red", color: "#722F37", bg: "#FDF2F8" },
   ];
 
-  const qrfolioLogoSrc = "/assets/QrLogo.svg";
+  const qrfolioLogoSrc = "/assets/QrLogo.webp";
+
+  const resolvedQrSize = useMemo(() => {
+    const raw = typeof qrConfig.size === "number" ? qrConfig.size : 100;
+    const clamped = Math.min(Math.max(raw, 100), 160);
+    if (previewDevice === "mobile") return Math.min(clamped, 100);
+    if (previewDevice === "tablet") return Math.min(clamped, 140);
+    return clamped;
+  }, [qrConfig.size, previewDevice]);
 
   return (
     <motion.div
@@ -318,20 +338,15 @@ const MyQRCode = () => {
                   <QRCodeGenerator
                     ref={qrCodeRef}
                     value={profileUrl}
-                    size={
-                      previewDevice === "mobile"
-                        ? 200
-                        : previewDevice === "tablet"
-                        ? 250
-                        : qrConfig.size
-                    }
+                    size={resolvedQrSize}
                     level={qrConfig.level}
                     margin={qrConfig.margin}
                     color={qrConfig.color}
                     background={qrConfig.background}
                     logoSrc={qrfolioLogoSrc}
-                    logoSizeRatio={0.24}
+                    logoSizeRatio={0.2}
                     className="overflow-hidden rounded-2xl"
+                    pixelRatio={3}
                   />
                 </div>
                 <div className="mt-4 text-center">
@@ -414,15 +429,17 @@ const MyQRCode = () => {
           <div className="space-y-6">
             <div>
               <label className="mb-3 block text-sm font-medium text-slate-200">
-                Size: {qrConfig.size}px
+                Size: {resolvedQrSize}px
               </label>
               <input
                 type="range"
-                min="200"
-                max="500"
-                step="10"
-                value={qrConfig.size}
+                min="100"
+                max="160"
+                value={resolvedQrSize}
                 onChange={(e) =>
+                  handleConfigChange("size", parseInt(e.target.value))
+                }
+                onInput={(e) =>
                   handleConfigChange("size", parseInt(e.target.value))
                 }
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"
@@ -451,10 +468,13 @@ const MyQRCode = () => {
               </label>
               <input
                 type="range"
-                min="0"
+                min="1"
                 max="10"
                 value={qrConfig.margin}
                 onChange={(e) =>
+                  handleConfigChange("margin", parseInt(e.target.value))
+                }
+                onInput={(e) =>
                   handleConfigChange("margin", parseInt(e.target.value))
                 }
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"

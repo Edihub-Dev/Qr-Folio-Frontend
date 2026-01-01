@@ -332,20 +332,43 @@ const AdminUsersPage = () => {
     () => [
       { key: "name", label: "Name", sortable: true },
       { key: "email", label: "Email", sortable: true },
+
+      /* ================= PLAN + METHOD ================= */
       {
-        key: "subscriptionPlan",
-        label: "Plan",
+        key: "planAndMethod",
         sortable: true,
-        render: (value) =>
-          value ? value.charAt(0).toUpperCase() + value.slice(1) : "—",
+        sortKey: "subscriptionPlan",
+        label: (
+          <div className="flex flex-col leading-tight">
+            <span>Plan</span>
+            <span className="text-gray-400 font-medium">Method</span>
+          </div>
+        ),
+        render: (_, row) => (
+          <div className="flex flex-col">
+            <span className="font-medium text-gray-900">
+              {row.subscriptionPlan
+                ? row.subscriptionPlan.charAt(0).toUpperCase() +
+                  row.subscriptionPlan.slice(1)
+                : "—"}
+            </span>
+            <span className="text-xs text-gray-500 uppercase">
+              {row.paymentMethod && row.paymentMethod !== "none"
+                ? row.paymentMethod
+                : "—"}
+            </span>
+          </div>
+        ),
       },
+
+      /* ================= PAYMENT STATUS ================= */
       {
         key: "paymentStatus",
-        label: "Payment Status",
+        label: "Payment",
         sortable: true,
         render: (value) => (
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
               value === "paid"
                 ? "bg-green-100 text-green-700"
                 : value === "failed"
@@ -359,57 +382,111 @@ const AdminUsersPage = () => {
           </span>
         ),
       },
+
+      /* ================= BLOCK STATUS ================= */
+      // {
+      //   key: "isBlocked",
+      //   label: "Status",
+      //   render: (value) => (
+      //     <span
+      //       className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+      //         value
+      //           ? "bg-red-100 text-red-600"
+      //           : "bg-emerald-100 text-emerald-600"
+      //       }`}
+      //     >
+      //       {value ? "Blocked" : "Active"}
+      //     </span>
+      //   ),
+      // },
+
+      /* ================= JOIN DATE ================= */
+
       {
-        key: "planStatus",
-        label: "Plan status",
+        key: "joinedAndStatus",
         sortable: true,
-        render: (value) => (
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-              value === "expired"
-                ? "bg-red-100 text-red-600"
-                : value === "expiring_soon"
-                ? "bg-amber-100 text-amber-600"
-                : "bg-emerald-100 text-emerald-600"
-            }`}
-          >
-            {value ? value.replace(/_/g, " ") : "unknown"}
-          </span>
+        sortKey: "createdAt",
+        label: (
+          <div className="flex flex-col leading-tight">
+            <span>Plan Joined/</span>
+            <span className="text-gray-400 font-medium">Block Status</span>
+          </div>
         ),
+        render: (_, row) => {
+          const joinedDate = row.createdAt
+            ? new Date(row.createdAt).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
+            : "—";
+
+          return (
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-gray-700">{joinedDate}</span>
+              <span
+                className={`inline-flex w-fit rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                  row.isBlocked
+                    ? "bg-red-100 text-red-600"
+                    : "bg-emerald-100 text-emerald-600"
+                }`}
+              >
+                {row.isBlocked ? "Blocked" : "Active"}
+              </span>
+            </div>
+          );
+        },
       },
+      // {
+      //   key: "createdAt",
+      //   label: "Joined",
+      //   sortable: true,
+      //   render: (value) =>
+      //     value
+      //       ? new Date(value).toLocaleDateString("en-IN", {
+      //           dateStyle: "medium",
+      //         })
+      //       : "—",
+      // },
+
+      /* ================= EXPIRY + STATUS ================= */
       {
-        key: "planExpireDate",
-        label: "Expires",
+        key: "expiryAndStatus",
         sortable: true,
-        render: (value) => (value ? new Date(value).toLocaleDateString() : "—"),
-      },
-      {
-        key: "paymentMethod",
-        label: "Method",
-        sortable: true,
-        render: (value) =>
-          value && value !== "none" ? value.toUpperCase() : "—",
-      },
-      {
-        key: "isBlocked",
-        label: "Status",
-        render: (value) => (
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-              value
-                ? "bg-red-100 text-red-600"
-                : "bg-emerald-100 text-emerald-600"
-            }`}
-          >
-            {value ? "Blocked" : "Active"}
-          </span>
+        sortKey: "planExpireDate",
+        label: (
+          <div className="flex flex-col leading-tight">
+            <span>Plan Expires/</span>
+            <span className="text-gray-400 font-medium">Plan Status</span>
+          </div>
         ),
-      },
-      {
-        key: "createdAt",
-        label: "Joined",
-        sortable: true,
-        render: (value) => (value ? new Date(value).toLocaleDateString() : "—"),
+        render: (_, row) => {
+          const formattedExpire = row.planExpireDate
+            ? new Date(row.planExpireDate).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
+            : "—";
+
+          const statusColor =
+            row.planStatus === "expired"
+              ? "bg-red-100 text-red-600"
+              : row.planStatus === "expiring_soon"
+              ? "bg-amber-100 text-amber-600"
+              : "bg-emerald-100 text-emerald-600";
+
+          return (
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-gray-700">{formattedExpire}</span>
+              <span
+                className={`inline-flex w-fit rounded-full px-2 py-0.5 text-[11px] font-medium ${statusColor}`}
+              >
+                {row.planStatus ? row.planStatus.replace(/_/g, " ") : "unknown"}
+              </span>
+            </div>
+          );
+        },
       },
     ],
     []

@@ -683,7 +683,7 @@ export const AuthProvider = ({ children }) => {
           apiError.response.status === 404 ||
           apiError.response.status >= 500
         ) {
-          errorMessage = "Please change your password.";
+          errorMessage = "User Not Found";
         }
       } else if (apiError.request) {
         errorMessage =

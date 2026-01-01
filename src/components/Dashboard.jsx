@@ -182,11 +182,16 @@ const Dashboard = () => {
     `)}`;
   }, [authUser?.profilePhoto, authUser?.name]);
 
-  const [qrSize, setQrSize] = useState(200);
+  const [qrSize, setQrSize] = useState(80);
   const [copied, setCopied] = useState(false);
   const qrWrapperRef = useRef(null);
   const qrGeneratorRef = useRef(null);
   const qrCardRef = useRef(null);
+
+  const resolvedQrSize = useMemo(
+    () => Math.min(Math.max(qrSize, 80), 110),
+    [qrSize]
+  );
 
   const hasRefreshed = useRef(false);
   const nfcFormInitializedRef = useRef(false);
@@ -632,7 +637,7 @@ const Dashboard = () => {
       const dataUrl = await toPng(qrDownloadRef.current, {
         cacheBust: true,
         backgroundColor: "#ffffff",
-        pixelRatio: 3, // 🔥 HD quality
+        pixelRatio: 6, // 🔥 HD quality
       });
 
       const safeName = (user.name || "User").replace(/\s+/g, "_");
@@ -717,11 +722,12 @@ const Dashboard = () => {
             <div className="flex h-24 w-24 items-center justify-center rounded-full border border-white/25 bg-white/10 shadow-lg shadow-slate-950/40">
               <QRCodeGenerator
                 value={profileUrl}
-                size={60}
+                size={10}
                 level="M"
                 color="#000000"
                 background="#FFFFFF"
                 className="opacity-80"
+                pixelRatio={6}
               />
             </div>
           </div>
@@ -951,11 +957,12 @@ const Dashboard = () => {
                     <QRCodeGenerator
                       ref={qrGeneratorRef}
                       value={profileUrl}
-                      size={qrSize}
+                      size={resolvedQrSize}
                       level="H"
                       color="#000000"
                       background="#FFFFFF"
-                      logoSrc="/assets/QrLogo.svg" // 🔥 SVG preferred
+                      logoSrc="/assets/QrLogo.webp" // 🔥 SVG preferred
+                      logoSizeRatio={0.22}
                     />
                   </div>
                 </div>
@@ -968,14 +975,14 @@ const Dashboard = () => {
               </label>
               <input
                 type="range"
-                min="150"
-                max="300"
-                value={qrSize}
+                min="80"
+                max="110"
+                value={resolvedQrSize}
                 onChange={(e) => setQrSize(parseInt(e.target.value))}
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"
               />
               <div className="text-center text-xs text-slate-400">
-                {qrSize}px
+                {resolvedQrSize}px
               </div>
             </div>
 

@@ -81,12 +81,12 @@ const DownloadProfileCard = React.forwardRef(
               <div className="rounded-[24px] bg-slate-900/90 backdrop-blur p-4">
                 <QRCodeGenerator
                   value={qrValue}
-                  size={150}
+                  size={50}
                   level="H"
                   background="#ffffff"
                   color="#000000"
-                  logoSrc="/assets/QrLogo.svg"
-                  logoSizeRatio={0.22}
+                  logoSrc="/assets/QrLogo.webp"
+                  logoSizeRatio={0.2}
                   className="rounded-xl"
                   data-qr-code="true"
                 />

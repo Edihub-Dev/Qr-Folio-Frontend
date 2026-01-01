@@ -42,7 +42,11 @@ const AdminReferralsPage = () => {
     from: "",
     to: "",
   });
-  const [pagination, setPagination] = useState({ page: 1, limit: 20, totalPages: 1 });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    totalPages: 1,
+  });
   const [loading, setLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
@@ -50,7 +54,9 @@ const AdminReferralsPage = () => {
   const loadStats = async () => {
     try {
       setStatsLoading(true);
-      const { data } = await adminGetReferralStats(filters.status ? { status: filters.status } : {});
+      const { data } = await adminGetReferralStats(
+        filters.status ? { status: filters.status } : {}
+      );
       if (data?.success) {
         setStats(data.data);
       }
@@ -162,7 +168,8 @@ const AdminReferralsPage = () => {
       loadStats();
       loadReferrals(pagination.page);
     } catch (error) {
-      const message = error?.response?.data?.message || "Failed to update referral";
+      const message =
+        error?.response?.data?.message || "Failed to update referral";
       toast.error(message);
       console.error(error);
     } finally {
@@ -172,9 +179,16 @@ const AdminReferralsPage = () => {
 
   const renderFraudBadge = (referral) => {
     const cls = FRAUD_BADGE[referral.fraudStatus] || FRAUD_BADGE.clean;
-    const Icon = referral.fraudStatus === "rejected" ? ShieldAlert : referral.fraudStatus === "review" ? AlertTriangle : CheckCircle2;
+    const Icon =
+      referral.fraudStatus === "rejected"
+        ? ShieldAlert
+        : referral.fraudStatus === "review"
+        ? AlertTriangle
+        : CheckCircle2;
     return (
-      <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${cls}`}>
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${cls}`}
+      >
         <Icon className="h-3.5 w-3.5" />
         {referral.fraudStatus}
       </span>
@@ -185,9 +199,12 @@ const AdminReferralsPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">Referral oversight</h2>
+          <h2 className="text-2xl font-semibold text-slate-900">
+            Referral oversight
+          </h2>
           <p className="text-sm text-slate-500">
-            Monitor referrals flagged by fraud rules, review payouts, and keep an audit trail of approvals.
+            Monitor referrals flagged by fraud rules, review payouts, and keep
+            an audit trail of approvals.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -210,33 +227,50 @@ const AdminReferralsPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="rounded-3xl border border-slate-100 bg-white p-5">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Total referrals</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+            Total referrals
+          </p>
           <p className="mt-2 text-3xl font-semibold text-slate-900">
             {stats?.totalReferrals ?? "—"}
           </p>
           <p className="mt-1 text-xs text-slate-500">
-            Outstanding rewards ₹{Number(stats?.outstandingRewards || 0).toLocaleString("en-IN")}
+            Outstanding rewards ₹
+            {Number(stats?.outstandingRewards || 0).toLocaleString("en-IN")}
           </p>
         </div>
         <div className="rounded-3xl border border-slate-100 bg-white p-5">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Total reward amount</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+            Total reward amount
+          </p>
           <p className="mt-2 text-3xl font-semibold text-slate-900">
             ₹{Number(stats?.totalRewardAmount || 0).toLocaleString("en-IN")}
           </p>
-          <p className="mt-1 text-xs text-slate-500">Sum of approved and pending payouts</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Sum of approved and pending payouts
+          </p>
         </div>
         <div className="rounded-3xl border border-slate-100 bg-white p-5">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Fraud signals</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+            Fraud signals
+          </p>
           {statsLoading ? (
             <Loader2 className="mt-2 h-6 w-6 animate-spin text-slate-400" />
           ) : (
             <div className="mt-3 space-y-2 text-sm">
-              {fraudSummary.length === 0 && <p className="text-slate-500">No data.</p>}
+              {fraudSummary.length === 0 && (
+                <p className="text-slate-500">No data.</p>
+              )}
               {fraudSummary.map((entry) => (
-                <div key={entry.status} className="flex items-center justify-between">
-                  <span className="capitalize text-slate-600">{entry.status}</span>
+                <div
+                  key={entry.status}
+                  className="flex items-center justify-between"
+                >
+                  <span className="capitalize text-slate-600">
+                    {entry.status}
+                  </span>
                   <span className="font-semibold text-slate-900">
-                    {entry.count} • ₹{Number(entry.reward || 0).toLocaleString("en-IN")}
+                    {entry.count} • ₹
+                    {Number(entry.reward || 0).toLocaleString("en-IN")}
                   </span>
                 </div>
               ))}
@@ -248,14 +282,20 @@ const AdminReferralsPage = () => {
       <div className="rounded-3xl border border-slate-100 bg-white p-5 space-y-4">
         <div className="flex items-center gap-3 text-slate-600">
           <Filter className="h-4 w-4" />
-          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Filters</span>
+          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+            Filters
+          </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Status</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Status
+            </span>
             <select
               value={filters.status}
-              onChange={(event) => handleFilterChange("status", event.target.value)}
+              onChange={(event) =>
+                handleFilterChange("status", event.target.value)
+              }
               className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
             >
               {STATUS_OPTIONS.map((option) => (
@@ -266,46 +306,67 @@ const AdminReferralsPage = () => {
             </select>
           </label>
           <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Referrer code</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Referrer code
+            </span>
             <input
               type="text"
               value={filters.referrerCode}
-              onChange={(event) => handleFilterChange("referrerCode", event.target.value.toUpperCase())}
+              onChange={(event) =>
+                handleFilterChange(
+                  "referrerCode",
+                  event.target.value.toUpperCase()
+                )
+              }
               placeholder="e.g. ABC123"
               className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 uppercase"
             />
           </label>
           <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Referred email</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Referred email
+            </span>
             <input
               type="text"
               value={filters.referredEmail}
-              onChange={(event) => handleFilterChange("referredEmail", event.target.value)}
+              onChange={(event) =>
+                handleFilterChange("referredEmail", event.target.value)
+              }
               placeholder="user@example.com"
               className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
             />
           </label>
           <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Search (name/email/code)</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              Search (name/email/code)
+            </span>
             <input
               type="text"
               value={filters.search}
-              onChange={(event) => handleFilterChange("search", event.target.value)}
+              onChange={(event) =>
+                handleFilterChange("search", event.target.value)
+              }
               placeholder="name, email, or code"
               className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
             />
           </label>
           <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">From date</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              From date
+            </span>
             <input
               type="date"
               value={filters.from}
-              onChange={(event) => handleFilterChange("from", event.target.value)}
+              onChange={(event) =>
+                handleFilterChange("from", event.target.value)
+              }
               className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
             />
           </label>
           <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">To date</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              To date
+            </span>
             <input
               type="date"
               value={filters.to}
@@ -351,20 +412,29 @@ const AdminReferralsPage = () => {
             <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
               {loading && (
                 <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center text-slate-400">
-                    <Loader2 className="h-5 w-5 animate-spin inline-block" /> Loading referrals…
+                  <td
+                    colSpan={9}
+                    className="px-6 py-8 text-center text-slate-400"
+                  >
+                    <Loader2 className="h-5 w-5 animate-spin inline-block" />{" "}
+                    Loading referrals…
                   </td>
                 </tr>
               )}
               {!loading && referrals.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center text-slate-500">
+                  <td
+                    colSpan={9}
+                    className="px-6 py-8 text-center text-slate-500"
+                  >
                     No referrals found for the selected filters.
                   </td>
                 </tr>
               )}
               {referrals.map((referral) => {
-                const createdAt = referral.createdAt ? new Date(referral.createdAt) : null;
+                const createdAt = referral.createdAt
+                  ? new Date(referral.createdAt)
+                  : null;
                 const formattedDate = createdAt
                   ? createdAt.toLocaleString("en-IN", {
                       day: "2-digit",
@@ -379,25 +449,44 @@ const AdminReferralsPage = () => {
                 const referrerName = referral.referrerName || "—";
                 const referrerCode = referral.referrerCode || "—";
                 const referredName = referral.referredUserName || "—";
-                const referredEmail = referral.referredUserEmailMasked || referral.referredUserEmail || "—";
+                const referredCode = referral.referredUserCode || "—";
+                const referredEmail =
+                  referral.referredUserEmailMasked ||
+                  referral.referredUserEmail ||
+                  "—";
                 const planLabel = referral.referredUserPlan || "—";
                 const signupLabel = referral.referredUserSignupAt
-                  ? new Date(referral.referredUserSignupAt).toLocaleDateString("en-IN", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })
+                  ? new Date(referral.referredUserSignupAt).toLocaleDateString(
+                      "en-IN",
+                      {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      }
+                    )
                   : null;
 
                 return (
                   <tr key={referral._id} className="hover:bg-slate-50">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900">{referrerName}</div>
-                      <div className="text-xs text-slate-500">Code: {referrerCode}</div>
+                      <div className="font-semibold text-slate-900">
+                        {referrerName}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Code: {referrerCode}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-slate-900">{referredName}</div>
-                      <div className="text-xs text-slate-500">{referredEmail}</div>
+                      <div className="font-medium text-slate-900">
+                        {referredName}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {referredEmail}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        Code: {referredCode}
+                      </div>
+
                       {referral.reason && (
                         <div className="text-xs text-rose-500 flex items-center gap-1 mt-1">
                           <ShieldAlert className="h-3.5 w-3.5" />
@@ -407,16 +496,27 @@ const AdminReferralsPage = () => {
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
                       <div className="capitalize">{planLabel}</div>
-                      {signupLabel && <div className="text-xs text-slate-500">Signed up: {signupLabel}</div>}
+                      {signupLabel && (
+                        <div className="text-xs text-slate-500">
+                          Signed up: {signupLabel}
+                        </div>
+                      )}
                     </td>
-                    <td className="px-6 py-4 text-sm capitalize">{referral.status}</td>
+                    <td className="px-6 py-4 text-sm capitalize">
+                      {referral.status}
+                    </td>
                     <td className="px-6 py-4">{renderFraudBadge(referral)}</td>
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900">{referral.riskScore ?? 0}</div>
+                      <div className="font-semibold text-slate-900">
+                        {referral.riskScore ?? 0}
+                      </div>
                       {signals.length > 0 && (
                         <div className="mt-1 text-xs text-slate-500 space-y-1">
                           {signals.map((signal) => (
-                            <div key={signal} className="flex items-center gap-1">
+                            <div
+                              key={signal}
+                              className="flex items-center gap-1"
+                            >
                               <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                               <span>{signal}</span>
                             </div>
@@ -425,14 +525,21 @@ const AdminReferralsPage = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 font-semibold text-slate-900">
-                      ₹{Number(referral.rewardAmount || 0).toLocaleString("en-IN")}
+                      ₹
+                      {Number(referral.rewardAmount || 0).toLocaleString(
+                        "en-IN"
+                      )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-500">{formattedDate}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500">
+                      {formattedDate}
+                    </td>
                     <td className="px-6 py-4 space-y-2">
                       <button
                         type="button"
                         disabled={updatingId === referral._id}
-                        onClick={() => updateReferral(referral._id, { status: "rewarded" })}
+                        onClick={() =>
+                          updateReferral(referral._id, { status: "rewarded" })
+                        }
                         className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-50"
                       >
                         <CheckCircle2 className="h-4 w-4" /> Approve reward
@@ -440,7 +547,9 @@ const AdminReferralsPage = () => {
                       <button
                         type="button"
                         disabled={updatingId === referral._id}
-                        onClick={() => updateReferral(referral._id, { status: "completed" })}
+                        onClick={() =>
+                          updateReferral(referral._id, { status: "completed" })
+                        }
                         className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                       >
                         Mark completed
@@ -449,9 +558,16 @@ const AdminReferralsPage = () => {
                         type="button"
                         disabled={updatingId === referral._id}
                         onClick={() => {
-                          const reason = window.prompt("Reason for rejection", referral.reason || "Suspicious activity");
+                          const reason = window.prompt(
+                            "Reason for rejection",
+                            referral.reason || "Suspicious activity"
+                          );
                           if (reason) {
-                            updateReferral(referral._id, { status: "rejected", reason, fraudStatus: "rejected" });
+                            updateReferral(referral._id, {
+                              status: "rejected",
+                              reason,
+                              fraudStatus: "rejected",
+                            });
                           }
                         }}
                         className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-rose-700 disabled:opacity-50"
@@ -468,7 +584,11 @@ const AdminReferralsPage = () => {
         <div className="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
           <div>
             Showing {(pagination.page - 1) * pagination.limit + 1}-
-            {Math.min(pagination.page * pagination.limit, pagination.totalItems || 0)} of {pagination.totalItems || 0}
+            {Math.min(
+              pagination.page * pagination.limit,
+              pagination.totalItems || 0
+            )}{" "}
+            of {pagination.totalItems || 0}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -485,7 +605,11 @@ const AdminReferralsPage = () => {
             <button
               type="button"
               className="rounded-2xl border border-slate-200 px-3 py-1 disabled:opacity-50"
-              onClick={() => loadReferrals(Math.min(pagination.page + 1, pagination.totalPages))}
+              onClick={() =>
+                loadReferrals(
+                  Math.min(pagination.page + 1, pagination.totalPages)
+                )
+              }
               disabled={pagination.page >= pagination.totalPages || loading}
             >
               Next

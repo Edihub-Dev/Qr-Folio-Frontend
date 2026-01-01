@@ -27,7 +27,7 @@ const AdminTable = ({
               <th
                 key={column.key}
                 scope="col"
-                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-500"
               >
                 <button
                   type="button"

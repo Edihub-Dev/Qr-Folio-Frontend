@@ -10,24 +10,31 @@ const ReferralCard = ({
   qrValue,
   onShare,
 }) => {
-  const qrCardRef = useRef(null);
+  const qrCodeRef = useRef(null);
 
   const handleDownloadQr = async () => {
-    if (!qrValue || !qrCardRef.current) return;
+    if (!qrValue || !qrCodeRef.current) return;
 
     try {
-      const { toPng } = await import("html-to-image");
-      const dataUrl = await toPng(qrCardRef.current, {
-        cacheBust: true,
-        // backgroundColor: "#020617",
-      });
+      const canvas = qrCodeRef.current.getCanvas
+        ? qrCodeRef.current.getCanvas()
+        : null;
+
+      if (!canvas) {
+        toast.error("QR not ready yet");
+        return;
+      }
+
+      const dataUrl = canvas.toDataURL("image/png");
 
       const link = document.createElement("a");
       link.href = dataUrl;
       link.download = "qrfolio-referral-qr.png";
       link.click();
+      toast.success("Referral QR downloaded");
     } catch (error) {
       console.error("Failed to download referral QR", error);
+      toast.error("Unable to download QR");
     }
   };
 
@@ -72,20 +79,19 @@ const ReferralCard = ({
           </div>
         </div>
         <div className="flex flex-col items-center gap-3">
-          <div
-            ref={qrCardRef}
-            className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 shadow-sm"
-          >
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 shadow-sm">
             {qrValue ? (
               <QRCodeGenerator
+                ref={qrCodeRef}
                 value={qrValue}
-                size={160}
+                size={60}
                 level="H"
                 color="#000000"
                 background="#FFFFFF"
-                logoSrc="/assets/QrLogo.svg"
-                logoSizeRatio={0.22}
+                logoSrc="/assets/QrLogo.webp"
+                logoSizeRatio={0.18}
                 className="overflow-hidden rounded-2xl"
+                pixelRatio={3}
               />
             ) : qrCodeDataUrl ? (
               <img

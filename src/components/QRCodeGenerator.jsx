@@ -38,65 +38,102 @@ const QRCodeGenerator = forwardRef(
       logoSrc,
       logoSizeRatio = 0.18,
       className = "",
+      pixelRatio = 3,
     },
     ref
   ) => {
     const canvasRef = useRef(null);
+    const logoImageRef = useRef(null);
+    const renderIdRef = useRef(0);
 
-    // 🔥 expose canvas for download
+    // 🔥 expose canvas and data URL for download
     useImperativeHandle(ref, () => ({
       getCanvas: () => canvasRef.current,
+      getDataUrl: (type = "image/png") =>
+        canvasRef.current ? canvasRef.current.toDataURL(type) : null,
     }));
 
     useEffect(() => {
       if (!value || !canvasRef.current) return;
 
+      const renderId = ++renderIdRef.current;
+      const isStale = () => renderIdRef.current !== renderId;
+
+      const scale = pixelRatio && pixelRatio > 0 ? pixelRatio : 1;
+      const effectiveSize = size * scale;
+
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
+
+      // Set high-resolution canvas while keeping the same visual size
+      canvas.width = effectiveSize;
+      canvas.height = effectiveSize;
 
       QRCode.toCanvas(
         canvas,
         value,
-        buildOptions({ size, margin, color, background, level }),
+        buildOptions({
+          size: effectiveSize,
+          margin,
+          color,
+          background,
+          level,
+        }),
         async (err) => {
           if (err) {
             console.error("QR render error", err);
+          }
+          if (err || isStale()) {
             return;
           }
 
           if (!logoSrc) return;
 
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.src = logoSrc;
+          const drawLogo = (img) => {
+            if (!img || isStale() || !canvasRef.current) return;
 
-          img.onload = () => {
-            const logoSize = size * logoSizeRatio;
-            const x = (size - logoSize) / 2;
-            const y = (size - logoSize) / 2;
-            const radius = logoSize * 0.22;
+            const logoSize = effectiveSize * logoSizeRatio;
+            const x = (effectiveSize - logoSize) / 2;
+            const y = (effectiveSize - logoSize) / 2;
 
-            // 🔥 white background behind logo (scan safe)
             ctx.save();
-            ctx.fillStyle = "#FFFFFF";
-            drawRoundedRect(
-              ctx,
-              x - 6,
-              y - 6,
-              logoSize + 12,
-              logoSize + 12,
-              radius
-            );
-            ctx.fill();
-
-            // 🔥 draw logo sharp
+            // 🔥 draw logo sharp with no extra white edge
             ctx.imageSmoothingEnabled = true;
             ctx.drawImage(img, x, y, logoSize, logoSize);
             ctx.restore();
           };
+
+          let img = logoImageRef.current;
+
+          if (img && img.src === logoSrc && img.complete) {
+            drawLogo(img);
+            return;
+          }
+
+          img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = logoSrc;
+          logoImageRef.current = img;
+
+          if (img.complete) {
+            drawLogo(img);
+            return;
+          }
+
+          img.onload = () => drawLogo(img);
         }
       );
-    }, [value, size, level, margin, color, background, logoSrc, logoSizeRatio]);
+    }, [
+      value,
+      size,
+      level,
+      margin,
+      color,
+      background,
+      logoSrc,
+      logoSizeRatio,
+      pixelRatio,
+    ]);
 
     return (
       <canvas
@@ -104,7 +141,12 @@ const QRCodeGenerator = forwardRef(
         width={size}
         height={size}
         className={className}
-        style={{ width: size, height: size }}
+        style={{
+          width: size,
+          height: size,
+          maxWidth: "100%",
+          maxHeight: "100%",
+        }}
       />
     );
   }

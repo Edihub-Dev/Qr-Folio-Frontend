@@ -862,7 +862,7 @@ const PublicProfilePage = () => {
 
     return await toPng(node, {
       backgroundColor: "#ffffff",
-      pixelRatio: 2,
+      pixelRatio: 6,
       cacheBust: true,
       skipFonts: true,
       filter: (n) => {
@@ -900,7 +900,7 @@ const PublicProfilePage = () => {
 
     const pngData = await toPng(downloadRef.current, {
       backgroundColor: "#0B1020", // same dark bg
-      pixelRatio: 2,
+      pixelRatio: 3,
       cacheBust: true,
     });
 
@@ -1186,24 +1186,24 @@ const PublicProfilePage = () => {
                   </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-900/80 p-8 text-white shadow-lg shadow-slate-950/80">
+                <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-900/80 p-6 text-white shadow-lg shadow-slate-950/80">
                   <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(129,140,248,0.7),_transparent_55%)]" />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/10 via-indigo-900/10 to-slate-950/60" />
                   <div className="relative flex flex-col items-center text-center">
                     <div className="rounded-3xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-emerald-400 p-[1px] shadow-[0_28px_50px_rgba(15,23,42,0.65)]">
-                      <div className="flex items-center justify-center rounded-[26px] bg-slate-950/95 p-3">
+                      <div className="flex items-center justify-center rounded-[26px] bg-slate-950/95 p-2.5">
                         <Suspense
                           fallback={
-                            <div className="h-[175px] w-[175px] rounded-2xl bg-slate-800/80" />
+                            <div className="h-[150px] w-[150px] rounded-2xl bg-slate-800/80" />
                           }
                         >
                           <QRCodeGenerator
                             value={profileUrl}
-                            size={175}
+                            size={60}
                             level="H"
                             color="#000000"
                             background="#FFFFFF"
-                            logoSrc="/assets/QrLogo.svg"
+                            logoSrc="/assets/QrLogo.webp"
                             logoSizeRatio={0.22}
                             className="overflow-hidden rounded-2xl"
                           />

@@ -65,7 +65,7 @@ const PaymentForm = () => {
     () => ({
       basic: {
         name: "Basic (Silver)",
-        price: 399,
+        price: 1,
         description: "Perfect for individuals",
         features: [
           "Custom QR Code",
@@ -79,7 +79,7 @@ const PaymentForm = () => {
       },
       professional: {
         name: "Standard (Gold)",
-        price: 599,
+        price: 1,
         description: "Best for professionals",
         features: [
           "Everything in Basic",
@@ -93,7 +93,7 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: 999,
+        price: 1,
         description: "For large organizations",
         features: [
           "Everything in Standard",
@@ -857,7 +857,7 @@ const PaymentForm = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white py-10 px-4 sm:px-6 lg:px-8"
+      className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white py-10 px-4 sm:px-6 lg:px-8"
       initial={{ opacity: 0, y: 32 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
