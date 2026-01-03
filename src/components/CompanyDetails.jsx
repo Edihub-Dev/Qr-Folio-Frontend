@@ -47,18 +47,7 @@ const CompanyDetails = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = {
-        companyName: formData.companyName,
-        designation: formData.designation,
-        companyReferralCode: formData.companyReferralCode,
-        companyDescription: formData.companyDescription,
-        companyExperience: formData.companyExperience,
-        companyWebsite: formData.companyWebsite,
-        companyAddress: formData.companyAddress,
-        companyPhone: formData.companyPhone,
-        companyEmail: formData.companyEmail,
-      };
-      const res = await editCompany(payload);
+      const res = await editCompany({ ...formData });
       if (!res.success)
         throw new Error(res.error || "Failed to update company");
       setSaved(true);

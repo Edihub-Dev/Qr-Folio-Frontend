@@ -27,13 +27,23 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
-    if (status === 401) {
+    const requestUrl = error?.config?.url || "";
+
+    const isPaymentRequest =
+      typeof requestUrl === "string" &&
+      (requestUrl.includes("/phonepe/") || requestUrl.includes("/chainpay/"));
+
+    if (status === 401 && !isPaymentRequest) {
       try {
         localStorage.removeItem("token");
         localStorage.removeItem("qr_folio_user");
       } catch { }
-      if (typeof window !== 'undefined' && window.location && window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      if (
+        typeof window !== "undefined" &&
+        window.location &&
+        window.location.pathname !== "/login"
+      ) {
+        window.location.href = "/login";
       }
     }
     return Promise.reject(error);

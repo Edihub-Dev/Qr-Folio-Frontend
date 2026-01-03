@@ -54,7 +54,7 @@ const PaymentForm = () => {
   const [processingGateway, setProcessingGateway] = useState(null);
   const isProcessing = processingGateway !== null;
   const [selectedPlan, setSelectedPlan] = useState("professional");
-  const [selectedChainpayPlan, setSelectedChainpayPlan] = useState("starter");
+  const [selectedChainpayPlan, setSelectedChainpayPlan] = useState("growth");
   const [errors, setErrors] = useState({ phonepe: "", chainpay: "" });
   const [statusMessage, setStatusMessage] = useState("");
   const [chainpayStatusMessage, setChainpayStatusMessage] = useState("");
@@ -65,7 +65,7 @@ const PaymentForm = () => {
     () => ({
       basic: {
         name: "Basic (Silver)",
-        price: 1,
+        price: 399,
         description: "Perfect for individuals",
         features: [
           "Custom QR Code",
@@ -79,7 +79,7 @@ const PaymentForm = () => {
       },
       professional: {
         name: "Standard (Gold)",
-        price: 1,
+        price: 599,
         description: "Best for professionals",
         features: [
           "Everything in Basic",
@@ -93,7 +93,7 @@ const PaymentForm = () => {
       },
       enterprise: {
         name: "Premium (Platinum)",
-        price: 1,
+        price: 999,
         description: "For large organizations",
         features: [
           "Everything in Standard",
@@ -231,9 +231,23 @@ const PaymentForm = () => {
     if (applicableUpgradeTier) {
       return true;
     }
+
     if (!user) {
       return false;
     }
+
+    const normalizedStatus = (user.planStatus || "active")
+      .toString()
+      .toLowerCase();
+    const isExpired =
+      typeof user.planExpired === "boolean"
+        ? user.planExpired
+        : normalizedStatus === "expired";
+
+    if (isExpired) {
+      return false;
+    }
+
     return Boolean(user.isPaid);
   }, [applicableUpgradeTier, user]);
 

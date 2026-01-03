@@ -1271,7 +1271,7 @@ const PublicProfilePage = () => {
               <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 shadow-lg shadow-slate-950/70">
                 <div className="space-y-8">
                   <div className="max-w-3xl space-y-4">
-                    <h2 className="text-2xl font-semibold tracking-tight text-indigo-100">
+                    <h2 className="text-2xl font-semibold text-left justify-center  tracking-tight text-indigo-100">
                       About Me
                     </h2>
                     <p className="text-base leading-relaxed text-slate-200/90">

@@ -251,7 +251,7 @@ function PaymentSuccess() {
           <div className="mt-8">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
-                to="/dashboard"
+                to=""
                 className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700"
               >
                 Go to Dashboard

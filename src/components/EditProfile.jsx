@@ -4,7 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const EditProfile = () => {
-  const { user, editProfile, uploadPhoto, refreshUser } = useAuth();
+  const { user, editProfile, uploadPhoto, refreshUser, removeProfilePhoto } =
+    useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -28,6 +29,7 @@ const EditProfile = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -52,6 +54,12 @@ const EditProfile = () => {
       setAvatar(user.profilePhoto || "");
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!uploadError) return;
+    const timeout = setTimeout(() => setUploadError(""), 3000);
+    return () => clearTimeout(timeout);
+  }, [uploadError]);
 
   const safeAvatar = useMemo(() => {
     const src = avatar || user?.profilePhoto;
@@ -92,10 +100,8 @@ const EditProfile = () => {
       const { name, email, ...payload } = {
         ...formData,
       };
-      const cleaned = Object.fromEntries(
-        Object.entries(payload).filter(([_, v]) => v !== "")
-      );
-      const res = await editProfile(cleaned);
+
+      const res = await editProfile(payload);
       if (res.success) {
         await refreshUser();
         setSaved(true);
@@ -113,21 +119,64 @@ const EditProfile = () => {
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setAvatarFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setAvatar(e.target.result);
-      reader.readAsDataURL(file);
+    if (!file) {
+      return;
+    }
+
+    setUploadError("");
+
+    const maxBytes = 2 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setUploadError("Profile photo must be 2MB or smaller");
+      setAvatar("");
+      setAvatarFile(null);
+      e.target.value = "";
+      return;
+    }
+
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => setAvatar(readerEvent.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!avatar && !user?.profilePhoto) {
+      return;
+    }
+    const confirmed = window.confirm("Remove your profile photo?");
+    if (!confirmed) {
+      return;
+    }
+    try {
+      const res = await removeProfilePhoto();
+      if (res?.success) {
+        setAvatar("");
+        setAvatarFile(null);
+        await refreshUser();
+      } else if (res?.error) {
+        alert(res.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to remove profile photo");
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto">
-      {saved && (
-        <div className="fixed top-4 right-4 z-50">
-          <div className="px-4 py-3 rounded-lg shadow-md bg-green-600 text-white text-sm">
-            Profile updated successfully
-          </div>
+      {(saved || uploadError) && (
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+          {uploadError && (
+            <div className="px-4 py-3 rounded-lg shadow-md bg-red-600 text-white text-sm">
+              {uploadError}
+            </div>
+          )}
+          {saved && (
+            <div className="px-4 py-3 rounded-lg shadow-md bg-green-600 text-white text-sm">
+              Profile updated successfully
+            </div>
+          )}
         </div>
       )}
       <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 shadow-xl shadow-slate-950/50 backdrop-blur">
@@ -183,9 +232,18 @@ const EditProfile = () => {
               </label>
             </div>
             <div>
+              {avatar || user?.profilePhoto ? (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  className=" text-xs text-red-400 hover:text-red-300"
+                >
+                  Remove profile photo
+                </button>
+              ) : null}
               <h3 className="font-medium text-slate-100">Profile Photo</h3>
               <p className="text-sm text-slate-400">
-                Upload a professional photo (max 1MB) to personalize your
+                Upload a professional photo (max 2MB) to personalize your
                 profile.
               </p>
             </div>

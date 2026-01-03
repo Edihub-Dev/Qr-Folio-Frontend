@@ -210,6 +210,18 @@ const ChainpayCheckout = () => {
     return () => clearInterval(interval);
   }, [token, pollStatus, isPaid]);
 
+  useEffect(() => {
+    return () => {
+      if (!isPaid) {
+        try {
+          localStorage.removeItem("qrfolio_chainpay");
+        } catch (err) {
+          console.warn("Unable to clear ChainPay session on exit", err);
+        }
+      }
+    };
+  }, [isPaid]);
+
   const handleCopy = (key, value) => {
     if (!value) return;
     navigator.clipboard.writeText(value.toString()).then(() => {
@@ -225,7 +237,13 @@ const ChainpayCheckout = () => {
   };
 
   const handleBack = () => {
-    navigate(-1);
+    try {
+      localStorage.removeItem("qrfolio_chainpay");
+    } catch (err) {
+      console.warn("Unable to clear ChainPay session on back", err);
+    }
+
+    navigate("/payment", { replace: true });
   };
 
   const handleMarkPaid = async () => {

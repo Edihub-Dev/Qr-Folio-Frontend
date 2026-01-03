@@ -284,6 +284,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const removeProfilePhoto = async () => {
+    try {
+      const res = await api.delete("/user/profile-photo");
+      if (res.data?.success) {
+        const normalized = normalizeUser(
+          res.data.user || { profilePhoto: null, profilePhotoStorageKey: null }
+        );
+        setUser(normalized);
+        localStorage.setItem("qr_folio_user", JSON.stringify(normalized));
+        return { success: true };
+      }
+
+      return {
+        success: false,
+        error: res.data?.message || "Failed to remove photo",
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message,
+      };
+    }
+  };
+
   const resendOTP = async () => {
     try {
       if (!signupData?.email)
@@ -998,6 +1022,7 @@ export const AuthProvider = ({ children }) => {
         editProfile,
         editCompany,
         uploadPhoto,
+        removeProfilePhoto,
         fetchGallery,
         uploadGalleryImage,
         addGalleryVideo,
