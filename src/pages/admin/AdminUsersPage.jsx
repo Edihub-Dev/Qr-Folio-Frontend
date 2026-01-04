@@ -332,6 +332,7 @@ const AdminUsersPage = () => {
     () => [
       { key: "name", label: "Name", sortable: true },
       { key: "email", label: "Email", sortable: true },
+      { key: "phone", label: "Mobile", sortable: false },
 
       /* ================= PLAN + METHOD ================= */
       {
@@ -844,6 +845,10 @@ const AdminUsersPage = () => {
             <div>
               <p className="text-xs font-medium text-gray-500">Email</p>
               <p className="text-gray-900">{selectedUser.email || "—"}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Mobile</p>
+              <p className="text-gray-900">{selectedUser.phone || "—"}</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>

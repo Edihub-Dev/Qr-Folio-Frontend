@@ -581,7 +581,7 @@ const PaymentForm = () => {
       for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
         const result = await verifyPayment(
           { merchantTransactionId },
-          { silent: true }
+          { silent: true, skipRefresh: true }
         );
 
         if (result.success) {
@@ -656,215 +656,232 @@ const PaymentForm = () => {
     return false;
   }, []);
 
-  const startPhonePePayment = useCallback(async () => {
-    if (isProcessing) {
-      return;
-    }
-
-    if (!user?.name?.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        phonepe:
-          "Please update your name in your profile before making a payment.",
-      }));
-      return;
-    }
-
-    if (!selectedPlan || !plans[selectedPlan]) {
-      setErrors((prev) => ({
-        ...prev,
-        phonepe: "Please select an upgrade plan to continue.",
-      }));
-      return;
-    }
-
-    setProcessingGateway("phonepe");
-    setErrors((prev) => ({ ...prev, phonepe: "" }));
-    setStatusMessage("");
-    setChainpayStatusMessage("");
-
-    try {
-      const amountPaise = Math.round(selectedPlanPricing.totalAmount * 100);
-      const orderRes = await createPaymentOrder({
-        amountPaise,
-        email: user?.email,
-        customerName: user?.name,
-        mobileNumber: user?.phone,
-        note: `${plans[selectedPlan].name} plan purchase (incl. GST)`,
-        planKey: selectedPlan,
-        planName: plans[selectedPlan].name,
-        pricing: selectedPlanPricing,
-      });
-
-      if (!orderRes.success) {
-        throw new Error(orderRes.error || "Unable to initiate payment.");
+  const startPhonePePayment = useCallback(
+    async (overridePlanKey) => {
+      if (isProcessing) {
+        return;
       }
 
-      const {
-        merchantTransactionId,
-        instrumentResponse,
-        redirectInfo,
-        sdkUrl,
-      } = orderRes.data || {};
-
-      if (!merchantTransactionId) {
-        throw new Error("Missing transaction reference from PhonePe.");
+      if (!user?.name?.trim()) {
+        setErrors((prev) => ({
+          ...prev,
+          phonepe:
+            "Please update your name in your profile before making a payment.",
+        }));
+        return;
       }
 
-      if (sdkUrl) {
-        try {
-          await loadPhonePeSdk(sdkUrl);
-        } catch (sdkError) {
-          console.warn("PhonePe SDK load failed:", sdkError.message);
-        }
+      const effectivePlanKey = overridePlanKey || selectedPlan;
+
+      if (!effectivePlanKey || !plans[effectivePlanKey]) {
+        setErrors((prev) => ({
+          ...prev,
+          phonepe: "Please select an upgrade plan to continue.",
+        }));
+        return;
       }
 
-      const checkoutPayload = {
-        ...(instrumentResponse || {}),
+      const plan = plans[effectivePlanKey];
+      const originalBaseAmount = Number(plan.price || 0);
+      const breakdown = calculateGstBreakdown(originalBaseAmount);
+      const pricing = {
+        ...breakdown,
+        originalBaseAmount,
       };
-      if (!checkoutPayload.redirectInfo && redirectInfo) {
-        checkoutPayload.redirectInfo = redirectInfo;
-      }
 
-      const opened = openPhonePeCheckout(checkoutPayload);
-      if (!opened) {
-        throw new Error(
-          "Unable to open PhonePe checkout. Please try again or use a different browser."
-        );
-      }
-
-      setStatusMessage("Waiting for you to complete the payment in PhonePe...");
-
-      const pollResult = await pollPaymentStatus(merchantTransactionId);
-
-      if (!pollResult.success) {
-        throw new Error(pollResult.error);
-      }
-
-      await refreshUser();
-      navigate("/dashboard", { replace: true });
-    } catch (err) {
-      setErrors((prev) => ({
-        ...prev,
-        phonepe: err.message || "Payment failed",
-      }));
+      setProcessingGateway("phonepe");
+      setErrors((prev) => ({ ...prev, phonepe: "" }));
       setStatusMessage("");
-    } finally {
-      setProcessingGateway(null);
-    }
-  }, [
-    user,
-    navigate,
-    plans,
-    selectedPlan,
-    createPaymentOrder,
-    loadPhonePeSdk,
-    openPhonePeCheckout,
-    pollPaymentStatus,
-    refreshUser,
-    selectedPlanPricing,
-    isProcessing,
-  ]);
-
-  const startChainpayPayment = useCallback(async () => {
-    if (isProcessing) {
-      return;
-    }
-
-    if (!user?.name?.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        chainpay:
-          "Please update your name in your profile before making a payment.",
-      }));
-      return;
-    }
-
-    if (!selectedChainpayPlan || !chainpayPlans[selectedChainpayPlan]) {
-      setErrors((prev) => ({
-        ...prev,
-        chainpay: "Please select an upgrade plan.",
-      }));
-      return;
-    }
-
-    const plan = chainpayPlans[selectedChainpayPlan];
-    const pricing = chainpayPricing[selectedChainpayPlan];
-    const mstcCoins = Number(pricing?.mstcCoins ?? plan.coins ?? 0);
-
-    setProcessingGateway("chainpay");
-    setErrors((prev) => ({ ...prev, chainpay: "" }));
-    setChainpayStatusMessage("Creating ChainPay payment request...");
-
-    try {
-      const paymentRes = await createChainpayPayment({
-        description: `${plan.name} plan purchase`,
-        planKey: selectedChainpayPlan,
-        planName: plan.name,
-        pricing: {
-          ...(pricing || {}),
-          mstcCoins,
-        },
-        metadata: {
-          mstcCoins,
-          planLabel: plan.name,
-        },
-      });
-
-      if (!paymentRes.success) {
-        throw new Error(
-          paymentRes.error || "Unable to initiate ChainPay payment."
-        );
-      }
-
-      const {
-        orderId: createdOrderId,
-        token: paymentToken,
-        paymentUrl,
-      } = paymentRes.data || {};
-
-      if (!createdOrderId || !paymentToken) {
-        throw new Error("Missing ChainPay order reference.");
-      }
+      setChainpayStatusMessage("");
 
       try {
-        localStorage.setItem(
-          CHAINPAY_SESSION_KEY,
-          JSON.stringify({
-            orderId: createdOrderId,
-            token: paymentToken,
-            paymentUrl,
-            mstcCoins,
-            createdAt: Date.now(),
-          })
+        const amountPaise = Math.round(pricing.totalAmount * 100);
+        const orderRes = await createPaymentOrder({
+          amountPaise,
+          email: user?.email,
+          customerName: user?.name,
+          mobileNumber: user?.phone,
+          note: `${plan.name} plan purchase (incl. GST)`,
+          planKey: effectivePlanKey,
+          planName: plan.name,
+          pricing,
+        });
+
+        if (!orderRes.success) {
+          throw new Error(orderRes.error || "Unable to initiate payment.");
+        }
+
+        const {
+          merchantTransactionId,
+          instrumentResponse,
+          redirectInfo,
+          sdkUrl,
+        } = orderRes.data || {};
+
+        if (!merchantTransactionId) {
+          throw new Error("Missing transaction reference from PhonePe.");
+        }
+
+        if (sdkUrl) {
+          try {
+            await loadPhonePeSdk(sdkUrl);
+          } catch (sdkError) {
+            console.warn("PhonePe SDK load failed:", sdkError.message);
+          }
+        }
+
+        const checkoutPayload = {
+          ...(instrumentResponse || {}),
+        };
+        if (!checkoutPayload.redirectInfo && redirectInfo) {
+          checkoutPayload.redirectInfo = redirectInfo;
+        }
+
+        const opened = openPhonePeCheckout(checkoutPayload);
+        if (!opened) {
+          throw new Error(
+            "Unable to open PhonePe checkout. Please try again or use a different browser."
+          );
+        }
+
+        setStatusMessage(
+          "Waiting for you to complete the payment in PhonePe..."
         );
-      } catch (storageError) {
-        console.warn("Unable to persist ChainPay session", storageError);
+
+        const pollResult = await pollPaymentStatus(merchantTransactionId);
+
+        if (!pollResult.success) {
+          throw new Error(pollResult.error);
+        }
+
+        navigate("/dashboard", { replace: true });
+      } catch (err) {
+        setErrors((prev) => ({
+          ...prev,
+          phonepe: err.message || "Payment failed",
+        }));
+        setStatusMessage("");
+      } finally {
+        setProcessingGateway(null);
+      }
+    },
+    [
+      isProcessing,
+      user,
+      selectedPlan,
+      plans,
+      createPaymentOrder,
+      loadPhonePeSdk,
+      openPhonePeCheckout,
+      pollPaymentStatus,
+      navigate,
+    ]
+  );
+
+  const startChainpayPayment = useCallback(
+    async (overridePlanKey) => {
+      if (isProcessing) {
+        return;
       }
 
-      setChainpayStatusMessage("Opening MSTC checkout...");
-      navigate(`/checkout/chainpay/${createdOrderId}`, {
-        state: { token: paymentToken, paymentUrl },
-        replace: true,
-      });
-    } catch (err) {
-      setErrors((prev) => ({
-        ...prev,
-        chainpay: err.message || "ChainPay payment failed",
-      }));
-      setChainpayStatusMessage("");
-    } finally {
-      setProcessingGateway(null);
-    }
-  }, [
-    isProcessing,
-    user,
-    navigate,
-    chainpayPlans,
-    selectedChainpayPlan,
-    createChainpayPayment,
-    chainpayPricing,
-  ]);
+      if (!user?.name?.trim()) {
+        setErrors((prev) => ({
+          ...prev,
+          chainpay:
+            "Please update your name in your profile before making a payment.",
+        }));
+        return;
+      }
+
+      const effectivePlanKey = overridePlanKey || selectedChainpayPlan;
+
+      if (!effectivePlanKey || !chainpayPlans[effectivePlanKey]) {
+        setErrors((prev) => ({
+          ...prev,
+          chainpay: "Please select an upgrade plan.",
+        }));
+        return;
+      }
+
+      const plan = chainpayPlans[effectivePlanKey];
+      const pricing = chainpayPricing[effectivePlanKey];
+      const mstcCoins = Number(pricing?.mstcCoins ?? plan.coins ?? 0);
+
+      setProcessingGateway("chainpay");
+      setErrors((prev) => ({ ...prev, chainpay: "" }));
+      setChainpayStatusMessage("Creating ChainPay payment request...");
+
+      try {
+        const paymentRes = await createChainpayPayment({
+          description: `${plan.name} plan purchase`,
+          planKey: effectivePlanKey,
+          planName: plan.name,
+          pricing: {
+            ...(pricing || {}),
+            mstcCoins,
+          },
+          metadata: {
+            mstcCoins,
+            planLabel: plan.name,
+          },
+        });
+
+        if (!paymentRes.success) {
+          throw new Error(
+            paymentRes.error || "Unable to initiate ChainPay payment."
+          );
+        }
+
+        const {
+          orderId: createdOrderId,
+          token: paymentToken,
+          paymentUrl,
+        } = paymentRes.data || {};
+
+        if (!createdOrderId || !paymentToken) {
+          throw new Error("Missing ChainPay order reference.");
+        }
+
+        try {
+          localStorage.setItem(
+            CHAINPAY_SESSION_KEY,
+            JSON.stringify({
+              orderId: createdOrderId,
+              token: paymentToken,
+              paymentUrl,
+              mstcCoins,
+              createdAt: Date.now(),
+            })
+          );
+        } catch (storageError) {
+          console.warn("Unable to persist ChainPay session", storageError);
+        }
+
+        setChainpayStatusMessage("Opening MSTC checkout...");
+        navigate(`/checkout/chainpay/${createdOrderId}`, {
+          state: { token: paymentToken, paymentUrl },
+          replace: true,
+        });
+      } catch (err) {
+        setErrors((prev) => ({
+          ...prev,
+          chainpay: err.message || "ChainPay payment failed",
+        }));
+        setChainpayStatusMessage("");
+      } finally {
+        setProcessingGateway(null);
+      }
+    },
+    [
+      isProcessing,
+      user,
+      selectedChainpayPlan,
+      chainpayPlans,
+      chainpayPricing,
+      createChainpayPayment,
+      navigate,
+    ]
+  );
 
   const hasUpgradeOptions =
     availablePhonePePlanKeys.length > 0 || availableChainpayPlanKeys.length > 0;
@@ -923,6 +940,7 @@ const PaymentForm = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
         >
+          {/* ChainPay MSTC column */}
           <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 sm:p-7 shadow-xl shadow-slate-950/40 backdrop-blur">
             <div className="flex items-center space-x-2 mb-5">
               <Shield className="w-5 h-5 text-emerald-400" />
@@ -954,8 +972,16 @@ const PaymentForm = () => {
               ) : (
                 availableChainpayPlanKeys.map((key) => {
                   const plan = chainpayPlans[key];
-                  const planPricing = chainpayPricing[key];
+                  const pricing = chainpayPricing[key];
+                  const mstcCoins = Number(
+                    pricing?.mstcCoins ?? plan?.coins ?? 0
+                  );
                   const isSelected = selectedChainpayPlan === key;
+
+                  if (!plan) {
+                    return null;
+                  }
+
                   return (
                     <div
                       key={key}
@@ -978,7 +1004,7 @@ const PaymentForm = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-xl font-bold text-emerald-400">
-                              {`${plan.coins} MSTC`}
+                              {`${mstcCoins} MSTC`}
                             </div>
                           </div>
                         </div>
@@ -993,52 +1019,46 @@ const PaymentForm = () => {
                             </li>
                           ))}
                         </ul>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setSelectedChainpayPlan(key);
-                            startChainpayPayment();
-                          }}
-                          disabled={
-                            processingGateway === "chainpay" ||
-                            isProcessing ||
-                            selectedChainpayPlan !== key
-                          }
-                          className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
-                            processingGateway === "chainpay" ||
-                            isProcessing ||
-                            selectedChainpayPlan !== key
-                              ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
-                              : "bg-emerald-500 hover:bg-emerald-400"
-                          }`}
-                        >
-                          {processingGateway === "chainpay"
-                            ? "Processing..."
-                            : isSelected
-                            ? "Pay with ChainPay"
-                            : "Select Plan to Pay"}
-                        </button>
+                        <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedChainpayPlan(key);
+                              startChainpayPayment(key);
+                            }}
+                            disabled={
+                              processingGateway === "chainpay" || isProcessing
+                            }
+                            className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
+                              processingGateway === "chainpay" || isProcessing
+                                ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
+                                : "bg-emerald-500 hover:bg-emerald-400"
+                            }`}
+                          >
+                            {processingGateway === "chainpay"
+                              ? "Processing..."
+                              : "Pay with ChainPay"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
                 })
               )}
             </div>
-
-            <div className="mt-4 text-xs text-slate-400 text-center">
-              Payments powered by ChainPay (MSTC)
-            </div>
           </div>
 
+          {/* PhonePe UPI column */}
           <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 sm:p-7 shadow-xl shadow-slate-950/40 backdrop-blur">
             <div className="flex items-center space-x-2 mb-5">
               <Shield className="w-5 h-5 text-primary-400" />
 
               <h2 className="text-lg sm:text-xl font-semibold text-white">
-                Select Your Plan (PhonePe)
+                Select Your Plan (PhonePe UPI)
               </h2>
             </div>
+
             <div className="space-y-4">
               {availablePhonePePlanKeys.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-white/20 bg-slate-900/40 p-4 text-sm text-slate-300 text-center">
@@ -1047,10 +1067,16 @@ const PaymentForm = () => {
               ) : (
                 availablePhonePePlanKeys.map((key) => {
                   const plan = plans[key];
+
+                  if (!plan) {
+                    return null;
+                  }
+
+                  const breakdown = calculateGstBreakdown(
+                    Number(plan.price || 0)
+                  );
                   const isSelected = selectedPlan === key;
-                  const breakdown = isSelected
-                    ? selectedPlanPricing
-                    : calculateGstBreakdown(plan.price);
+
                   return (
                     <div
                       key={key}
@@ -1073,14 +1099,9 @@ const PaymentForm = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-xl font-bold text-primary-400">
-                              {formatCurrencyDisplay(
-                                breakdown.totalAmount,
-                                "INR"
-                              )}
+                              {`${formatINR(breakdown.baseAmount)} / year`}
                             </div>
-                            <div className="text-xs text-slate-400">
-                              Inclusive of GST
-                            </div>
+                            <div className="text-xs text-slate-400">+ GST</div>
                           </div>
                         </div>
                         <ul className="space-y-1 text-sm text-slate-300">
@@ -1094,32 +1115,28 @@ const PaymentForm = () => {
                             </li>
                           ))}
                         </ul>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setSelectedPlan(key);
-                            startPhonePePayment();
-                          }}
-                          disabled={
-                            processingGateway === "phonepe" ||
-                            isProcessing ||
-                            selectedPlan !== key
-                          }
-                          className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
-                            processingGateway === "phonepe" ||
-                            isProcessing ||
-                            selectedPlan !== key
-                              ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
-                              : "bg-primary-500 hover:bg-primary-400"
-                          }`}
-                        >
-                          {processingGateway === "phonepe"
-                            ? "Processing..."
-                            : isSelected
-                            ? "Pay with PhonePe"
-                            : "Select Plan to Pay"}
-                        </button>
+                        <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedPlan(key);
+                              startPhonePePayment(key);
+                            }}
+                            disabled={
+                              processingGateway === "phonepe" || isProcessing
+                            }
+                            className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
+                              processingGateway === "phonepe" || isProcessing
+                                ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
+                                : "bg-primary-500 hover:bg-primary-400"
+                            }`}
+                          >
+                            {processingGateway === "phonepe"
+                              ? "Processing..."
+                              : "Pay with PhonePe"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -1177,12 +1194,10 @@ const PaymentForm = () => {
 
             <button
               type="button"
-              onClick={startPhonePePayment}
-              disabled={
-                processingGateway === "phonepe" || isProcessing || !selectedPlan
-              }
+              onClick={() => startPhonePePayment()}
+              disabled={processingGateway === "phonepe" || isProcessing}
               className={`w-full mt-6 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-white transition-colors ${
-                processingGateway === "phonepe" || isProcessing || !selectedPlan
+                processingGateway === "phonepe" || isProcessing
                   ? "bg-slate-700/60 text-slate-400 cursor-not-allowed"
                   : "bg-primary-500 hover:bg-primary-400"
               }`}
@@ -1198,7 +1213,7 @@ const PaymentForm = () => {
                     ? `Pay ${formatINR(
                         selectedPlanPricing.totalAmount
                       )} / year (PhonePe)`
-                    : "Select a plan to continue"}
+                    : "Pay with PhonePe"}
                 </span>
               )}
             </button>

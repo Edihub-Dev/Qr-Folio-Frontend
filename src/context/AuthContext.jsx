@@ -242,6 +242,7 @@ export const AuthProvider = ({ children }) => {
   const signup = async ({
     name,
     email,
+    phone,
     password,
     confirmPassword,
     couponCode,
@@ -261,6 +262,10 @@ export const AuthProvider = ({ children }) => {
         couponCode,
       };
 
+      if (phone) {
+        payload.phone = phone;
+      }
+
       if (trimmedReferral) {
         payload.referralCode = trimmedReferral;
       }
@@ -270,6 +275,7 @@ export const AuthProvider = ({ children }) => {
         setSignupData({
           name,
           email,
+          phone: phone || null,
           couponCode,
           referralCode: trimmedReferral || null,
         });

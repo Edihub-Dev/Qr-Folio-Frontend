@@ -11,6 +11,7 @@ import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../api";
 import PageSEO from "../components/PageSEO";
+import toast from "react-hot-toast";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const SignupPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
     agreeToTerms: false,
@@ -157,6 +159,14 @@ const SignupPage = () => {
     if (!formData.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "Email is invalid";
+
+    const phoneDigits = (formData.phone || "").replace(/\D/g, "");
+    if (!phoneDigits) {
+      newErrors.phone = "Mobile number is required";
+    } else if (phoneDigits.length !== 10 || !/^[6-9]\d{9}$/.test(phoneDigits)) {
+      newErrors.phone = "Please enter a valid 10-digit mobile number";
+    }
+
     if (!formData.password) newErrors.password = "Password is required";
     else if (formData.password.length < 8)
       newErrors.password = "Password must be at least 8 characters";
@@ -172,18 +182,26 @@ const SignupPage = () => {
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      if (newErrors.phone) {
+        toast.error("Please enter a valid mobile number");
+      }
       return;
     }
 
     setLoading(true);
 
     try {
-      const { name, email, password, confirmPassword, couponCode } = formData;
+      const { name, email, phone, password, confirmPassword, couponCode } =
+        formData;
+
+      const phoneDigits = (phone || "").replace(/\D/g, "");
+
       const result = await signup({
         name,
         email,
         password,
         confirmPassword,
+        phone: phoneDigits || undefined,
         couponCode: couponCode?.trim() || undefined,
       });
 
@@ -409,6 +427,22 @@ const SignupPage = () => {
                   />
                   {errors.email && (
                     <p className="text-sm text-red-400">{errors.email}</p>
+                  )}
+
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="Mobile Number"
+                    className={`w-full px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                      errors.phone
+                        ? "border-red-500/60 bg-red-500/10"
+                        : "border-slate-700"
+                    }`}
+                  />
+                  {errors.phone && (
+                    <p className="text-sm text-red-400">{errors.phone}</p>
                   )}
 
                   <div className="relative">
