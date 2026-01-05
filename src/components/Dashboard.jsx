@@ -1059,7 +1059,7 @@ const Dashboard = () => {
               </div>
             </div>
           </button>
-
+          {/* 
           {isPremiumPlan && (
             <div className="rounded-2xl border border-pink-500/40 bg-gradient-to-r from-pink-500/10 to-rose-500/10 p-6 shadow-xl shadow-pink-500/20 backdrop-blur">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -1081,7 +1081,7 @@ const Dashboard = () => {
                 </button>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* <motion.button
             whileHover={{ scale: 1.02 }}
