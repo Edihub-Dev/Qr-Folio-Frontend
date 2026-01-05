@@ -253,20 +253,27 @@ const AdminInvoicesPage = () => {
   const handleOpenPdf = useCallback(
     async (invoice) => {
       if (!invoice?._id) return;
+
+      // Open a new window immediately in response to the click so that
+      // browsers treat it as a user gesture and don't block it as a popup.
+      const pdfWindow = window.open("", "_blank");
+      if (!pdfWindow) {
+        setError("Popup blocked. Please allow popups to view invoice PDFs.");
+        return;
+      }
+
       try {
         const response = await downloadInvoicePdf(invoice._id);
         const blob = new Blob([response.data], { type: "application/pdf" });
         const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.target = "_blank";
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode.removeChild(link);
+
+        pdfWindow.location = url;
+
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
         }, 60000);
       } catch (err) {
+        pdfWindow.close();
         setError(
           err?.response?.data?.message ||
             err.message ||

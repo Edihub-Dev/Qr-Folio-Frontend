@@ -46,6 +46,26 @@ api.interceptors.response.use(
         window.location.href = "/login";
       }
     }
+
+    const message = error?.response?.data?.message || "";
+    if (
+      status === 403 &&
+      typeof message === "string" &&
+      message.toLowerCase().includes("blocked")
+    ) {
+      try {
+        localStorage.removeItem("token");
+        localStorage.removeItem("qr_folio_user");
+      } catch { }
+
+      if (
+        typeof window !== "undefined" &&
+        window.location &&
+        window.location.pathname !== "/login"
+      ) {
+        window.location.href = "/login?blocked=1";
+      }
+    }
     return Promise.reject(error);
   }
 );

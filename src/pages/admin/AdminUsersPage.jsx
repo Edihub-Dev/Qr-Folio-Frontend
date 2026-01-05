@@ -310,6 +310,28 @@ const AdminUsersPage = () => {
     }
   }, []);
 
+  const formatTotalPaidDisplay = (user) => {
+    if (!user) return "₹0";
+
+    const rawAmount = Number(user.totalAmountPaid || 0);
+    const safeAmount = Number.isFinite(rawAmount) ? rawAmount : 0;
+    const formatted = safeAmount.toLocaleString("en-IN", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+
+    const method = (user.paymentMethod || "").toString().toLowerCase();
+    const currency = (user.paymentCurrency || "").toString().toUpperCase();
+
+    // For ChainPay / MSTC payments, show MSTC amount without rupee symbol
+    if (method === "chainpay" || currency === "MSTC") {
+      return `${formatted} MSTC`;
+    }
+
+    // Default: show INR with rupee symbol (PhonePe and others)
+    return `₹${formatted}`;
+  };
+
   const handleBulkAction = async () => {
     if (!selectedUser || !pendingAction) return;
     try {
@@ -333,6 +355,7 @@ const AdminUsersPage = () => {
       { key: "name", label: "Name", sortable: true },
       { key: "email", label: "Email", sortable: true },
       { key: "phone", label: "Mobile", sortable: false },
+      { key: "referralCode", label: "Referral Code", sortable: false },
 
       /* ================= PLAN + METHOD ================= */
       {
@@ -882,7 +905,7 @@ const AdminUsersPage = () => {
               <div>
                 <p className="text-xs font-medium text-gray-500">Total paid</p>
                 <p className="text-gray-900">
-                  ₹{Number(selectedUser.totalAmountPaid || 0).toLocaleString()}
+                  {formatTotalPaidDisplay(selectedUser)}
                 </p>
               </div>
             </div>
