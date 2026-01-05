@@ -370,7 +370,13 @@ export const AuthProvider = ({ children }) => {
       const res = await api.post("/auth/verify-otp", payload);
 
       if (res.data?.success) {
-        const { token, user: userData, couponApplied, couponError } = res.data;
+        const {
+          token,
+          user: userData,
+          couponApplied,
+          couponError,
+          requiresPayment: resRequiresPayment,
+        } = res.data;
 
         if (!token) {
           throw new Error("No token received from server");
@@ -386,9 +392,25 @@ export const AuthProvider = ({ children }) => {
         setUser(normalizedUser);
         localStorage.setItem("qr_folio_user", JSON.stringify(normalizedUser));
 
+        const hasPayment = hasPaymentFlag(normalizedUser);
+
+        let requiresPayment;
+        if (couponApplied) {
+          // If a coupon was successfully applied during verification, treat
+          // the user as having completed payment so they can skip the
+          // payment page and access the dashboard directly.
+          requiresPayment = false;
+        } else if (typeof resRequiresPayment === "boolean") {
+          // Prefer the backend's view when available.
+          requiresPayment = resRequiresPayment;
+        } else {
+          // Fallback to local heuristic based on payment flags.
+          requiresPayment = !hasPayment;
+        }
+
         return {
           success: true,
-          requiresPayment: !hasPaymentFlag(normalizedUser),
+          requiresPayment,
           requiresRenewal: normalizedUser.requiresRenewal,
           user: normalizedUser,
           couponApplied: Boolean(couponApplied),
