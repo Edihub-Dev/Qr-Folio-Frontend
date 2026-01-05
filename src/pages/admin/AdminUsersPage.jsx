@@ -60,6 +60,8 @@ const AdminUsersPage = () => {
     search: "",
     sortBy: "createdAt",
     sortDir: "desc",
+    startDate: "",
+    endDate: "",
   });
   const [data, setData] = useState([]);
   const [stats, setStats] = useState({});
@@ -352,6 +354,15 @@ const AdminUsersPage = () => {
 
   const columns = useMemo(
     () => [
+      {
+        key: "serialNo",
+        label: "Sr. No.",
+        sortable: false,
+        render: (_value, _row, rowIndex) => {
+          const base = (params.page - 1) * params.limit;
+          return base + rowIndex + 1;
+        },
+      },
       { key: "name", label: "Name", sortable: true },
       { key: "email", label: "Email", sortable: true },
       { key: "phone", label: "Mobile", sortable: false },
@@ -513,7 +524,7 @@ const AdminUsersPage = () => {
         },
       },
     ],
-    []
+    [params.page, params.limit]
   );
 
   const renderActions = (user) => {
@@ -725,6 +736,43 @@ const AdminUsersPage = () => {
               }
               placeholder="Search name or email"
             />
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  From date
+                </label>
+                <input
+                  type="date"
+                  value={params.startDate || ""}
+                  onChange={(e) =>
+                    setParams((prev) => ({
+                      ...prev,
+                      page: 1,
+                      startDate: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  To date
+                </label>
+                <input
+                  type="date"
+                  value={params.endDate || ""}
+                  onChange={(e) =>
+                    setParams((prev) => ({
+                      ...prev,
+                      page: 1,
+                      endDate: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                />
+              </div>
+            </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <AdminFilterDropdown

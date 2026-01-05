@@ -398,6 +398,7 @@ const AdminReferralsPage = () => {
           <table className="min-w-full">
             <thead>
               <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <th className="px-6 py-3 text-left">Sr. No.</th>
                 <th className="px-6 py-3 text-left">Referrer</th>
                 <th className="px-6 py-3 text-left">Referred user</th>
                 <th className="px-6 py-3 text-left">Plan</th>
@@ -431,7 +432,7 @@ const AdminReferralsPage = () => {
                   </td>
                 </tr>
               )}
-              {referrals.map((referral) => {
+              {referrals.map((referral, index) => {
                 const createdAt = referral.createdAt
                   ? new Date(referral.createdAt)
                   : null;
@@ -466,8 +467,16 @@ const AdminReferralsPage = () => {
                     )
                   : null;
 
+                const base =
+                  (pagination.page - 1) *
+                  (pagination.limit || referrals.length || 0);
+                const serialNo = base + index + 1;
+
                 return (
                   <tr key={referral._id} className="hover:bg-slate-50">
+                    <td className="px-6 py-4 text-sm text-slate-700">
+                      {serialNo}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-slate-900">
                         {referrerName}

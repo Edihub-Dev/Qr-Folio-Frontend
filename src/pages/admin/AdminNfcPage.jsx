@@ -256,6 +256,7 @@ const AdminNfcPage = () => {
           <table className="min-w-full">
             <thead>
               <tr className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                <th className="px-6 py-3 text-left">Sr. No.</th>
                 <th className="px-6 py-3 text-left">User</th>
                 <th className="px-6 py-3 text-left">Plan</th>
                 <th className="px-6 py-3 text-left">Shipping</th>
@@ -291,7 +292,7 @@ const AdminNfcPage = () => {
                   </td>
                 </tr>
               ) : (
-                records.map((entry) => {
+                records.map((entry, index) => {
                   const status = entry.nfcCardStatus || "not_requested";
                   const isUpdating = updatingId === (entry._id || entry.id);
 
@@ -303,11 +304,17 @@ const AdminNfcPage = () => {
                     .filter(Boolean)
                     .join(", ");
 
+                  const base = (pagination.page - 1) * PAGE_LIMIT;
+                  const serialNo = base + index + 1;
+
                   return (
                     <tr
                       key={entry._id || entry.id}
                       className="hover:bg-slate-50"
                     >
+                      <td className="px-6 py-4 text-sm text-slate-700">
+                        {serialNo}
+                      </td>
                       <td className="px-6 py-4">
                         <p className="font-semibold text-slate-900">
                           {entry.name || "—"}

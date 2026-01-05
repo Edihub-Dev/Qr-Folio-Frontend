@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
@@ -7,6 +7,7 @@ import PageSEO from "../components/PageSEO";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, logout, user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -126,6 +127,9 @@ const LoginPage = () => {
     }
   };
 
+  const searchParams = new URLSearchParams(location.search);
+  const isBlocked = searchParams.get("blocked") === "1";
+
   return (
     <>
       <PageSEO
@@ -243,6 +247,15 @@ const LoginPage = () => {
                   </h2>
                   <p className="text-slate-300">Welcome back to QR Folio</p>
                 </div>
+
+                {isBlocked && (
+                  <div className="mb-6 p-4 rounded-xl border border-amber-500/40 bg-amber-500/10">
+                    <p className="text-amber-200 text-sm">
+                      Your account has been blocked. Please contact support if
+                      you believe this is a mistake.
+                    </p>
+                  </div>
+                )}
 
                 {errors.submit && (
                   <div className="mb-6 p-4 rounded-xl border border-red-500/40 bg-red-500/10">

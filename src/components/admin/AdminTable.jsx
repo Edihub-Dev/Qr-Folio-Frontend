@@ -67,7 +67,7 @@ const AdminTable = ({
               </td>
             </tr>
           )}
-          {data.map((row) => (
+          {data.map((row, rowIndex) => (
             <tr key={row.id || row._id} className="hover:bg-gray-50">
               {columns.map((column) => (
                 <td
@@ -75,7 +75,7 @@ const AdminTable = ({
                   className="whitespace-nowrap px-4 py-3 text-sm text-gray-700"
                 >
                   {column.render
-                    ? column.render(row[column.key], row)
+                    ? column.render(row[column.key], row, rowIndex)
                     : row[column.key]}
                 </td>
               ))}

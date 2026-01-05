@@ -93,7 +93,10 @@ const AdminWithdrawalsPage = () => {
     try {
       let adminNote;
       if (nextStatus === "failed") {
-        adminNote = window.prompt("Reason for marking as failed?", "Payment declined");
+        adminNote = window.prompt(
+          "Reason for marking as failed?",
+          "Payment declined"
+        );
         if (adminNote === null) {
           return;
         }
@@ -168,6 +171,7 @@ const AdminWithdrawalsPage = () => {
           <table className="min-w-full">
             <thead>
               <tr className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                <th className="px-6 py-3 text-left">Sr. No.</th>
                 <th className="px-6 py-3 text-left">User</th>
                 <th className="px-6 py-3 text-left">Contact</th>
                 <th className="px-6 py-3 text-right">Amount</th>
@@ -180,7 +184,10 @@ const AdminWithdrawalsPage = () => {
             <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
+                  <td
+                    colSpan={7}
+                    className="px-6 py-12 text-center text-slate-400"
+                  >
                     <Loader2 className="mx-auto h-6 w-6 animate-spin" />
                     <span className="mt-2 block text-xs uppercase tracking-[0.3em]">
                       Loading requests…
@@ -189,7 +196,10 @@ const AdminWithdrawalsPage = () => {
                 </tr>
               ) : withdrawals.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
+                  <td
+                    colSpan={7}
+                    className="px-6 py-12 text-center text-slate-400"
+                  >
                     <AlertTriangle className="mx-auto h-6 w-6" />
                     <span className="mt-2 block text-xs uppercase tracking-[0.3em]">
                       No withdrawal requests found.
@@ -197,15 +207,22 @@ const AdminWithdrawalsPage = () => {
                   </td>
                 </tr>
               ) : (
-                withdrawals.map((entry) => {
-                  const payoutDetails = entry.payoutDetails || entry.metadata?.payoutDetails || {};
+                withdrawals.map((entry, index) => {
+                  const payoutDetails =
+                    entry.payoutDetails || entry.metadata?.payoutDetails || {};
                   const methodLabel =
                     entry.payoutMethod || payoutDetails.method || "—";
                   const hasBankDetails =
                     (payoutDetails.method || entry.payoutMethod) === "bank" &&
                     (payoutDetails.accountNumber || payoutDetails.ifsc);
+                  const base = (pagination.page - 1) * pagination.limit;
+                  const serialNo = base + index + 1;
+
                   return (
                     <tr key={entry.id} className="hover:bg-slate-50">
+                      <td className="px-6 py-4 text-sm text-slate-700">
+                        {serialNo}
+                      </td>
                       <td className="px-6 py-4">
                         <p className="font-semibold text-slate-900">
                           {entry.userName || "—"}
@@ -222,7 +239,9 @@ const AdminWithdrawalsPage = () => {
                         ₹{Number(entry.amount || 0).toLocaleString("en-IN")}
                         <p className="text-xs font-normal text-slate-400">
                           Wallet after: ₹
-                          {Number(entry.walletBalance || 0).toLocaleString("en-IN")}
+                          {Number(entry.walletBalance || 0).toLocaleString(
+                            "en-IN"
+                          )}
                         </p>
                       </td>
                       <td className="px-6 py-4 text-xs text-slate-600">
@@ -240,12 +259,17 @@ const AdminWithdrawalsPage = () => {
                               <p>Bank: {payoutDetails.bankName}</p>
                             )}
                             {payoutDetails.accountHolderName && (
-                              <p>Account holder: {payoutDetails.accountHolderName}</p>
+                              <p>
+                                Account holder:{" "}
+                                {payoutDetails.accountHolderName}
+                              </p>
                             )}
                             {payoutDetails.accountNumber && (
                               <p>Account: {payoutDetails.accountNumber}</p>
                             )}
-                            {payoutDetails.ifsc && <p>IFSC: {payoutDetails.ifsc}</p>}
+                            {payoutDetails.ifsc && (
+                              <p>IFSC: {payoutDetails.ifsc}</p>
+                            )}
                           </div>
                         )}
                         {entry.note && (
@@ -269,7 +293,8 @@ const AdminWithdrawalsPage = () => {
                       <td className="px-6 py-4 text-xs text-slate-500">
                         <p>Requested: {formatDateTime(entry.createdAt)}</p>
                         <p>
-                          Processed: {formatDateTime(entry.metadata?.processedAt)}
+                          Processed:{" "}
+                          {formatDateTime(entry.metadata?.processedAt)}
                         </p>
                         {entry.metadata?.processedBy && (
                           <p>By: {entry.metadata.processedBy}</p>
@@ -279,7 +304,10 @@ const AdminWithdrawalsPage = () => {
                         <div className="flex flex-col gap-2">
                           <button
                             type="button"
-                            disabled={!canAction(entry.status) || updatingId === entry.id}
+                            disabled={
+                              !canAction(entry.status) ||
+                              updatingId === entry.id
+                            }
                             onClick={() => handleUpdate(entry.id, "completed")}
                             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-50"
                           >
@@ -287,7 +315,10 @@ const AdminWithdrawalsPage = () => {
                           </button>
                           <button
                             type="button"
-                            disabled={!canAction(entry.status) || updatingId === entry.id}
+                            disabled={
+                              !canAction(entry.status) ||
+                              updatingId === entry.id
+                            }
                             onClick={() => handleUpdate(entry.id, "failed")}
                             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-rose-700 disabled:opacity-50"
                           >
@@ -309,7 +340,8 @@ const AdminWithdrawalsPage = () => {
             {Math.min(
               pagination.page * pagination.limit,
               pagination.totalItems || 0
-            )} of {pagination.totalItems || 0}
+            )}{" "}
+            of {pagination.totalItems || 0}
           </div>
           <div className="flex items-center gap-2">
             <button

@@ -137,6 +137,15 @@ const AdminCouponsPage = () => {
   const columns = useMemo(
     () => [
       {
+        key: "serialNo",
+        label: "Sr. No.",
+        sortable: false,
+        render: (_value, _row, rowIndex) => {
+          const base = (params.page - 1) * params.limit;
+          return base + rowIndex + 1;
+        },
+      },
+      {
         key: "code",
         label: "Code",
         sortable: true,
@@ -193,7 +202,7 @@ const AdminCouponsPage = () => {
         render: (value) => (value ? new Date(value).toLocaleString() : "—"),
       },
     ],
-    []
+    [params.page, params.limit]
   );
 
   return (
