@@ -23,6 +23,7 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  Copy,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import api from "../api";
@@ -49,6 +50,9 @@ const PublicProfilePage = () => {
     useState(true);
   const [visibleGalleryCount, setVisibleGalleryCount] = useState(3);
   const touchStartXRef = useRef(null);
+  const [copyToastMessage, setCopyToastMessage] = useState("");
+  const [showCopyToast, setShowCopyToast] = useState(false);
+  const copyToastTimeoutRef = useRef(null);
 
   const featuredGallery = useMemo(() => [...imageItems], [imageItems]);
   const effectiveVisibleCount =
@@ -208,6 +212,14 @@ const PublicProfilePage = () => {
     }
     return undefined;
   }, [isGalleryTransitionEnabled]);
+
+  useEffect(() => {
+    return () => {
+      if (copyToastTimeoutRef.current) {
+        clearTimeout(copyToastTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handlePoweredByClick = useCallback(() => {
     if (authLoading) return;
@@ -953,6 +965,52 @@ const PublicProfilePage = () => {
     } catch (_) {}
   };
 
+  const showReferralToast = (message) => {
+    setCopyToastMessage(message);
+    setShowCopyToast(true);
+
+    if (copyToastTimeoutRef.current) {
+      clearTimeout(copyToastTimeoutRef.current);
+    }
+
+    copyToastTimeoutRef.current = setTimeout(() => {
+      setShowCopyToast(false);
+    }, 2000);
+  };
+
+  const handleCopyReferralCode = () => {
+    const value = companyReferralCode;
+
+    if (!value || value === "—" || value === "-") {
+      return;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(value)
+        .then(() => {
+          showReferralToast("Referral code copied to clipboard");
+        })
+        .catch(() => {
+          showReferralToast("Unable to copy referral code");
+        });
+    } else {
+      try {
+        const textarea = document.createElement("textarea");
+        textarea.value = value;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        showReferralToast("Referral code copied to clipboard");
+      } catch (_) {
+        showReferralToast("Unable to copy referral code");
+      }
+    }
+  };
+
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -1413,11 +1471,25 @@ const PublicProfilePage = () => {
                         {companyExperience || "-"}
                       </span>
                     </div>
-                    <div className="flex w-full items-center justify-center rounded-full bg-slate-900/80 px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/10 text-center shadow-md shadow-slate-900/80 sm:w-auto sm:justify-start sm:rounded-l-none sm:rounded-r-full sm:text-left">
-                      <span>Referral Code:</span>
-                      <span className="ml-1 break-all break-words font-semibold text-indigo-200">
-                        {companyReferralCode || "-"}
-                      </span>
+                    <div className="flex w-full items-center justify-between rounded-full bg-slate-900/80 px-4 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/10 text-center shadow-md shadow-slate-900/80 sm:w-auto sm:justify-start sm:rounded-l-none sm:rounded-r-full sm:text-left">
+                      <div className="flex min-w-0 items-center">
+                        <span>Referral Code:</span>
+                        <span className="ml-1 break-all break-words font-semibold text-indigo-200">
+                          {companyReferralCode || "-"}
+                        </span>
+                      </div>
+                      {companyReferralCode &&
+                        companyReferralCode !== "—" &&
+                        companyReferralCode !== "-" && (
+                          <button
+                            type="button"
+                            onClick={handleCopyReferralCode}
+                            className="ml-3 inline-flex items-center rounded-full bg-indigo-500 px-3 py-1 text-xs font-semibold text-white shadow-sm shadow-slate-950/60 hover:bg-indigo-400"
+                          >
+                            <Copy className="mr-1 h-3.5 w-3.5" />
+                            Copy
+                          </button>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -1514,6 +1586,13 @@ const PublicProfilePage = () => {
           </div>
         )}
       </div>
+      {showCopyToast && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
+          <div className="pointer-events-auto rounded-full border border-indigo-400/60 bg-slate-900/95 px-4 py-2 text-sm font-medium text-slate-50 shadow-lg shadow-slate-950/80">
+            {copyToastMessage}
+          </div>
+        </div>
+      )}
       {/* HIDDEN DOWNLOAD CARD (PNG / PDF SOURCE) */}
       <div
         style={{
