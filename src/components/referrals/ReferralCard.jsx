@@ -9,6 +9,7 @@ const ReferralCard = ({
   qrCodeDataUrl,
   qrValue,
   onShare,
+  onCopy,
 }) => {
   const qrCodeRef = useRef(null);
 
@@ -38,10 +39,27 @@ const ReferralCard = ({
     }
   };
 
+  const handleCopyReferralLink = async () => {
+    if (!referralLink) return;
+
+    if (typeof onCopy === "function") {
+      onCopy();
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      toast.success("Referral link copied");
+    } catch (error) {
+      toast.error("Unable to copy referral link");
+      console.error("copy.referral.link", error);
+    }
+  };
+
   return (
     <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/50 backdrop-blur">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
             Your referral code
           </p>
@@ -70,12 +88,23 @@ const ReferralCard = ({
             </button>
           </div>
           <p className="mt-4 text-sm text-slate-300">
-            Invite friends to join QrFolio and earn rewards when they purchase a
-            paid plan. Share your link across WhatsApp, Telegram, or email in
+            Invite friends to join QR Folio and earn rewards when they purchase
+            a paid plan. Share your link across WhatsApp, Telegram, or email in
             one tap.
           </p>
-          <div className="mt-4 break-all rounded-2xl border border-primary-500/40 bg-primary-500/10 px-4 py-3 text-sm text-primary-100">
-            {referralLink}
+          <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-primary-500/40 bg-primary-500/10 p-4 text-sm text-primary-100 sm:flex-row sm:items-center">
+            <div className="flex-1 break-all text-base font-medium text-white/90">
+              {referralLink || "Referral link unavailable"}
+            </div>
+            <button
+              type="button"
+              onClick={handleCopyReferralLink}
+              disabled={!referralLink}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-slate-800"
+            >
+              <Copy className="h-4 w-4" />
+              Copy link
+            </button>
           </div>
         </div>
         <div className="flex flex-col items-center gap-3">

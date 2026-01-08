@@ -902,7 +902,7 @@ const Dashboard = () => {
                   <div className="text-xs text-slate-400">
                     Company Referral Code
                   </div>
-                  <div className="text-sm text-slate-100">
+                  <div className="text-sm text-slate-100 break-all break-words">
                     {user.companyReferralCode || "—"}
                   </div>
                 </div>
