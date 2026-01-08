@@ -50,6 +50,7 @@ const PublicProfilePage = () => {
     useState(true);
   const [visibleGalleryCount, setVisibleGalleryCount] = useState(3);
   const touchStartXRef = useRef(null);
+  const qrCodeRef = useRef(null);
   const [copyToastMessage, setCopyToastMessage] = useState("");
   const [showCopyToast, setShowCopyToast] = useState(false);
   const copyToastTimeoutRef = useRef(null);
@@ -938,6 +939,88 @@ const PublicProfilePage = () => {
     console.log("PDF downloaded");
   };
 
+  const handleDownloadQrCode = () => {
+    try {
+      if (!qrCodeRef.current || !qrCodeRef.current.getCanvas) {
+        showReferralToast("QR code not ready yet");
+        return;
+      }
+
+      const canvas = qrCodeRef.current.getCanvas();
+      if (!canvas) {
+        showReferralToast("QR code not ready yet");
+        return;
+      }
+
+      const baseSize = canvas.width; // QR canvas is square
+      const scale = 2; // make QR larger in the exported image
+      const qrSize = baseSize * scale;
+      const padding = Math.round(baseSize * 0.4);
+
+      const rawName = (displayName || "").toString().trim();
+      const hasName = !!rawName;
+
+      const nameAreaHeight = hasName ? Math.round(qrSize * 0.2) : 0;
+
+      const exportWidth = qrSize + padding * 2;
+      const exportHeight = qrSize + nameAreaHeight + padding * 2.5; // tighter spacing
+
+      const exportCanvas = document.createElement("canvas");
+      exportCanvas.width = exportWidth;
+      exportCanvas.height = exportHeight;
+
+      const ctx = exportCanvas.getContext("2d");
+      if (!ctx) {
+        showReferralToast("Unable to prepare download");
+        return;
+      }
+
+      // White background
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, exportWidth, exportHeight);
+
+      // Draw the user name at the top, centered horizontally
+      if (hasName) {
+        const fontFamily =
+          'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        let fontSize = Math.round(qrSize * 0.18);
+        ctx.fillStyle = "#000000";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
+        ctx.font = `bold ${fontSize}px ${fontFamily}`;
+
+        const textY = padding + nameAreaHeight / 2;
+        const maxWidth = exportWidth - padding * 2;
+
+        // Shrink font if the name would overflow the allocated area
+        const metrics = ctx.measureText(rawName);
+        if (metrics.width > maxWidth && maxWidth > 0) {
+          const ratio = maxWidth / metrics.width;
+          fontSize = Math.max(12, Math.floor(fontSize * ratio));
+          ctx.font = `bold ${fontSize}px ${fontFamily}`;
+        }
+
+        ctx.fillText(rawName, exportWidth / 2, textY, maxWidth);
+      }
+
+      // Draw larger QR centered below the name
+      const qrX = (exportWidth - qrSize) / 2;
+      const qrY = padding + nameAreaHeight + padding * 0.5;
+      ctx.drawImage(canvas, qrX, qrY, qrSize, qrSize);
+
+      const dataUrl = exportCanvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = `${displayName.replace(/\s+/g, "_")}_QR_Code.png`;
+      link.href = dataUrl;
+      link.click();
+
+      showReferralToast("QR code downloaded");
+    } catch (error) {
+      console.error("Failed to download QR code", error);
+      showReferralToast("Unable to download QR code");
+    }
+  };
+
   const handleSaveContact = () => {
     try {
       const lines = [
@@ -1256,6 +1339,7 @@ const PublicProfilePage = () => {
                           }
                         >
                           <QRCodeGenerator
+                            ref={qrCodeRef}
                             value={profileUrl}
                             size={60}
                             level="H"
@@ -1304,6 +1388,13 @@ const PublicProfilePage = () => {
                   className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
                 >
                   Download Card Image
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadQrCode}
+                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
+                >
+                  Download QR Code
                 </button>
                 <button
                   type="button"
