@@ -439,7 +439,7 @@ const LandingPage = () => {
               </motion.div>
 
               <motion.div
-                className="relative"
+                className="relative overflow-x-hidden"
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
