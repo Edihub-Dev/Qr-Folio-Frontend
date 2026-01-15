@@ -325,7 +325,7 @@ const LandingPage = () => {
         ogType="website"
         structuredData={[organizationSchema, serviceSchema, faqSchema]}
       />
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
         {/* Promo modal removed as per latest requirements */}
         <nav className="fixed inset-x-0 top-0 z-50 border-b border-slate-800/70 bg-slate-950/80 backdrop-blur">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -450,7 +450,7 @@ const LandingPage = () => {
                     <img
                       src="/assets/landingpage.png"
                       alt="QR Folio Landing Page"
-                      className="w-full rounded-xl border border-white/5 shadow-lg"
+                      className="w-full max-w-full object-contain rounded-xl border border-white/5 shadow-lg"
                     />
                   </div>
                 </div>
@@ -572,7 +572,14 @@ const LandingPage = () => {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-8 auto-rows-auto mr-12 ml-12 mb-[clamp(2rem,5vw,2.5rem)] mt-[clamp(2rem,5vw,2.5rem)]">
+        <div className="grid 
+  grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] 
+  gap-8 
+  auto-rows-auto
+  mx-0 sm:mx-6 lg:mx-12
+  mb-[clamp(2rem,5vw,2.5rem)]
+  mt-[clamp(2rem,5vw,2.5rem)]
+">
             <motion.div
               className="bg-slate-900/80 text-white flex flex-col justify-center row-span-2 text-center p-[clamp(1rem,8vw,2rem)] rounded-3xl border border-white/10 shadow-xl shadow-primary-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
               initial={{ opacity: 0, y: 24 }}
