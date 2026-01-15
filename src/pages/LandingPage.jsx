@@ -361,7 +361,7 @@ const LandingPage = () => {
 
         {/* Hero Section */}
         <motion.section
-          className="relative overflow-hidden pt-24 pb-20 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white"
+          className="relative overflow-x-hidden pt-24 pb-20 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
@@ -456,7 +456,7 @@ const LandingPage = () => {
                 </div>
 
                 <motion.div
-                  className="pointer-events-none overflow-x-hidden absolute -bottom-6 left-4 inline-flex items-center gap-3 rounded-2xl bg-slate-900/80 px-4 py-3 text-xs sm:text-sm text-slate-100 shadow-lg shadow-slate-950/40 ring-1 ring-white/10 backdrop-blur"
+                  className="pointer-events-none absolute -bottom-6 left-4 inline-flex items-center gap-3 rounded-2xl bg-slate-900/80 px-4 py-3 text-xs sm:text-sm text-slate-100 shadow-lg shadow-slate-950/40 ring-1 ring-white/10 backdrop-blur"
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6, duration: 0.4, ease: "easeOut" }}
