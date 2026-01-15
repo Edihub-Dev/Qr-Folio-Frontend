@@ -439,7 +439,7 @@ const LandingPage = () => {
               </motion.div>
 
               <motion.div
-                className="relative overflow-x-hidden"
+                className="relative"
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
@@ -456,7 +456,7 @@ const LandingPage = () => {
                 </div>
 
                 <motion.div
-                  className="pointer-events-none absolute -bottom-6 left-4 inline-flex items-center gap-3 rounded-2xl bg-slate-900/80 px-4 py-3 text-xs sm:text-sm text-slate-100 shadow-lg shadow-slate-950/40 ring-1 ring-white/10 backdrop-blur"
+                  className="pointer-events-none overflow-x-hidden absolute -bottom-6 left-4 inline-flex items-center gap-3 rounded-2xl bg-slate-900/80 px-4 py-3 text-xs sm:text-sm text-slate-100 shadow-lg shadow-slate-950/40 ring-1 ring-white/10 backdrop-blur"
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6, duration: 0.4, ease: "easeOut" }}
