@@ -9,14 +9,14 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { setupConsoleFilter } from "./utils/consoleFilter";
-import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import PaymentPage from "./pages/PaymentPage";
-import VerifyOTPPage from "./pages/VerifyOTPPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-const DashboardLayout = lazy(() => import("./pages/DashboardLayout"));
-const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
+import LandingPage from "./pages/public/LandingPage";
+import LoginPage from "./pages/auth/LoginPage";
+import SignupPage from "./pages/auth/SignupPage";
+import PaymentPage from "./pages/payment/PaymentPage";
+import VerifyOTPPage from "./pages/auth/VerifyOTPPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+const DashboardLayout = lazy(() => import("./pages/dashboard/DashboardLayout"));
+const PublicProfilePage = lazy(() => import("./pages/public/PublicProfilePage"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const AdminDashboardPage = lazy(() =>
   import("./pages/admin/AdminDashboardPage")
@@ -32,15 +32,18 @@ const AdminWithdrawalsPage = lazy(() =>
 );
 const AdminCouponsPage = lazy(() => import("./pages/admin/AdminCouponsPage"));
 const AdminNfcPage = lazy(() => import("./pages/admin/AdminNfcPage"));
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsConditions from "./pages/TermsConditions";
-import RefundPolicy from "./pages/RefundPolicy";
+const AdminPublicProfilesPage = lazy(() =>
+  import("./pages/admin/AdminPublicProfilesPage")
+);
+import PrivacyPolicy from "./pages/legal/PrivacyPolicy";
+import TermsConditions from "./pages/legal/TermsConditions";
+import RefundPolicy from "./pages/legal/RefundPolicy";
 // import PhonePeDemoPage from "./pages/PhonePeDemoPage";
-import PaymentStatusPage from "./pages/PaymentStatusPage";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentFailure from "./pages/PaymentFailure";
-import ChainpayCheckout from "./pages/ChainpayCheckout";
-import MaintenancePage from "./pages/MaintenancePage";
+import PaymentStatusPage from "./pages/payment/PaymentStatusPage";
+import PaymentSuccess from "./pages/payment/PaymentSuccess";
+import PaymentFailure from "./pages/payment/PaymentFailure";
+import ChainpayCheckout from "./pages/payment/ChainpayCheckout";
+import MaintenancePage from "./pages/misc/MaintenancePage";
 // import MatrimonialLoginPage from "./pages/MatrimonialLoginPage";
 // import MatrimonialProfileForm from "./pages/MatrimonialProfileForm";
 
@@ -249,7 +252,7 @@ function App() {
                 <Route
                   path="/signup"
                   element={
-                    <PublicRoute authPage>
+                    <PublicRoute>
                       <SignupPage />
                     </PublicRoute>
                   }
@@ -299,6 +302,10 @@ function App() {
                 >
                   <Route index element={<AdminDashboardPage />} />
                   <Route path="users" element={<AdminUsersPage />} />
+                  <Route
+                    path="public-profiles"
+                    element={<AdminPublicProfilesPage />}
+                  />
                   <Route path="exports" element={<AdminExportsPage />} />
                   <Route path="invoices" element={<AdminInvoicesPage />} />
                   <Route path="refer" element={<AdminReferralsPage />} />

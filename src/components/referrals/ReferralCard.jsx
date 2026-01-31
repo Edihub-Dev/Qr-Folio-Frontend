@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { Copy, Share2, QrCode, Download } from "lucide-react";
-import QRCodeGenerator from "../QRCodeGenerator";
+import QRCodeGenerator from "../qr/QRCodeGenerator";
 import toast from "react-hot-toast";
 
 const ReferralCard = ({

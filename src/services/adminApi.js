@@ -5,6 +5,11 @@ export const fetchAdminUsers = async (params = {}) => {
   return response.data;
 };
 
+export const fetchAdminPublicProfiles = async (params = {}) => {
+  const response = await api.get("/admin/public-profiles", { params });
+  return response.data;
+};
+
 export const fetchAdminUserById = async (userId) => {
   const response = await api.get(`/admin/users/${userId}`);
   return response.data;

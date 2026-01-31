@@ -270,16 +270,54 @@ export const AuthProvider = ({ children }) => {
         payload.referralCode = trimmedReferral;
       }
 
+      setSignupData({
+        name,
+        email,
+        phone: phone || null,
+        password,
+        confirmPassword: confirmPassword ?? password,
+        couponCode,
+        referralCode: trimmedReferral || null,
+      });
+
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message,
+      };
+    }
+  };
+
+  const submitSignupAfterPhoneVerification = async (firebaseIdToken) => {
+    try {
+      if (!signupData) {
+        return { success: false, error: "Missing signup data" };
+      }
+
+      const normalizePhoneForApi = (value) => {
+        const digits = String(value || "").replace(/\D/g, "");
+        if (!digits) return null;
+        return digits.length > 10 ? digits.slice(-10) : digits;
+      };
+
+      const payload = {
+        name: signupData.name,
+        email: signupData.email,
+        phone: normalizePhoneForApi(signupData.phone),
+        password: signupData.password,
+        confirmPassword: signupData.confirmPassword,
+        couponCode: signupData.couponCode,
+        firebaseIdToken,
+      };
+
+      if (signupData.referralCode) {
+        payload.referralCode = signupData.referralCode;
+      }
+
       const res = await api.post("/auth/signup", payload);
       if (res.data?.success) {
-        setSignupData({
-          name,
-          email,
-          phone: phone || null,
-          couponCode,
-          referralCode: trimmedReferral || null,
-        });
-        return { success: true };
+        return { success: true, data: res.data };
       }
       return { success: false, error: res.data?.message || "Signup failed" };
     } catch (err) {
@@ -1038,6 +1076,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         signupData,
         signup,
+        submitSignupAfterPhoneVerification,
         resendOTP,
         verifyOTP,
         createPaymentOrder,

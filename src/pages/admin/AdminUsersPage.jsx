@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import clsx from "clsx";
 import {
   RefreshCw,
   Download,
@@ -43,6 +44,7 @@ const PAYMENT_STATUS_OPTIONS = [
 const PAYMENT_METHOD_OPTIONS = [
   { value: "phonepe", label: "PhonePe" },
   { value: "chainpay", label: "ChainPay" },
+  { value: "freemium", label: "Freemium" },
   // { value: "razorpay", label: "Razorpay" },
   // { value: "stripe", label: "Stripe" },
 ];
@@ -334,6 +336,13 @@ const AdminUsersPage = () => {
     return `₹${formatted}`;
   };
 
+  const formatPaymentMethod = useCallback((value) => {
+    const normalized = (value || '').toString().trim().toLowerCase();
+    if (!normalized || normalized === 'none') return '—';
+    if (normalized === 'freemium') return 'FREEMIUM';
+    return normalized.toUpperCase();
+  }, []);
+
   const handleBulkAction = async () => {
     if (!selectedUser || !pendingAction) return;
     try {
@@ -374,23 +383,21 @@ const AdminUsersPage = () => {
         sortable: true,
         sortKey: "subscriptionPlan",
         label: (
-          <div className="flex flex-col leading-tight">
+          <div className={clsx('flex', 'flex-col', 'leading-tight')}>
             <span>Plan</span>
-            <span className="text-gray-400 font-medium">Method</span>
+            <span className={clsx('text-gray-400', 'font-medium')}>Method</span>
           </div>
         ),
         render: (_, row) => (
-          <div className="flex flex-col">
-            <span className="font-medium text-gray-900">
+          <div className={clsx('flex', 'flex-col')}>
+            <span className={clsx('font-medium', 'text-gray-900')}>
               {row.subscriptionPlan
                 ? row.subscriptionPlan.charAt(0).toUpperCase() +
                   row.subscriptionPlan.slice(1)
                 : "—"}
             </span>
-            <span className="text-xs text-gray-500 uppercase">
-              {row.paymentMethod && row.paymentMethod !== "none"
-                ? row.paymentMethod
-                : "—"}
+            <span className={clsx('text-xs', 'text-gray-500', 'uppercase')}>
+              {formatPaymentMethod(row.paymentMethod)}
             </span>
           </div>
         ),
@@ -442,9 +449,9 @@ const AdminUsersPage = () => {
         sortable: true,
         sortKey: "createdAt",
         label: (
-          <div className="flex flex-col leading-tight">
+          <div className={clsx('flex', 'flex-col', 'leading-tight')}>
             <span>Plan Joined/</span>
-            <span className="text-gray-400 font-medium">Block Status</span>
+            <span className={clsx('text-gray-400', 'font-medium')}>Block Status</span>
           </div>
         ),
         render: (_, row) => {
@@ -457,8 +464,8 @@ const AdminUsersPage = () => {
             : "—";
 
           return (
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-700">{joinedDate}</span>
+            <div className={clsx('flex', 'flex-col', 'gap-1')}>
+              <span className={clsx('text-sm', 'text-gray-700')}>{joinedDate}</span>
               <span
                 className={`inline-flex w-fit rounded-full px-2 py-0.5 text-[11px] font-medium ${
                   row.isBlocked
@@ -490,9 +497,9 @@ const AdminUsersPage = () => {
         sortable: true,
         sortKey: "planExpireDate",
         label: (
-          <div className="flex flex-col leading-tight">
+          <div className={clsx('flex', 'flex-col', 'leading-tight')}>
             <span>Plan Expires/</span>
-            <span className="text-gray-400 font-medium">Plan Status</span>
+            <span className={clsx('text-gray-400', 'font-medium')}>Plan Status</span>
           </div>
         ),
         render: (_, row) => {
@@ -512,8 +519,8 @@ const AdminUsersPage = () => {
               : "bg-emerald-100 text-emerald-600";
 
           return (
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-700">{formattedExpire}</span>
+            <div className={clsx('flex', 'flex-col', 'gap-1')}>
+              <span className={clsx('text-sm', 'text-gray-700')}>{formattedExpire}</span>
               <span
                 className={`inline-flex w-fit rounded-full px-2 py-0.5 text-[11px] font-medium ${statusColor}`}
               >
@@ -531,15 +538,15 @@ const AdminUsersPage = () => {
     const blockActionLabel = user.isBlocked ? "Unblock user" : "Block user";
 
     return (
-      <div className="flex items-center justify-end gap-2">
+      <div className={clsx('flex', 'items-center', 'justify-end', 'gap-2')}>
         <button
           type="button"
           onClick={() => openModal("view", user.id || user._id)}
           title="View user details"
           aria-label="View user details"
-          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
         >
-          <Eye className="h-4 w-4" />
+          <Eye className={clsx('h-4', 'w-4')} />
         </button>
         <button
           type="button"
@@ -547,7 +554,7 @@ const AdminUsersPage = () => {
           disabled={actionLoading}
           title="Refresh subscription"
           aria-label="Refresh subscription"
-          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700', 'disabled:cursor-not-allowed', 'disabled:opacity-60')}
         >
           <RefreshCw
             className={`h-4 w-4 ${actionLoading ? "animate-spin" : ""}`}
@@ -558,36 +565,36 @@ const AdminUsersPage = () => {
           onClick={() => openModal("remind", user.id || user._id)}
           title="Send reminder"
           aria-label="Send reminder"
-          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
         >
-          <Bell className="h-4 w-4" />
+          <Bell className={clsx('h-4', 'w-4')} />
         </button>
         <button
           type="button"
           onClick={() => openModal("renew", user.id || user._id)}
           title="Renew subscription"
           aria-label="Renew subscription"
-          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
         >
-          <CalendarClock className="h-4 w-4" />
+          <CalendarClock className={clsx('h-4', 'w-4')} />
         </button>
         <button
           type="button"
           onClick={() => openModal("expiry", user.id || user._id)}
           title="Set custom expiry"
           aria-label="Set custom expiry"
-          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
         >
-          <CalendarPlus className="h-4 w-4" />
+          <CalendarPlus className={clsx('h-4', 'w-4')} />
         </button>
         <button
           type="button"
           onClick={() => openModal("logs", user.id || user._id)}
           title="View reminder history"
           aria-label="View reminder history"
-          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
         >
-          <History className="h-4 w-4" />
+          <History className={clsx('h-4', 'w-4')} />
         </button>
         <button
           type="button"
@@ -597,12 +604,12 @@ const AdminUsersPage = () => {
           }}
           title={blockActionLabel}
           aria-label={blockActionLabel}
-          className="inline-flex items-center rounded-full border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
         >
           {user.isBlocked ? (
-            <ShieldOff className="h-4 w-4" />
+            <ShieldOff className={clsx('h-4', 'w-4')} />
           ) : (
-            <Shield className="h-4 w-4" />
+            <Shield className={clsx('h-4', 'w-4')} />
           )}
         </button>
         <button
@@ -613,9 +620,9 @@ const AdminUsersPage = () => {
           }}
           title="Delete user"
           aria-label="Delete user"
-          className="inline-flex items-center rounded-full border border-red-200 p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-red-200', 'p-2', 'text-red-500', 'transition-colors', 'hover:bg-red-50', 'hover:text-red-600')}
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className={clsx('h-4', 'w-4')} />
         </button>
       </div>
     );
@@ -623,14 +630,14 @@ const AdminUsersPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-3xl border border-gray-200 bg-gradient-to-br from-white via-white to-slate-100 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className={clsx('flex', 'flex-col', 'gap-4', 'rounded-3xl', 'border', 'border-gray-200', 'bg-gradient-to-br', 'from-white', 'via-white', 'to-slate-100', 'p-6', 'shadow-sm', 'sm:flex-row', 'sm:items-center', 'sm:justify-between')}>
         <div>
-          <h1 className="text-3xl font-semibold text-gray-900">Users</h1>
-          <p className="mt-2 text-sm text-gray-500">
+          <h1 className={clsx('text-3xl', 'font-semibold', 'text-gray-900')}>Users</h1>
+          <p className={clsx('mt-2', 'text-sm', 'text-gray-500')}>
             Manage accounts, plans, and payment activity across the platform.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className={clsx('flex', 'flex-wrap', 'items-center', 'gap-3')}>
           <button
             type="button"
             onClick={(event) => {
@@ -638,7 +645,7 @@ const AdminUsersPage = () => {
               refresh();
             }}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-2xl', 'border', 'border-gray-200', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-gray-600', 'transition', 'hover:bg-gray-100', 'disabled:cursor-not-allowed', 'disabled:opacity-60')}
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             {loading ? "Refreshing..." : "Refresh"}
@@ -647,72 +654,72 @@ const AdminUsersPage = () => {
             type="button"
             onClick={handleCsvDownload}
             disabled={csvLoading}
-            className="inline-flex items-center gap-2 rounded-2xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary-500/30 transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300"
+            className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-2xl', 'bg-primary-600', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'text-white', 'shadow-lg', 'shadow-primary-500/30', 'transition', 'hover:bg-primary-700', 'disabled:cursor-not-allowed', 'disabled:bg-primary-300')}
           >
-            <Download className="h-4 w-4" />
+            <Download className={clsx('h-4', 'w-4')} />
             {csvLoading ? "Downloading..." : "Download CSV"}
           </button>
         </div>
       </div>
 
       {Object.keys(stats).length > 0 && (
-        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-600">
-                  <Users className="h-5 w-5" />
+        <div className={clsx('rounded-3xl', 'border', 'border-gray-200', 'bg-white', 'p-6', 'shadow-sm')}>
+          <div className={clsx('grid', 'gap-4', 'sm:grid-cols-2', 'xl:grid-cols-4')}>
+            <div className={clsx('rounded-2xl', 'bg-slate-50', 'p-4')}>
+              <div className={clsx('flex', 'items-center', 'gap-3')}>
+                <div className={clsx('flex', 'h-10', 'w-10', 'items-center', 'justify-center', 'rounded-full', 'bg-primary-100', 'text-primary-600')}>
+                  <Users className={clsx('h-5', 'w-5')} />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.2em] text-gray-400">
+                  <p className={clsx('text-xs', 'font-semibold', 'tracking-[0.2em]', 'text-gray-400')}>
                     Total users
                   </p>
-                  <p className="mt-1 text-xl font-semibold text-gray-900">
+                  <p className={clsx('mt-1', 'text-xl', 'font-semibold', 'text-gray-900')}>
                     {(stats.totalUsers || 0).toLocaleString()}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                  <CheckCircle2 className="h-5 w-5" />
+            <div className={clsx('rounded-2xl', 'bg-slate-50', 'p-4')}>
+              <div className={clsx('flex', 'items-center', 'gap-3')}>
+                <div className={clsx('flex', 'h-10', 'w-10', 'items-center', 'justify-center', 'rounded-full', 'bg-emerald-100', 'text-emerald-600')}>
+                  <CheckCircle2 className={clsx('h-5', 'w-5')} />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.2em] text-gray-400">
+                  <p className={clsx('text-xs', 'font-semibold', 'tracking-[0.2em]', 'text-gray-400')}>
                     Paid users
                   </p>
-                  <p className="mt-1 text-xl font-semibold text-gray-900">
+                  <p className={clsx('mt-1', 'text-xl', 'font-semibold', 'text-gray-900')}>
                     {(stats.paidUsers || 0).toLocaleString()}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-                  <AlertTriangle className="h-5 w-5" />
+            <div className={clsx('rounded-2xl', 'bg-slate-50', 'p-4')}>
+              <div className={clsx('flex', 'items-center', 'gap-3')}>
+                <div className={clsx('flex', 'h-10', 'w-10', 'items-center', 'justify-center', 'rounded-full', 'bg-rose-100', 'text-rose-600')}>
+                  <AlertTriangle className={clsx('h-5', 'w-5')} />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.2em] text-gray-400">
+                  <p className={clsx('text-xs', 'font-semibold', 'tracking-[0.2em]', 'text-gray-400')}>
                     Blocked
                   </p>
-                  <p className="mt-1 text-xl font-semibold text-gray-900">
+                  <p className={clsx('mt-1', 'text-xl', 'font-semibold', 'text-gray-900')}>
                     {(stats.blockedUsers || 0).toLocaleString()}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-100 text-cyan-600">
-                  <TrendingUp className="h-5 w-5" />
+            <div className={clsx('rounded-2xl', 'bg-slate-50', 'p-4')}>
+              <div className={clsx('flex', 'items-center', 'gap-3')}>
+                <div className={clsx('flex', 'h-10', 'w-10', 'items-center', 'justify-center', 'rounded-full', 'bg-cyan-100', 'text-cyan-600')}>
+                  <TrendingUp className={clsx('h-5', 'w-5')} />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.2em] text-gray-400">
+                  <p className={clsx('text-xs', 'font-semibold', 'tracking-[0.2em]', 'text-gray-400')}>
                     Conversion
                   </p>
-                  <p className="mt-1 text-xl font-semibold text-gray-900">
+                  <p className={clsx('mt-1', 'text-xl', 'font-semibold', 'text-gray-900')}>
                     {stats.totalUsers
                       ? `${Math.round(
                           ((stats.paidUsers || 0) / stats.totalUsers) * 100
@@ -726,8 +733,8 @@ const AdminUsersPage = () => {
         </div>
       )}
 
-      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="grid gap-4 lg:grid-cols-[2fr_3fr]">
+      <div className={clsx('rounded-3xl', 'border', 'border-gray-200', 'bg-white', 'p-6', 'shadow-sm')}>
+        <div className={clsx('grid', 'gap-4', 'lg:grid-cols-[2fr_3fr]')}>
           <div className="space-y-3">
             <AdminSearchBar
               value={params.search}
@@ -737,9 +744,9 @@ const AdminUsersPage = () => {
               placeholder="Search name or email"
             />
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className={clsx('grid', 'gap-3', 'sm:grid-cols-2')}>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className={clsx('block', 'text-xs', 'font-medium', 'text-gray-500', 'mb-1')}>
                   From date
                 </label>
                 <input
@@ -752,11 +759,11 @@ const AdminUsersPage = () => {
                       startDate: e.target.value,
                     }))
                   }
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-xl', 'border', 'border-gray-200', 'px-3', 'py-2', 'text-sm', 'text-gray-900', 'focus:border-primary-500', 'focus:outline-none', 'focus:ring-1', 'focus:ring-primary-500')}
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className={clsx('block', 'text-xs', 'font-medium', 'text-gray-500', 'mb-1')}>
                   To date
                 </label>
                 <input
@@ -769,12 +776,12 @@ const AdminUsersPage = () => {
                       endDate: e.target.value,
                     }))
                   }
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-xl', 'border', 'border-gray-200', 'px-3', 'py-2', 'text-sm', 'text-gray-900', 'focus:border-primary-500', 'focus:outline-none', 'focus:ring-1', 'focus:ring-primary-500')}
                 />
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className={clsx('grid', 'gap-3', 'sm:grid-cols-2')}>
               <AdminFilterDropdown
                 label="Plan"
                 value={params.plan || ""}
@@ -817,14 +824,14 @@ const AdminUsersPage = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-slate-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+          <div className={clsx('rounded-2xl', 'border', 'border-dashed', 'border-gray-200', 'bg-slate-50', 'p-4')}>
+            <p className={clsx('text-xs', 'font-semibold', 'uppercase', 'tracking-[0.2em]', 'text-gray-400')}>
               Snapshot
             </p>
-            <div className="mt-4 space-y-3 text-sm text-gray-600">
-              <div className="flex items-center justify-between">
+            <div className={clsx('mt-4', 'space-y-3', 'text-sm', 'text-gray-600')}>
+              <div className={clsx('flex', 'items-center', 'justify-between')}>
                 <span>Revenue per user</span>
-                <span className="font-semibold text-gray-900">
+                <span className={clsx('font-semibold', 'text-gray-900')}>
                   {stats.totalUsers
                     ? new Intl.NumberFormat("en-IN", {
                         style: "currency",
@@ -835,9 +842,9 @@ const AdminUsersPage = () => {
                     : "₹0.00"}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className={clsx('flex', 'items-center', 'justify-between')}>
                 <span>Average plan</span>
-                <span className="font-semibold text-gray-900">
+                <span className={clsx('font-semibold', 'text-gray-900')}>
                   {(stats.paidUsers || 0) > 0
                     ? `${Math.round(
                         ((stats.paidUsers || 0) / (stats.totalUsers || 1)) * 100
@@ -845,9 +852,9 @@ const AdminUsersPage = () => {
                     : "No paid users"}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className={clsx('flex', 'items-center', 'justify-between')}>
                 <span>Blocked ratio</span>
-                <span className="font-semibold text-gray-900">
+                <span className={clsx('font-semibold', 'text-gray-900')}>
                   {stats.totalUsers
                     ? `${Math.round(
                         ((stats.blockedUsers || 0) / stats.totalUsers) * 100
@@ -862,12 +869,12 @@ const AdminUsersPage = () => {
 
       <div className="space-y-4">
         {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+          <div className={clsx('rounded-2xl', 'border', 'border-red-200', 'bg-red-50', 'p-4', 'text-sm', 'text-red-600')}>
             {error}
           </div>
         )}
 
-        <div className="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className={clsx('rounded-3xl', 'border', 'border-gray-200', 'bg-white', 'p-4', 'shadow-sm')}>
           <AdminTable
             columns={columns}
             data={data}
@@ -878,7 +885,7 @@ const AdminUsersPage = () => {
           />
         </div>
 
-        <div className="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className={clsx('rounded-3xl', 'border', 'border-gray-200', 'bg-white', 'p-4', 'shadow-sm')}>
           <AdminPagination
             page={pagination.page || 1}
             totalPages={pagination.totalPages || 1}
@@ -887,7 +894,7 @@ const AdminUsersPage = () => {
         </div>
 
         {loading && (
-          <div className="rounded-3xl border border-dashed border-gray-200 bg-white p-8 text-center text-gray-500">
+          <div className={clsx('rounded-3xl', 'border', 'border-dashed', 'border-gray-200', 'bg-white', 'p-8', 'text-center', 'text-gray-500')}>
             Loading users...
           </div>
         )}
@@ -901,41 +908,41 @@ const AdminUsersPage = () => {
           <button
             type="button"
             onClick={closeModal}
-            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+            className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-gray-600', 'hover:bg-gray-100')}
           >
             Close
           </button>
         }
       >
         {selectedUser ? (
-          <div className="grid gap-4 text-sm">
+          <div className={clsx('grid', 'gap-4', 'text-sm')}>
             <div>
-              <p className="text-xs font-medium text-gray-500">Name</p>
+              <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Name</p>
               <p className="text-gray-900">{selectedUser.name || "—"}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500">Email</p>
+              <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Email</p>
               <p className="text-gray-900">{selectedUser.email || "—"}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500">Mobile</p>
+              <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Mobile</p>
               <p className="text-gray-900">{selectedUser.phone || "—"}</p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className={clsx('grid', 'gap-3', 'sm:grid-cols-2')}>
               <div>
-                <p className="text-xs font-medium text-gray-500">Plan</p>
+                <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Plan</p>
                 <p className="text-gray-900">
                   {selectedUser.subscriptionPlan || "—"}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">Plan status</p>
+                <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Plan status</p>
                 <p className="text-gray-900">
                   {selectedUser.planStatus || "—"}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">
+                <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>
                   Payment status
                 </p>
                 <p className="text-gray-900">
@@ -943,15 +950,15 @@ const AdminUsersPage = () => {
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">
+                <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>
                   Payment method
                 </p>
                 <p className="text-gray-900">
-                  {selectedUser.paymentMethod || "—"}
+                  {formatPaymentMethod(selectedUser.paymentMethod)}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">Total paid</p>
+                <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Total paid</p>
                 <p className="text-gray-900">
                   {formatTotalPaidDisplay(selectedUser)}
                 </p>
@@ -989,10 +996,10 @@ const AdminUsersPage = () => {
               }
 
               return (
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className={clsx('grid', 'gap-3', 'sm:grid-cols-2')}>
                   {selectedUser.planStartDate && (
                     <div>
-                      <p className="text-xs font-medium text-gray-500">
+                      <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>
                         Plan start
                       </p>
                       <p className="text-gray-900">
@@ -1002,7 +1009,7 @@ const AdminUsersPage = () => {
                   )}
                   {selectedUser.planExpireDate && (
                     <div>
-                      <p className="text-xs font-medium text-gray-500">
+                      <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>
                         Plan expiry
                       </p>
                       <p className="text-gray-900">
@@ -1012,7 +1019,7 @@ const AdminUsersPage = () => {
                   )}
                   {shouldShowRenew && (
                     <div>
-                      <p className="text-xs font-medium text-gray-500">
+                      <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>
                         Renews on
                       </p>
                       <p className="text-gray-900">
@@ -1022,7 +1029,7 @@ const AdminUsersPage = () => {
                   )}
                   {shouldShowAccess && (
                     <div>
-                      <p className="text-xs font-medium text-gray-500">
+                      <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>
                         Access until
                       </p>
                       <p className="text-gray-900">
@@ -1033,9 +1040,9 @@ const AdminUsersPage = () => {
                 </div>
               );
             })()}
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className={clsx('grid', 'gap-3', 'sm:grid-cols-2')}>
               <div>
-                <p className="text-xs font-medium text-gray-500">
+                <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>
                   Account created
                 </p>
                 <p className="text-gray-900">
@@ -1043,7 +1050,7 @@ const AdminUsersPage = () => {
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500">
+                <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>
                   Last updated
                 </p>
                 <p className="text-gray-900">
@@ -1052,26 +1059,26 @@ const AdminUsersPage = () => {
               </div>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500">GST</p>
+              <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>GST</p>
               <p className="text-gray-900">
                 {selectedUser.gstNumber || "Not provided"}
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500">Status</p>
+              <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Status</p>
               <p className="text-gray-900">
                 {selectedUser.isBlocked ? "Blocked" : "Active"}
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500">Last reminder</p>
+              <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Last reminder</p>
               <p className="text-gray-900">
                 {formatDateTime(selectedUser.lastReminderSent)}
               </p>
             </div>
           </div>
         ) : (
-          <div className="text-sm text-gray-500">Loading user...</div>
+          <div className={clsx('text-sm', 'text-gray-500')}>Loading user...</div>
         )}
       </AdminModal>
 
@@ -1090,7 +1097,7 @@ const AdminUsersPage = () => {
             <button
               type="button"
               onClick={closeModal}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+              className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-gray-600', 'hover:bg-gray-100')}
             >
               Cancel
             </button>
@@ -1112,7 +1119,7 @@ const AdminUsersPage = () => {
           </>
         }
       >
-        <p className="text-sm text-gray-600">
+        <p className={clsx('text-sm', 'text-gray-600')}>
           {pendingAction?.type === "delete"
             ? "This action is irreversible. The user and their data will be permanently removed."
             : pendingAction?.value
@@ -1130,7 +1137,7 @@ const AdminUsersPage = () => {
             <button
               type="button"
               onClick={closeModal}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+              className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-gray-600', 'hover:bg-gray-100')}
             >
               Cancel
             </button>
@@ -1138,7 +1145,7 @@ const AdminUsersPage = () => {
               type="button"
               disabled={actionLoading}
               onClick={handleSendReminder}
-              className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300"
+              className={clsx('rounded-lg', 'bg-primary-600', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'text-white', 'hover:bg-primary-700', 'disabled:cursor-not-allowed', 'disabled:bg-primary-300')}
             >
               {actionLoading ? "Sending..." : "Send reminder"}
             </button>
@@ -1146,7 +1153,7 @@ const AdminUsersPage = () => {
         }
       >
         {selectedUser ? (
-          <div className="space-y-4 text-sm">
+          <div className={clsx('space-y-4', 'text-sm')}>
             <p>
               The reminder email will be sent to{" "}
               <strong>{selectedUser.email}</strong>. Provide an optional note to
@@ -1157,11 +1164,11 @@ const AdminUsersPage = () => {
               onChange={(event) => setReminderMessage(event.target.value)}
               placeholder="Optional note for the reminder log"
               rows={4}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+              className={clsx('w-full', 'rounded-lg', 'border', 'border-gray-200', 'px-3', 'py-2', 'text-sm', 'text-gray-900', 'focus:border-primary-500', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-100')}
             />
           </div>
         ) : (
-          <div className="text-sm text-gray-500">Loading user...</div>
+          <div className={clsx('text-sm', 'text-gray-500')}>Loading user...</div>
         )}
       </AdminModal>
 
@@ -1174,7 +1181,7 @@ const AdminUsersPage = () => {
             <button
               type="button"
               onClick={closeModal}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+              className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-gray-600', 'hover:bg-gray-100')}
             >
               Cancel
             </button>
@@ -1182,7 +1189,7 @@ const AdminUsersPage = () => {
               type="button"
               disabled={actionLoading}
               onClick={handleRenewSubscription}
-              className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300"
+              className={clsx('rounded-lg', 'bg-primary-600', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'text-white', 'hover:bg-primary-700', 'disabled:cursor-not-allowed', 'disabled:bg-primary-300')}
             >
               {actionLoading ? "Updating..." : "Renew plan"}
             </button>
@@ -1190,8 +1197,8 @@ const AdminUsersPage = () => {
         }
       >
         {selectedUser ? (
-          <div className="grid gap-4 text-sm">
-            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+          <div className={clsx('grid', 'gap-4', 'text-sm')}>
+            <label className={clsx('flex', 'flex-col', 'gap-1', 'text-xs', 'font-medium', 'text-gray-500')}>
               <span>Plan name</span>
               <input
                 type="text"
@@ -1203,11 +1210,11 @@ const AdminUsersPage = () => {
                   }))
                 }
                 placeholder="e.g. Standard (Gold)"
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-3', 'py-2', 'text-sm', 'text-gray-900', 'focus:border-primary-500', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-100')}
               />
             </label>
 
-            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+            <label className={clsx('flex', 'flex-col', 'gap-1', 'text-xs', 'font-medium', 'text-gray-500')}>
               <span>Payment method</span>
               <select
                 value={renewForm.paymentMethod}
@@ -1217,7 +1224,7 @@ const AdminUsersPage = () => {
                     paymentMethod: event.target.value,
                   }))
                 }
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-3', 'py-2', 'text-sm', 'text-gray-900', 'focus:border-primary-500', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-100')}
               >
                 <option value="phonepe">PhonePe</option>
                 <option value="chainpay">ChainPay</option>
@@ -1225,7 +1232,7 @@ const AdminUsersPage = () => {
               </select>
             </label>
 
-            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+            <label className={clsx('flex', 'flex-col', 'gap-1', 'text-xs', 'font-medium', 'text-gray-500')}>
               <span>Duration (months)</span>
               <input
                 type="number"
@@ -1237,12 +1244,12 @@ const AdminUsersPage = () => {
                     durationInMonths: Number(event.target.value) || 1,
                   }))
                 }
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-3', 'py-2', 'text-sm', 'text-gray-900', 'focus:border-primary-500', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-100')}
               />
             </label>
           </div>
         ) : (
-          <div className="text-sm text-gray-500">Loading user...</div>
+          <div className={clsx('text-sm', 'text-gray-500')}>Loading user...</div>
         )}
       </AdminModal>
 
@@ -1254,34 +1261,34 @@ const AdminUsersPage = () => {
           <button
             type="button"
             onClick={closeModal}
-            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+            className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-gray-600', 'hover:bg-gray-100')}
           >
             Close
           </button>
         }
       >
         {logsLoading ? (
-          <div className="text-sm text-gray-500">Loading reminders...</div>
+          <div className={clsx('text-sm', 'text-gray-500')}>Loading reminders...</div>
         ) : reminderLogs.length === 0 ? (
-          <div className="text-sm text-gray-500">
+          <div className={clsx('text-sm', 'text-gray-500')}>
             No reminders logged for this user yet.
           </div>
         ) : (
-          <ul className="space-y-3 text-sm">
+          <ul className={clsx('space-y-3', 'text-sm')}>
             {reminderLogs.map((log) => (
               <li
                 key={log._id || log.id}
-                className="rounded-xl border border-gray-200 bg-slate-50 p-3"
+                className={clsx('rounded-xl', 'border', 'border-gray-200', 'bg-slate-50', 'p-3')}
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-900">
+                <div className={clsx('flex', 'items-center', 'justify-between')}>
+                  <span className={clsx('font-medium', 'text-gray-900')}>
                     {log.reminderType?.replace(/_/g, " ") || "reminder"}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className={clsx('text-xs', 'text-gray-500')}>
                     {log.sentAt ? new Date(log.sentAt).toLocaleString() : "—"}
                   </span>
                 </div>
-                <div className="mt-1 text-xs text-gray-500">
+                <div className={clsx('mt-1', 'text-xs', 'text-gray-500')}>
                   Plan: {log.planName || "—"} (expires{" "}
                   {log.planExpireDate
                     ? new Date(log.planExpireDate).toLocaleDateString()
@@ -1289,11 +1296,11 @@ const AdminUsersPage = () => {
                   )
                 </div>
                 {log.notes && (
-                  <p className="mt-2 rounded-lg bg-white/70 p-2 text-xs text-gray-600">
+                  <p className={clsx('mt-2', 'rounded-lg', 'bg-white/70', 'p-2', 'text-xs', 'text-gray-600')}>
                     {log.notes}
                   </p>
                 )}
-                <div className="mt-2 text-xs text-gray-400">
+                <div className={clsx('mt-2', 'text-xs', 'text-gray-400')}>
                   Triggered by {log.triggeredBy || "system"}
                 </div>
               </li>
@@ -1311,7 +1318,7 @@ const AdminUsersPage = () => {
             <button
               type="button"
               onClick={closeModal}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+              className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-gray-600', 'hover:bg-gray-100')}
             >
               Cancel
             </button>
@@ -1319,7 +1326,7 @@ const AdminUsersPage = () => {
               type="button"
               disabled={actionLoading || !expiryForm.planExpireDate}
               onClick={handleUpdateExpiry}
-              className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300"
+              className={clsx('rounded-lg', 'bg-primary-600', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'text-white', 'hover:bg-primary-700', 'disabled:cursor-not-allowed', 'disabled:bg-primary-300')}
             >
               {actionLoading ? "Saving..." : "Update expiry"}
             </button>
@@ -1327,8 +1334,8 @@ const AdminUsersPage = () => {
         }
       >
         {selectedUser ? (
-          <div className="grid gap-4 text-sm">
-            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+          <div className={clsx('grid', 'gap-4', 'text-sm')}>
+            <label className={clsx('flex', 'flex-col', 'gap-1', 'text-xs', 'font-medium', 'text-gray-500')}>
               <span>Expiry date & time</span>
               <input
                 type="datetime-local"
@@ -1339,11 +1346,11 @@ const AdminUsersPage = () => {
                     planExpireDate: event.target.value,
                   }))
                 }
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-3', 'py-2', 'text-sm', 'text-gray-900', 'focus:border-primary-500', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-100')}
               />
             </label>
 
-            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+            <label className={clsx('flex', 'flex-col', 'gap-1', 'text-xs', 'font-medium', 'text-gray-500')}>
               <span>Notes (optional)</span>
               <textarea
                 rows={3}
@@ -1355,16 +1362,16 @@ const AdminUsersPage = () => {
                   }))
                 }
                 placeholder="Add context for the log entry"
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                className={clsx('rounded-lg', 'border', 'border-gray-200', 'px-3', 'py-2', 'text-sm', 'text-gray-900', 'focus:border-primary-500', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-100')}
               />
             </label>
-            <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
+            <p className={clsx('rounded-lg', 'bg-amber-50', 'p-3', 'text-xs', 'text-amber-700')}>
               Setting a past date will immediately mark the plan as expired.
               Upcoming dates refresh reminders and set the plan back to active.
             </p>
           </div>
         ) : (
-          <div className="text-sm text-gray-500">Loading user...</div>
+          <div className={clsx('text-sm', 'text-gray-500')}>Loading user...</div>
         )}
       </AdminModal>
     </div>

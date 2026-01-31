@@ -7,11 +7,9 @@ const RewardRulesCard = () => (
     </div>
     <div className="mt-4 space-y-4 text-sm text-slate-200">
       <div>
-        <h4 className="text-sm font-semibold text-slate-100">Reward summary</h4>
+        <h4 className="text-sm font-semibold text-slate-100">Reward milestones</h4>
         <p className="mt-1">
-          You earn <span className="font-semibold text-primary-300">₹100</span>{" "}
-          when your friend signs up through your link and completes their first
-          paid plan.
+          Earn merchandise rewards by completing successful referrals.
         </p>
       </div>
       <div>
@@ -20,15 +18,16 @@ const RewardRulesCard = () => (
         </h4>
         <ul className="mt-2 list-inside list-disc space-y-2">
           <li>
-            Rewards move from pending to wallet once the referral passes
-            anti-fraud checks.
+            Levels unlock sequentially (L1 → L2 → L3) when you reach: 2, 5, and
+            10 successful referrals.
           </li>
           <li>
-            Withdrawals unlock once you have at least ₹5000 in wallet balance.
+            When a level unlocks, a unique 100% discount coupon is generated for
+            that level’s reward.
           </li>
           <li>
-            Self-referrals or suspicious patterns will be rejected and may
-            result in account review.
+            Coupons are valid for 15 days and can be used only once on
+            shop.p2pdeal.net.
           </li>
         </ul>
       </div>
