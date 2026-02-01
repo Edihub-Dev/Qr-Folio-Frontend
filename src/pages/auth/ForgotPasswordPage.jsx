@@ -1,5 +1,5 @@
 // frontend/src/pages/auth/ForgotPasswordPage.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
@@ -13,6 +13,8 @@ const ForgotPasswordPage = () => {
   const [errors, setErrors] = useState({});
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [resending, setResending] = useState(false);
   const [passwords, setPasswords] = useState({
     newPassword: "",
     confirmPassword: "",
@@ -34,6 +36,7 @@ const ForgotPasswordPage = () => {
       const res = await api.post("/auth/forgot-password", { email });
       if (res.data?.success || res.status === 200) {
         setStep(2);
+        setResendCountdown(60);
       } else {
         setErrors({ submit: res.data?.message || "Failed to send OTP" });
       }
@@ -49,6 +52,33 @@ const ForgotPasswordPage = () => {
       ...prev,
       [field]: !prev[field],
     }));
+  };
+
+  useEffect(() => {
+    if (step !== 2) return;
+    if (resendCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCountdown, step]);
+
+  const handleResendOtp = async () => {
+    if (resendCountdown > 0 || resending) return;
+    setResending(true);
+    setErrors({});
+    try {
+      const res = await api.post("/auth/forgot-password", { email });
+      if (res.data?.success || res.status === 200) {
+        setResendCountdown(60);
+      } else {
+        setErrors({ submit: res.data?.message || "Failed to resend OTP" });
+      }
+    } catch (err) {
+      setErrors({ submit: err.response?.data?.message || err.message });
+    } finally {
+      setResending(false);
+    }
   };
 
   const handleVerifyOtp = async (e) => {
@@ -240,6 +270,19 @@ const ForgotPasswordPage = () => {
                   className="w-full bg-primary-500 text-white py-3.5 px-6 rounded-xl font-semibold shadow-lg shadow-primary-500/40 hover:bg-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Verifying..." : "Verify OTP"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={loading || resending || resendCountdown > 0}
+                  className="w-full border border-white/10 text-slate-200 py-3.5 px-6 rounded-xl font-semibold hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resending
+                    ? "Resending OTP..."
+                    : resendCountdown > 0
+                    ? `Resend OTP in ${resendCountdown}s`
+                    : "Resend OTP"}
                 </button>
               </form>
             )}
