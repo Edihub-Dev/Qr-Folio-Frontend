@@ -20,6 +20,7 @@ import {
   Briefcase,
   Globe,
   Link2,
+  FileText,
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
@@ -44,6 +45,7 @@ const PublicProfilePage = () => {
   const [galleryItems, setGalleryItems] = useState([]);
   const [imageItems, setImageItems] = useState([]);
   const [videoItems, setVideoItems] = useState([]);
+  const [documentItems, setDocumentItems] = useState([]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
   const [isGalleryTransitionEnabled, setIsGalleryTransitionEnabled] =
@@ -117,6 +119,7 @@ const PublicProfilePage = () => {
             setGalleryItems(items);
             setImageItems(items.filter((item) => item?.type === "image"));
             setVideoItems(items.filter((item) => item?.type === "video"));
+            setDocumentItems(items.filter((item) => item?.type === "document"));
           }
         } catch (galleryErr) {
           console.warn("Failed to fetch gallery items:", galleryErr.message);
@@ -1587,6 +1590,41 @@ const PublicProfilePage = () => {
                 </div>
               </section>
 
+              {documentItems.length > 0 && (
+                <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-950/70 sm:p-8">
+                  <h2 className="mb-4 text-xl font-semibold tracking-tight text-indigo-100">
+                    Certificates/Documents
+                  </h2>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    {documentItems.map((item) => (
+                      <button
+                        key={item._id}
+                        type="button"
+                        onClick={() => window.open(item.url, "_blank", "noopener,noreferrer")}
+                        className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-slate-900/80 p-5 text-left shadow-lg shadow-slate-950/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                      >
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/15 text-indigo-200 shadow-inner shadow-slate-950/70">
+                          <FileText className="h-6 w-6" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate text-sm font-semibold text-slate-50">
+                            {item.title || "Untitled document"}
+                          </h3>
+                          {item.description && (
+                            <p className="mt-1 line-clamp-2 text-xs text-slate-300">
+                              {item.description}
+                            </p>
+                          )}
+                          <p className="mt-2 text-xs text-slate-400">
+                            Click to open
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {videoItems.length > 0 && (
                 <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-950/70 sm:p-8">
                   <h2 className="mb-4 text-xl font-semibold tracking-tight text-indigo-100">
@@ -1633,6 +1671,8 @@ const PublicProfilePage = () => {
                   </div>
                 </div>
               )}
+
+
             </main>
           </div>
         </div>

@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import {
   Image,
+  FileText,
   UploadCloud,
   Trash2,
   Plus,
@@ -47,6 +48,14 @@ const GalleryPage = () => {
     () => items.filter((item) => item.type === "image"),
     [items]
   );
+  const documentItems = useMemo(
+    () => items.filter((item) => item.type === "document"),
+    [items]
+  );
+  const mediaItems = useMemo(
+    () => items.filter((item) => item.type === "image" || item.type === "document"),
+    [items]
+  );
   const videoItems = useMemo(
     () => items.filter((item) => item.type === "video"),
     [items]
@@ -62,7 +71,7 @@ const GalleryPage = () => {
     !Number.isFinite(maxVideos) || maxVideos >= Number.MAX_SAFE_INTEGER;
   const remainingImageSlots = unlimitedImages
     ? Number.POSITIVE_INFINITY
-    : Math.max(0, maxImages - imageItems.length);
+    : Math.max(0, maxImages - mediaItems.length);
   const remainingVideoSlots = unlimitedVideos
     ? Number.POSITIVE_INFINITY
     : Math.max(0, maxVideos - videoItems.length);
@@ -70,14 +79,14 @@ const GalleryPage = () => {
   const hasReachedVideoLimit = !unlimitedVideos && remainingVideoSlots <= 0;
   const planLabel = PLAN_LABELS[plan] || PLAN_LABELS.basic;
   const imageLimitDescription = unlimitedImages
-    ? "Upload unlimited images (max 2 MB each)"
-    : `Upload up to ${maxImages} images (max 2 MB each)`;
+    ? "Upload unlimited images/documents (max 2 MB each)"
+    : `Upload up to ${maxImages} images/documents (max 2 MB each)`;
   const videoLimitDescription = unlimitedVideos
     ? "unlimited video links"
     : `${maxVideos} video links`;
   const imageUsageText = unlimitedImages
-    ? `${imageItems.length} images`
-    : `${Math.min(imageItems.length, maxImages)}/${maxImages} images`;
+    ? `${mediaItems.length} uploads`
+    : `${Math.min(mediaItems.length, maxImages)}/${maxImages} uploads`;
   const videoUsageText = unlimitedVideos
     ? `${videoItems.length} video links`
     : `${Math.min(videoItems.length, maxVideos)}/${maxVideos} video links`;
@@ -122,7 +131,7 @@ const GalleryPage = () => {
 
       if (!unlimitedImages && availableSlots <= 0) {
         toast.error(
-          `You can only upload up to ${maxImages} images on the ${planLabel} plan.`
+          `You can only upload up to ${maxImages} images/documents on the ${planLabel} plan.`
         );
         return;
       }
@@ -133,14 +142,25 @@ const GalleryPage = () => {
 
       if (!filesToProcess.length) {
         toast.error(
-          `You can only upload up to ${maxImages} images on the ${planLabel} plan.`
+          `You can only upload up to ${maxImages} images/documents on the ${planLabel} plan.`
         );
         return;
       }
 
       for (const file of filesToProcess) {
-        if (!file.type.startsWith("image/")) {
-          toast.error(`${file.name}: Only image files are allowed.`);
+        const loweredName = (file.name || "").toLowerCase();
+        const isImage = typeof file.type === "string" && file.type.startsWith("image/");
+        const isAllowedDoc =
+          file.type === "application/pdf" ||
+          file.type === "application/msword" ||
+          file.type ===
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+          loweredName.endsWith(".pdf") ||
+          loweredName.endsWith(".doc") ||
+          loweredName.endsWith(".docx");
+
+        if (!isImage && !isAllowedDoc) {
+          toast.error(`${file.name}: Only image, PDF, DOC, DOCX files are allowed.`);
           continue;
         }
 
@@ -308,6 +328,11 @@ const GalleryPage = () => {
     onDropRejected,
     accept: {
       "image/*": [".jpeg", ".jpg", ".png", ".webp", ".gif"],
+      "application/pdf": [".pdf"],
+      "application/msword": [".doc"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [
+        ".docx",
+      ],
     },
     maxSize: MAX_SIZE_BYTES,
     multiple: true,
@@ -440,7 +465,7 @@ const GalleryPage = () => {
                   : "Choose a file or drag & drop it here"}
               </p>
               <p className="text-sm text-slate-400">
-                JPEG, PNG formats, up to 2 MB
+                Images, PDF, DOC, DOCX formats, up to 2 MB
               </p>
             </div>
             <button
@@ -461,7 +486,7 @@ const GalleryPage = () => {
           </div>
           {hasReachedImageLimit && (
             <p className="mt-4 text-sm text-amber-300">
-              You already have {maxImages} images. Delete one to upload more.
+              You already have {maxImages} uploads. Delete one to upload more.
             </p>
           )}
         </div>
@@ -719,6 +744,67 @@ const GalleryPage = () => {
                             {new Date(item.createdAt).toLocaleString()}
                           </span>
                         </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {documentItems.length > 0 && (
+              <section>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-slate-100">
+                    Documents
+                  </h2>
+                  <span className="text-sm text-slate-400">
+                    {documentItems.length} files
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {documentItems.map((item) => (
+                    <article
+                      key={item._id}
+                      className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-md shadow-slate-950/50"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => window.open(item.url, "_blank", "noopener,noreferrer")}
+                        className="flex w-full items-center gap-4 p-5 text-left"
+                      >
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-500/10 text-primary-300">
+                          <FileText className="h-6 w-6" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate font-semibold text-slate-100">
+                            {item.title || "Untitled document"}
+                          </h3>
+                          {item.description ? (
+                            <p className="mt-1 line-clamp-2 text-sm text-slate-300">
+                              {item.description}
+                            </p>
+                          ) : (
+                            <p className="mt-1 text-xs text-slate-500">
+                              No description provided
+                            </p>
+                          )}
+                          <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                            <span>{formatBytes(item.size)}</span>
+                            <span>
+                              {new Date(item.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                      <div className="flex justify-end px-5 pb-5">
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(item._id)}
+                          className="text-red-400 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                          aria-label={`Delete ${item.title || "document"}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </article>
                   ))}
