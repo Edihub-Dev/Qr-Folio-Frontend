@@ -56,6 +56,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [signupData, setSignupData] = useState(null);
+  const signupDataRef = useRef(null);
   const hasInitialized = useRef(false);
 
   const normalizePlan = useCallback((planKey, fallbackName) => {
@@ -270,7 +271,7 @@ export const AuthProvider = ({ children }) => {
         payload.referralCode = trimmedReferral;
       }
 
-      setSignupData({
+      const nextSignupData = {
         name,
         email,
         phone: phone || null,
@@ -278,7 +279,10 @@ export const AuthProvider = ({ children }) => {
         confirmPassword: confirmPassword ?? password,
         couponCode,
         referralCode: trimmedReferral || null,
-      });
+      };
+
+      signupDataRef.current = nextSignupData;
+      setSignupData(nextSignupData);
 
       return { success: true };
     } catch (err) {
@@ -291,7 +295,8 @@ export const AuthProvider = ({ children }) => {
 
   const submitSignupAfterPhoneVerification = async (firebaseIdToken) => {
     try {
-      if (!signupData) {
+      const effectiveSignupData = signupData || signupDataRef.current;
+      if (!effectiveSignupData) {
         return { success: false, error: "Missing signup data" };
       }
 
@@ -302,17 +307,17 @@ export const AuthProvider = ({ children }) => {
       };
 
       const payload = {
-        name: signupData.name,
-        email: signupData.email,
-        phone: normalizePhoneForApi(signupData.phone),
-        password: signupData.password,
-        confirmPassword: signupData.confirmPassword,
-        couponCode: signupData.couponCode,
+        name: effectiveSignupData.name,
+        email: effectiveSignupData.email,
+        phone: normalizePhoneForApi(effectiveSignupData.phone),
+        password: effectiveSignupData.password,
+        confirmPassword: effectiveSignupData.confirmPassword,
+        couponCode: effectiveSignupData.couponCode,
         firebaseIdToken,
       };
 
-      if (signupData.referralCode) {
-        payload.referralCode = signupData.referralCode;
+      if (effectiveSignupData.referralCode) {
+        payload.referralCode = effectiveSignupData.referralCode;
       }
 
       const res = await api.post("/auth/signup", payload);
@@ -354,9 +359,10 @@ export const AuthProvider = ({ children }) => {
 
   const resendOTP = async () => {
     try {
-      if (!signupData?.email)
+      const effectiveSignupData = signupData || signupDataRef.current;
+      if (!effectiveSignupData?.email)
         return { success: false, error: "No email to resend OTP" };
-      await api.post("/auth/resend-otp", { email: signupData.email });
+      await api.post("/auth/resend-otp", { email: effectiveSignupData.email });
       return { success: true };
     } catch (err) {
       return {
@@ -371,17 +377,19 @@ export const AuthProvider = ({ children }) => {
       const isOtpString = (value) =>
         typeof value === "string" && /^[0-9]{4,6}$/.test(value.trim());
 
+      const effectiveSignupData = signupData || signupDataRef.current;
+
       let userEmail = null;
       let otpValue = null;
 
       if (typeof maybeOtp === "string" && maybeOtp.trim().length > 0) {
-        userEmail = emailOrOtp || signupData?.email;
+        userEmail = emailOrOtp || effectiveSignupData?.email;
         otpValue = maybeOtp.trim();
       } else if (isOtpString(emailOrOtp) && !maybeOtp) {
-        userEmail = signupData?.email;
+        userEmail = effectiveSignupData?.email;
         otpValue = emailOrOtp.trim();
       } else {
-        userEmail = emailOrOtp || signupData?.email;
+        userEmail = emailOrOtp || effectiveSignupData?.email;
         otpValue = typeof maybeOtp === "string" ? maybeOtp.trim() : "";
       }
 
@@ -391,8 +399,8 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: "Invalid or missing OTP" };
 
       const payload = { email: userEmail, otp: otpValue };
-      const trimmedCoupon = signupData?.couponCode?.trim();
-      const trimmedReferral = signupData?.referralCode?.trim();
+      const trimmedCoupon = effectiveSignupData?.couponCode?.trim();
+      const trimmedReferral = effectiveSignupData?.referralCode?.trim();
 
       if (trimmedCoupon) {
         payload.couponCode = trimmedCoupon;
@@ -797,6 +805,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     setUser(null);
     setSignupData(null);
+    signupDataRef.current = null;
 
     try {
       localStorage.removeItem("qr_folio_user");
