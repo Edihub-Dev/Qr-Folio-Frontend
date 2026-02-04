@@ -124,6 +124,7 @@ const MyRewardsCard = ({
   currentProgress = null,
   referralClaimCheckpoint = null,
   levels = null,
+  onClaimed = null,
 }) => {
   const rows = useMemo(
     () =>
@@ -144,17 +145,23 @@ const MyRewardsCard = ({
       toast.success("Coupon copied. Opening shop…");
       window.open(getShopUrl(row), "_blank", "noopener,noreferrer");
     } catch (error) {
-      toast.error("Unable to open claim link");
+      toast.error(
+        error?.response?.data?.message || error.message || "Unable to open claim link"
+      );
       console.error(error);
     }
   };
 
-  const renderStatusBadge = (status) => {
+  const renderStatusBadge = (status, { compact = false } = {}) => {
     const normalized = normalizeRewardCode(status);
     const style = statusStyles[normalized] || statusStyles.LOCKED;
     const label = normalized ? normalized.toLowerCase() : "locked";
     return (
-      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${style}`}>
+      <span
+        className={`inline-flex items-center rounded-full font-medium capitalize ${style} ${
+          compact ? "px-2 py-0.5 text-[10px]" : "px-3 py-1 text-xs"
+        }`}
+      >
         {label}
       </span>
     );
@@ -162,14 +169,14 @@ const MyRewardsCard = ({
 
   return (
     <div className={clsx('overflow-hidden', 'rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'shadow-xl', 'shadow-slate-950/50', 'backdrop-blur')}>
-      <div className={clsx('flex', 'items-center', 'justify-between', 'border-b', 'border-white/10', 'px-6', 'py-5')}>
+      <div className={clsx('flex', 'items-center', 'justify-between', 'border-b', 'border-white/10', 'px-4', 'py-4', 'sm:px-6', 'sm:py-5')}>
         <div>
-          <h3 className={clsx('text-lg', 'font-semibold', 'text-white')}>My Rewards</h3>
-          <p className={clsx('text-sm', 'text-slate-300')}>
+          <h3 className={clsx('text-base', 'font-semibold', 'text-white', 'sm:text-lg')}>My Rewards</h3>
+          <p className={clsx('text-xs', 'text-slate-300', 'sm:text-sm')}>
             Earn rewards by making successful referrals on QrFolio.
           </p>
         </div>
-        <div className={clsx('text-xs', 'text-slate-400')}>
+        <div className={clsx('text-[11px]', 'text-slate-400', 'sm:text-xs')}>
           {typeof currentProgress === "number" ? (
             <span>
               {currentProgress}/10 progress
@@ -181,11 +188,126 @@ const MyRewardsCard = ({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className={clsx('block', 'sm:hidden', 'overflow-x-auto')}>
+        <table className={clsx('min-w-full', 'text-xs', 'text-slate-100')}>
+          <thead>
+            <tr className={clsx('bg-slate-900/80', 'text-left', 'text-[10px]', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400')}>
+              <th className={clsx('px-3', 'py-2')}> </th>
+              {rows.map((row) => (
+                <th key={row.code} className={clsx('px-3', 'py-2', 'whitespace-nowrap')}>
+                  {row.code}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className={clsx('divide-y', 'divide-slate-800', 'text-xs', 'text-slate-200')}>
+            {/* <tr>
+              <td className={clsx('px-3', 'py-2', 'text-[10px]', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400', 'whitespace-nowrap')}>
+                Level
+              </td>
+              {rows.map((row) => (
+                <td key={row.code} className={clsx('px-3', 'py-2', 'font-medium', 'text-slate-100', 'whitespace-nowrap')}>
+                  {row.level}
+                </td>
+              ))}
+            </tr> */}
+
+            <tr>
+              <td className={clsx('px-3', 'py-2', 'text-[10px]', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400', 'whitespace-nowrap')}>
+                Referrals
+              </td>
+              {rows.map((row) => {
+                const normalizedStatus = normalizeRewardCode(row.status);
+                const effectiveCountRaw =
+                  typeof row.currentProgress === "number" ? row.currentProgress : Number(referralCount || 0);
+                const effectiveCount =
+                  normalizedStatus === "CLAIMED" ? Number(row.requiredReferrals || 0) : effectiveCountRaw;
+                const progress = `${Math.min(effectiveCount, row.requiredReferrals)}/${row.requiredReferrals}`;
+
+                return (
+                  <td key={row.code} className={clsx('px-3', 'py-2', 'text-slate-200', 'whitespace-nowrap')}>
+                    {progress}
+                  </td>
+                );
+              })}
+            </tr>
+
+            <tr>
+              <td className={clsx('px-3', 'py-2', 'text-[10px]', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400', 'whitespace-nowrap')}>
+                Coupon
+              </td>
+              {rows.map((row) => {
+                const coupon = row.couponCode || "—";
+                return (
+                  <td key={row.code} className={clsx('px-3', 'py-2', 'align-top')}>
+                    <div className={clsx('max-w-[110px]', 'truncate', 'text-wrap','font-semibold', 'text-slate-100')} title={coupon}>
+                      {coupon}
+                    </div>
+                    <div className={clsx('mt-1', 'text-xs','text-wrap', 'text-slate-400')}>
+                      Exp: {row.expiresAt ? formatDate(row.expiresAt) : "—"}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+
+            <tr>
+              <td className={clsx('px-3', 'py-2', 'text-[10px]', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400', 'whitespace-nowrap')}>
+                Status
+              </td>
+              {rows.map((row) => (
+                <td key={row.code} className={clsx('px-3', 'py-2')}>
+                  {renderStatusBadge(row.status, { compact: true })}
+                </td>
+              ))}
+            </tr>
+
+            <tr>
+              <td className={clsx('px-3', 'py-2', 'text-[10px]','text-wrap', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400', 'whitespace-nowrap')}>
+                Reward
+              </td>
+              {rows.map((row) => (
+                <td key={row.code} className={clsx('px-3','text-wrap', 'py-2', 'text-slate-200')}>
+                  <div className={clsx('max-w-[130px]','text-wrap', 'truncate')} title={row.rewardLabel}>
+                    {row.rewardLabel}
+                  </div>
+                </td>
+              ))}
+            </tr>
+
+            <tr>
+              <td className={clsx('px-3', 'py-2', 'text-[10px]', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400', 'whitespace-nowrap')}>
+                Link
+              </td>
+              {rows.map((row) => {
+                const claimEnabled = isClaimEnabled(row);
+                return (
+                  <td key={row.code} className={clsx('px-3', 'py-2')}>
+                    <button
+                      type="button"
+                      onClick={() => handleClaim(row)}
+                      disabled={!claimEnabled}
+                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-semibold tracking-wide shadow transition ${
+                        claimEnabled
+                          ? "bg-primary-500 text-white shadow-primary-500/40 hover:bg-primary-400"
+                          : "cursor-not-allowed bg-slate-800 text-slate-400"
+                      }`}
+                    >
+                      CLAIM
+                    </button>
+                  </td>
+                );
+              })}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className={clsx('hidden', 'sm:block', 'overflow-x-auto')}>
         <table className={clsx('min-w-full', 'text-sm', 'text-slate-100')}>
           <thead>
             <tr className={clsx('bg-slate-900/80', 'text-left', 'text-xs', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400')}>
-              <th className={clsx('px-6', 'py-3')}>Level</th>
+              {/* <th className={clsx('px-6', 'py-3')}>Level</th> */}
               <th className={clsx('px-6', 'py-3')}>No. of referrals</th>
               <th className={clsx('px-6', 'py-3')}>Coupon</th>
               <th className={clsx('px-6', 'py-3')}>Status</th>

@@ -31,6 +31,12 @@ const AdminWithdrawalsPage = lazy(() =>
   import("./pages/admin/AdminWithdrawalsPage")
 );
 const AdminCouponsPage = lazy(() => import("./pages/admin/AdminCouponsPage"));
+const AdminUserRewardsPage = lazy(() =>
+  import("./pages/admin/AdminUserRewardsPage")
+);
+const AdminRewardUnlockPage = lazy(() =>
+  import("./pages/admin/AdminRewardUnlockPage")
+);
 const AdminNfcPage = lazy(() => import("./pages/admin/AdminNfcPage"));
 const AdminPublicProfilesPage = lazy(() =>
   import("./pages/admin/AdminPublicProfilesPage")
@@ -311,6 +317,8 @@ function App() {
                   <Route path="refer" element={<AdminReferralsPage />} />
                   <Route path="nfc" element={<AdminNfcPage />} />
                   <Route path="coupons" element={<AdminCouponsPage />} />
+                  <Route path="user-rewards" element={<AdminUserRewardsPage />} />
+                  <Route path="reward-unlock" element={<AdminRewardUnlockPage />} />
                   <Route
                     path="withdrawals"
                     element={<AdminWithdrawalsPage />}

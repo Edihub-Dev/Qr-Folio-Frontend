@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import clsx from "clsx"
 import { Outlet, NavLink, useLocation, Route, Routes } from "react-router-dom";
 import {
   Menu,
@@ -13,6 +14,8 @@ import {
   ShieldCheck,
   CreditCard,
   Tag,
+  Gift,
+  KeyRound,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import AdminDashboardPage from "./AdminDashboardPage";
@@ -33,6 +36,10 @@ const AdminLayout = () => {
     () => location.pathname.startsWith("/admin/users"),
     [location.pathname]
   );
+  const isUserRewardsRoute = useMemo(
+    () => location.pathname.startsWith("/admin/user-rewards"),
+    [location.pathname]
+  );
   const isReferRoute = useMemo(
     () => location.pathname.startsWith("/admin/refer"),
     [location.pathname]
@@ -46,7 +53,30 @@ const AdminLayout = () => {
     [location.pathname]
   );
 
-  const requiresSidebarToggle = isInvoiceRoute || isUsersRoute;
+  const isPublicProfilesRoute = useMemo(
+    () => location.pathname.startsWith("/admin/public-profiles"),
+    [location.pathname]
+  );
+
+  const isCouponsRoute = useMemo(
+    () => location.pathname.startsWith("/admin/coupons"),
+    [location.pathname]
+  );
+
+  const isDashboardRoute = useMemo(
+    () => location.pathname === "/admin" || location.pathname === "/admin/",
+    [location.pathname]
+  );
+
+  const requiresSidebarToggle = isInvoiceRoute || isUsersRoute || isUserRewardsRoute;
+
+  const hideSidebarForRoute =
+    isDashboardRoute ||
+    isPublicProfilesRoute ||
+    isReferRoute ||
+    isCouponsRoute ||
+    isNfcRoute ||
+    isWithdrawalRoute;
 
   useEffect(() => {
     if (
@@ -66,6 +96,8 @@ const AdminLayout = () => {
       { to: "/admin/invoices", label: "Invoices", icon: FileText },
       { to: "/admin/refer", label: "Referrals", icon: Share2 },
       { to: "/admin/coupons", label: "Coupons", icon: Tag },
+      { to: "/admin/user-rewards", label: "User Rewards", icon: Gift },
+      { to: "/admin/reward-unlock", label: "Unlock Rewards", icon: KeyRound },
       { to: "/admin/nfc", label: "NFC cards", icon: CreditCard },
       { to: "/admin/withdrawals", label: "Withdrawals", icon: Wallet },
       {
@@ -91,54 +123,54 @@ const AdminLayout = () => {
       }
       onClick={() => setSidebarOpen(false)}
     >
-      <Icon className="h-5 w-5" />
+      <Icon className={clsx('h-5', 'w-5')} />
       <span className="tracking-wide">{label}</span>
     </NavLink>
   );
 
   return (
-    <div className="relative min-h-screen bg-slate-50">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-slate-100 via-white to-slate-200" />
+    <div className={clsx('relative', 'h-screen', 'overflow-hidden', 'bg-slate-50')}>
+      <div className={clsx('absolute', 'inset-0', '-z-10', 'bg-gradient-to-br', 'from-slate-100', 'via-white', 'to-slate-200')} />
 
-      <header className="border-b border-white/70 bg-white/80 backdrop-blur">
-        <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-10">
-          <div className="flex items-center gap-3">
+      <header className={clsx('border-b', 'border-white/70', 'bg-white/80', 'backdrop-blur')}>
+        <div className={clsx('flex', 'h-16', 'w-full', 'items-center', 'justify-between', 'px-4', 'sm:px-6', 'lg:px-10')}>
+          <div className={clsx('flex', 'items-center', 'gap-3')}>
             <button
               type="button"
               className={`inline-flex items-center justify-center rounded-xl border border-white/60 bg-white/90 p-2 text-slate-600 shadow-sm transition hover:bg-white ${
-                requiresSidebarToggle ? "" : "lg:hidden"
+                requiresSidebarToggle || hideSidebarForRoute ? "" : "lg:hidden"
               }`}
               onClick={() => setSidebarOpen((prev) => !prev)}
               aria-expanded={sidebarOpen}
               aria-label="Toggle navigation"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className={clsx('h-5', 'w-5')} />
             </button>
-            <div className="hidden h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg sm:flex">
-              <ShieldCheck className="h-5 w-5" />
+            <div className={clsx('hidden', 'h-10', 'w-10', 'items-center', 'justify-center', 'rounded-2xl', 'bg-gradient-to-br', 'from-primary-500', 'to-primary-600', 'text-white', 'shadow-lg', 'sm:flex')}>
+              <ShieldCheck className={clsx('h-5', 'w-5')} />
             </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-semibold text-slate-900">
+            <div className={clsx('flex', 'flex-col')}>
+              <span className={clsx('text-lg', 'font-semibold', 'text-slate-900')}>
                 QRfolio Admin Control
               </span>
-              <span className="text-xs text-slate-500">
+              <span className={clsx('text-xs', 'text-slate-500')}>
                 Monitor revenue, users & billing
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="hidden text-right sm:block">
-              <div className="text-sm font-semibold text-slate-900">
+          <div className={clsx('flex', 'items-center', 'gap-4')}>
+            <div className={clsx('hidden', 'text-right', 'sm:block')}>
+              <div className={clsx('text-sm', 'font-semibold', 'text-slate-900')}>
                 {user?.name || "—"}
               </div>
-              <div className="text-xs text-slate-500">{user?.email || "—"}</div>
+              <div className={clsx('text-xs', 'text-slate-500')}>{user?.email || "—"}</div>
             </div>
             <button
               type="button"
               onClick={logout}
-              className="inline-flex items-center gap-2 rounded-xl border border-red-100 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+              className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-xl', 'border', 'border-red-100', 'px-3', 'py-2', 'text-sm', 'font-medium', 'text-red-600', 'transition', 'hover:bg-red-50')}
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className={clsx('h-4', 'w-4')} />
               <span>Logout</span>
             </button>
           </div>
@@ -146,44 +178,49 @@ const AdminLayout = () => {
       </header>
 
       <div
-        className={`flex w-full ${
+        className={`flex h-[calc(100vh-4rem)] min-h-0 w-full overflow-hidden ${
           sidebarOpen || !requiresSidebarToggle ? "gap-6" : "gap-4"
         } px-4 py-6 sm:px-6 lg:px-10`}
       >
-        {(!requiresSidebarToggle || sidebarOpen) && (
+        {((!hideSidebarForRoute && (!requiresSidebarToggle || sidebarOpen)) ||
+          (hideSidebarForRoute && sidebarOpen)) && (
           <aside
-            className={`fixed inset-y-0 left-0 z-40 w-72 flex-shrink-0 transform border-r border-white/60 bg-white/90 px-5 py-6 shadow-2xl backdrop-blur transition-transform duration-200 ease-in-out lg:sticky lg:top-6 lg:h-[calc(100vh-4rem)] lg:w-72 lg:translate-x-0 lg:rounded-3xl lg:border lg:bg-white lg:shadow-xl ${
+            className={`fixed inset-y-0 left-0 z-40 w-72 flex-shrink-0 transform overflow-y-auto hide-scrollbar border-r border-white/60 bg-white/90 px-5 py-6 shadow-2xl backdrop-blur transition-transform duration-200 ease-in-out ${
+              hideSidebarForRoute
+                ? ""
+                : "lg:sticky lg:top-6 lg:h-[calc(100vh-4rem)] lg:w-72 lg:translate-x-0 lg:rounded-3xl lg:border lg:bg-white lg:shadow-xl"
+            } ${
               sidebarOpen ? "translate-x-0" : "-translate-x-full"
             }`}
           >
             <div
               className={`flex items-center justify-between ${
-                requiresSidebarToggle ? "" : "lg:hidden"
+                requiresSidebarToggle || hideSidebarForRoute ? "" : "lg:hidden"
               }`}
             >
-              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+              <span className={clsx('text-sm', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-500')}>
                 Navigation
               </span>
               <button
                 type="button"
-                className="rounded-lg border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-100"
+                className={clsx('rounded-lg', 'border', 'border-slate-200', 'p-2', 'text-slate-500', 'transition', 'hover:bg-slate-100')}
                 onClick={() => setSidebarOpen(false)}
               >
-                <X className="h-4 w-4" />
+                <X className={clsx('h-4', 'w-4')} />
               </button>
             </div>
 
-            <div className="mt-4 hidden rounded-2xl border border-white/60 bg-white p-4 shadow-sm lg:block">
-              <p className="text-xs font-medium uppercase tracking-[0.3em] text-slate-400">
+            <div className={clsx('mt-4', 'hidden', 'rounded-2xl', 'border', 'border-white/60', 'bg-white', 'p-4', 'shadow-sm', 'lg:block')}>
+              <p className={clsx('text-xs', 'font-medium', 'uppercase', 'tracking-[0.3em]', 'text-slate-400')}>
                 Signed in as
               </p>
-              <p className="mt-2 text-sm font-semibold text-slate-900">
+              <p className={clsx('mt-2', 'text-sm', 'font-semibold', 'text-slate-900')}>
                 {user?.name || "—"}
               </p>
-              <p className="text-xs text-slate-500">{user?.email || "—"}</p>
+              <p className={clsx('text-xs', 'text-slate-500')}>{user?.email || "—"}</p>
             </div>
 
-            <nav className="mt-6 flex flex-col gap-2">
+            <nav className={clsx('mt-6', 'flex', 'flex-col', 'gap-2')}>
               {navItems.map(renderNavLink)}
             </nav>
           </aside>
@@ -191,31 +228,31 @@ const AdminLayout = () => {
 
         {sidebarOpen && (
           <div
-            className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm lg:hidden"
+            className={clsx('fixed', 'inset-0', 'z-30', 'bg-black/40', 'backdrop-blur-sm', 'lg:hidden')}
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         <main
-          className={`flex w-full flex-1 flex-col gap-4 rounded-3xl border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur ${
+          className={`flex min-h-0 w-full flex-1 flex-col gap-4 overflow-hidden rounded-3xl border border-white/70 bg-white/80 p-6 shadow-sm backdrop-blur ${
             requiresSidebarToggle && !sidebarOpen ? "ml-0" : ""
           }`}
         >
-          <div className="flex flex-col gap-3 border-b border-white/70 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className={clsx('flex', 'flex-col', 'gap-3', 'border-b', 'border-white/70', 'pb-4', 'sm:flex-row', 'sm:items-center', 'sm:justify-between')}>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+              <p className={clsx('text-xs', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-400')}>
                 Admin workspace
               </p>
-              <h1 className="mt-1 text-2xl font-semibold text-slate-900">
+              <h1 className={clsx('mt-1', 'text-2xl', 'font-semibold', 'text-slate-900')}>
                 Overview & Management
               </h1>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className={clsx('mt-1', 'text-sm', 'text-slate-500')}>
                 Access dashboards, manage users, and track invoices in one
                 place.
               </p>
             </div>
-            <div className="flex gap-3">
-              <div className="rounded-2xl bg-primary-50 px-3 py-2 text-xs font-medium text-primary-600">
+            <div className={clsx('flex', 'gap-3')}>
+              <div className={clsx('rounded-2xl', 'bg-primary-50', 'px-3', 'py-2', 'text-xs', 'font-medium', 'text-primary-600')}>
                 {new Date().toLocaleDateString("en-IN", {
                   day: "2-digit",
                   month: "short",
@@ -224,7 +261,7 @@ const AdminLayout = () => {
               </div>
             </div>
           </div>
-          <div className="flex-1">
+          <div className={clsx('flex-1', 'min-h-0', 'overflow-auto', 'hide-scrollbar')}>
             <Outlet />
           </div>
         </main>

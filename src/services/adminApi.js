@@ -127,3 +127,18 @@ export const downloadCouponsCsv = async (params = {}) => {
   });
   return response;
 };
+
+export const fetchAdminUserRewards = async (params = {}) => {
+  const response = await api.get('/admin/rewards', { params });
+  return response.data;
+};
+
+export const updateAdminUserReward = async (rewardId, payload = {}) => {
+  const response = await api.patch(`/admin/rewards/${rewardId}`, payload);
+  return response.data;
+};
+
+export const unlockAdminReward = async (payload = {}) => {
+  const response = await api.post('/admin/rewards/unlock', payload);
+  return response.data;
+};

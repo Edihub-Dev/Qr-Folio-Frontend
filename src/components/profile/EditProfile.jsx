@@ -125,9 +125,9 @@ const EditProfile = () => {
 
     setUploadError("");
 
-    const maxBytes = 2 * 1024 * 1024;
+    const maxBytes = 5 * 1024 * 1024;
     if (file.size > maxBytes) {
-      setUploadError("Profile photo must be 2MB or smaller");
+      setUploadError("Profile photo must be 5MB or smaller");
       setAvatar("");
       setAvatarFile(null);
       e.target.value = "";
@@ -243,7 +243,7 @@ const EditProfile = () => {
               ) : null}
               <h3 className="font-medium text-slate-100">Profile Photo</h3>
               <p className="text-sm text-slate-400">
-                Upload a professional photo (max 2MB) to personalize your
+                Upload a professional photo (max 5MB) to personalize your
                 profile.
               </p>
             </div>

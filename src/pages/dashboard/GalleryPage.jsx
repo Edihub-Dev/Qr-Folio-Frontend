@@ -15,7 +15,9 @@ import {
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { PLAN_LIMITS, PLAN_LABELS } from "../../utils/subscriptionPlan";
-const MAX_SIZE_BYTES = 2 * 1024 * 1024;
+import clsx from "clsx";
+const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+
 
 const formatBytes = (bytes) => {
   if (!bytes) return "0 B";
@@ -37,6 +39,8 @@ const GalleryPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState([]);
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [savingUploads, setSavingUploads] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [imageTitle, setImageTitle] = useState("");
   const [imageDescription, setImageDescription] = useState("");
@@ -69,9 +73,10 @@ const GalleryPage = () => {
     !Number.isFinite(maxImages) || maxImages >= Number.MAX_SAFE_INTEGER;
   const unlimitedVideos =
     !Number.isFinite(maxVideos) || maxVideos >= Number.MAX_SAFE_INTEGER;
+  const pendingCount = pendingFiles.length;
   const remainingImageSlots = unlimitedImages
     ? Number.POSITIVE_INFINITY
-    : Math.max(0, maxImages - mediaItems.length);
+    : Math.max(0, maxImages - mediaItems.length - pendingCount);
   const remainingVideoSlots = unlimitedVideos
     ? Number.POSITIVE_INFINITY
     : Math.max(0, maxVideos - videoItems.length);
@@ -79,8 +84,8 @@ const GalleryPage = () => {
   const hasReachedVideoLimit = !unlimitedVideos && remainingVideoSlots <= 0;
   const planLabel = PLAN_LABELS[plan] || PLAN_LABELS.basic;
   const imageLimitDescription = unlimitedImages
-    ? "Upload unlimited images/documents (max 2 MB each)"
-    : `Upload up to ${maxImages} images/documents (max 2 MB each)`;
+    ? "Upload unlimited images/documents (max 5 MB each)"
+    : `Upload up to ${maxImages} images/documents (max 5 MB each)`;
   const videoLimitDescription = unlimitedVideos
     ? "unlimited video links"
     : `${maxVideos} video links`;
@@ -124,7 +129,7 @@ const GalleryPage = () => {
   }, [loadGallery]);
 
   const handleFilesUpload = useCallback(
-    async (files) => {
+    (files) => {
       const availableSlots = unlimitedImages
         ? files.length
         : Math.max(0, remainingImageSlots);
@@ -147,6 +152,8 @@ const GalleryPage = () => {
         return;
       }
 
+      const nextPending = [];
+
       for (const file of filesToProcess) {
         const loweredName = (file.name || "").toLowerCase();
         const isImage = typeof file.type === "string" && file.type.startsWith("image/");
@@ -165,17 +172,78 @@ const GalleryPage = () => {
         }
 
         if (file.size > MAX_SIZE_BYTES) {
-          toast.error(`${file.name}: File exceeds 2 MB limit.`);
+          toast.error(`${file.name}: File exceeds 5 MB limit.`);
           continue;
         }
 
         const id = `${file.name}-${Date.now()}-${Math.random()}`;
+        nextPending.push({ id, file, name: file.name, size: file.size });
+      }
+
+      if (!nextPending.length) return;
+
+      setPendingFiles((prev) => {
+        const merged = [...prev];
+        nextPending.forEach((candidate) => {
+          const exists = merged.some(
+            (entry) =>
+              entry.file?.name === candidate.file?.name &&
+              entry.file?.size === candidate.file?.size &&
+              entry.file?.lastModified === candidate.file?.lastModified
+          );
+          if (!exists) {
+            merged.push(candidate);
+          }
+        });
+        return merged;
+      });
+    },
+    [unlimitedImages, remainingImageSlots, maxImages, planLabel]
+  );
+
+  const handleSaveUploads = useCallback(async () => {
+    if (savingUploads) return;
+
+    if (!pendingFiles.length) {
+      toast.error("Select files first");
+      return;
+    }
+
+    const availableSlots = unlimitedImages
+      ? pendingFiles.length
+      : Math.max(0, maxImages - mediaItems.length);
+
+    if (!unlimitedImages && availableSlots <= 0) {
+      toast.error(
+        `You can only upload up to ${maxImages} images/documents on the ${planLabel} plan.`
+      );
+      return;
+    }
+
+    const filesToProcess = unlimitedImages
+      ? pendingFiles
+      : pendingFiles.slice(0, availableSlots);
+
+    if (!filesToProcess.length) {
+      toast.error(
+        `You can only upload up to ${maxImages} images/documents on the ${planLabel} plan.`
+      );
+      return;
+    }
+
+    setSavingUploads(true);
+
+    try {
+      for (const pending of filesToProcess) {
+        const file = pending.file;
+        const id = pending.id;
+
         setUploading((prev) => [
           ...prev,
           {
             id,
-            name: file.name,
-            size: file.size,
+            name: pending.name,
+            size: pending.size,
             status: "uploading",
             progress: 20,
           },
@@ -196,9 +264,9 @@ const GalleryPage = () => {
 
           updateUploadEntry(id, { status: "success", progress: 100 });
           setItems((prev) => [result.item, ...prev]);
-          toast.success(`${file.name} uploaded successfully`);
-          setImageTitle("");
-          setImageDescription("");
+          toast.success(`${pending.name} uploaded successfully`);
+
+          setPendingFiles((prev) => prev.filter((entry) => entry.id !== id));
 
           setTimeout(() => {
             removeUploadEntry(id);
@@ -210,22 +278,28 @@ const GalleryPage = () => {
             progress: 100,
             error: message,
           });
-          toast.error(`${file.name}: ${message}`);
+          toast.error(`${pending.name}: ${message}`);
         }
       }
-    },
-    [
-      unlimitedImages,
-      remainingImageSlots,
-      removeUploadEntry,
-      updateUploadEntry,
-      uploadGalleryImage,
-      maxImages,
-      planLabel,
-      imageTitle,
-      imageDescription,
-    ]
-  );
+
+      setImageTitle("");
+      setImageDescription("");
+    } finally {
+      setSavingUploads(false);
+    }
+  }, [
+    savingUploads,
+    pendingFiles,
+    unlimitedImages,
+    maxImages,
+    mediaItems.length,
+    planLabel,
+    updateUploadEntry,
+    uploadGalleryImage,
+    removeUploadEntry,
+    imageTitle,
+    imageDescription,
+  ]);
 
   const renderVideoEmbed = useCallback((url) => {
     if (!url) return null;
@@ -268,7 +342,7 @@ const GalleryPage = () => {
               title={`YouTube video ${cleanId}`}
               src={`https://www.youtube.com/embed/${cleanId}?${params.toString()}`}
               loading="lazy"
-              className="w-full h-full rounded-t-2xl border-b border-gray-200"
+              className={clsx('w-full', 'h-full', 'rounded-t-2xl', 'border-b', 'border-gray-200')}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               frameBorder="0"
@@ -287,7 +361,7 @@ const GalleryPage = () => {
               title={`Vimeo video ${videoId}`}
               src={`https://player.vimeo.com/video/${videoId}`}
               loading="lazy"
-              className="w-full h-full rounded-t-2xl border-b border-gray-200"
+              className={clsx('w-full', 'h-full', 'rounded-t-2xl', 'border-b', 'border-gray-200')}
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
               frameBorder="0"
@@ -315,7 +389,7 @@ const GalleryPage = () => {
       const { file, errors } = rejection;
       errors.forEach((err) => {
         if (err.code === "file-too-large") {
-          toast.error(`${file.name}: File exceeds 2 MB limit.`);
+          toast.error(`${file.name}: File exceeds 5 MB limit.`);
         } else {
           toast.error(`${file.name}: ${err.message}`);
         }
@@ -414,31 +488,139 @@ const GalleryPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-10 w-10 animate-spin text-primary-400" />
+      <div className={clsx('flex', 'items-center', 'justify-center', 'py-24')}>
+        <Loader2 className={clsx('h-10', 'w-10', 'animate-spin', 'text-primary-400')} />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-950/60 md:p-10">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className={clsx('mx-auto', 'max-w-6xl', 'px-4', 'py-10', 'sm:px-6', 'lg:px-8')}>
+      <div className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'shadow-lg', 'shadow-slate-950/60', 'md:p-10')}>
+        <div className={clsx('flex', 'flex-wrap', 'items-center', 'justify-between', 'gap-3')}>
           <div>
-            <h1 className="text-2xl font-bold text-white">Gallery</h1>
-            <p className="mt-1 text-sm text-slate-300">
+            <h1 className={clsx('text-2xl', 'font-bold', 'text-white')}>Gallery</h1>
+            <p className={clsx('mt-1', 'text-sm', 'text-slate-300')}>
               {imageLimitDescription}. Add up to {videoLimitDescription} to
               showcase your work.
             </p>
           </div>
-          <div className="hidden items-center space-x-3 rounded-full bg-slate-900/70 px-4 py-2 text-sm text-slate-300 md:flex">
+          <div className={clsx('hidden', 'items-center', 'space-x-3', 'rounded-full', 'bg-slate-900/70', 'px-4', 'py-2', 'text-sm', 'text-slate-300', 'md:flex')}>
             <span>{imageUsageText}</span>
             <span>•</span>
             <span>{videoUsageText}</span>
           </div>
         </div>
 
-        <div className="mt-4 text-sm font-medium text-primary-300">
+         <div className={clsx('mt-6', 'grid', 'grid-cols-1', 'gap-4', 'md:grid-cols-2')}>
+          <div>
+            <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
+              Image Title
+              <span className={clsx('ml-1', 'text-xs', 'text-slate-500')}>(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={imageTitle}
+              onChange={(event) => setImageTitle(event.target.value)}
+              maxLength={100}
+              placeholder="Add a short title for the image"
+              className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-800', 'bg-slate-900/70', 'px-4', 'py-3', 'text-sm', 'text-slate-100', 'shadow-sm', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
+              disabled={hasReachedImageLimit}
+            />
+            <div className={clsx('mt-1', 'flex', 'justify-between', 'text-xs', 'text-slate-500')}>
+              <span>Helps identify the image in your gallery.</span>
+              <span>{imageTitle.length}/100</span>
+            </div>
+          </div>
+          <div>
+            <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
+              Image Description
+              <span className={clsx('ml-1', 'text-xs', 'text-slate-500')}>(optional)</span>
+            </label>
+            <textarea
+              value={imageDescription}
+              onChange={(event) => setImageDescription(event.target.value)}
+              maxLength={300}
+              rows={3}
+              placeholder="Describe the context, project, or story behind this image"
+              className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-800', 'bg-slate-900/70', 'px-4', 'py-3', 'text-sm', 'text-slate-100', 'shadow-sm', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
+              disabled={hasReachedImageLimit}
+            />
+            <div className={clsx('mt-1', 'flex', 'justify-end', 'text-xs', 'text-slate-500')}>
+              <span>{imageDescription.length}/300</span>
+            </div>
+          </div>
+        </div>
+
+
+        {pendingFiles.length > 0 && (
+          <div className={clsx('mt-6', 'rounded-2xl', 'border', 'border-slate-800', 'bg-slate-950/60', 'p-6')}>
+            <div className={clsx('flex', 'items-center', 'justify-between', 'gap-3')}>
+              <div>
+                <h2 className={clsx('text-lg', 'font-semibold', 'text-slate-100')}>
+                  Selected files
+                </h2>
+                <p className={clsx('text-sm', 'text-slate-400')}>
+                  {pendingFiles.length} file{pendingFiles.length === 1 ? "" : "s"} ready to upload
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPendingFiles([])}
+                className={clsx('text-sm', 'text-slate-400', 'hover:text-slate-200')}
+                disabled={savingUploads}
+              >
+                Clear
+              </button>
+            </div>
+
+            <div className={clsx('mt-4', 'space-y-2')}>
+              {pendingFiles.map((pending) => (
+                <div
+                  key={pending.id}
+                  className={clsx('flex', 'items-center', 'justify-between', 'gap-3', 'rounded-xl', 'border', 'border-slate-800', 'bg-slate-900/80', 'px-4', 'py-3')}
+                >
+                  <div className={clsx('min-w-0')}>
+                    <p className={clsx('truncate', 'text-sm', 'font-medium', 'text-slate-100')}>
+                      {pending.name}
+                    </p>
+                    <p className={clsx('text-xs', 'text-slate-400')}>
+                      {formatBytes(pending.size)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPendingFiles((prev) => prev.filter((entry) => entry.id !== pending.id))
+                    }
+                    className={clsx('inline-flex', 'items-center', 'gap-2', 'text-sm', 'text-red-400', 'hover:text-red-300')}
+                    disabled={savingUploads}
+                  >
+                    <Trash2 className={clsx('h-4', 'w-4')} />
+                    <span>Remove</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className={clsx('mt-5', 'flex', 'justify-end')}>
+              <button
+                type="button"
+                onClick={handleSaveUploads}
+                disabled={savingUploads}
+                className={`inline-flex items-center space-x-2 rounded-full px-6 py-2 font-medium shadow-sm ${
+                  savingUploads
+                    ? "cursor-not-allowed bg-slate-700 text-slate-400"
+                    : "bg-primary-500 text-white hover:bg-primary-400"
+                }`}
+              >
+                <span>{savingUploads ? "Saving..." : "Save images"}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className={clsx('mt-4', 'text-sm', 'font-medium', 'text-primary-300')}>
           Current plan: {planLabel}
         </div>
 
@@ -454,18 +636,18 @@ const GalleryPage = () => {
           })}
         >
           <input {...getInputProps()} />
-          <div className="flex flex-col items-center space-y-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-500/10 text-primary-300">
-              <UploadCloud className="h-8 w-8" />
+          <div className={clsx('flex', 'flex-col', 'items-center', 'space-y-4')}>
+            <div className={clsx('flex', 'h-16', 'w-16', 'items-center', 'justify-center', 'rounded-full', 'bg-primary-500/10', 'text-primary-300')}>
+              <UploadCloud className={clsx('h-8', 'w-8')} />
             </div>
             <div>
-              <p className="text-lg font-semibold text-slate-100">
+              <p className={clsx('text-lg', 'font-semibold', 'text-slate-100')}>
                 {hasReachedImageLimit
                   ? "Image limit reached"
                   : "Choose a file or drag & drop it here"}
               </p>
-              <p className="text-sm text-slate-400">
-                Images, PDF, DOC, DOCX formats, up to 2 MB
+              <p className={clsx('text-sm', 'text-slate-400')}>
+                Images, PDF, DOC, DOCX formats, up to 5 MB
               </p>
             </div>
             <button
@@ -485,60 +667,21 @@ const GalleryPage = () => {
             </button>
           </div>
           {hasReachedImageLimit && (
-            <p className="mt-4 text-sm text-amber-300">
+            <p className={clsx('mt-4', 'text-sm', 'text-amber-300')}>
               You already have {maxImages} uploads. Delete one to upload more.
             </p>
           )}
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-200">
-              Image Title
-              <span className="ml-1 text-xs text-slate-500">(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={imageTitle}
-              onChange={(event) => setImageTitle(event.target.value)}
-              maxLength={100}
-              placeholder="Add a short title for the image"
-              className="w-full rounded-lg border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 shadow-sm transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
-              disabled={hasReachedImageLimit}
-            />
-            <div className="mt-1 flex justify-between text-xs text-slate-500">
-              <span>Helps identify the image in your gallery.</span>
-              <span>{imageTitle.length}/100</span>
-            </div>
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-200">
-              Image Description
-              <span className="ml-1 text-xs text-slate-500">(optional)</span>
-            </label>
-            <textarea
-              value={imageDescription}
-              onChange={(event) => setImageDescription(event.target.value)}
-              maxLength={300}
-              rows={3}
-              placeholder="Describe the context, project, or story behind this image"
-              className="w-full rounded-lg border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 shadow-sm transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
-              disabled={hasReachedImageLimit}
-            />
-            <div className="mt-1 flex justify-end text-xs text-slate-500">
-              <span>{imageDescription.length}/300</span>
-            </div>
-          </div>
-        </div>
-
+       
         {uploading.length > 0 && (
-          <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
-            <div className="flex items-center justify-between">
+          <div className={clsx('mt-10', 'rounded-2xl', 'border', 'border-slate-800', 'bg-slate-950/60', 'p-6')}>
+            <div className={clsx('flex', 'items-center', 'justify-between')}>
               <div>
-                <h2 className="text-lg font-semibold text-slate-100">
+                <h2 className={clsx('text-lg', 'font-semibold', 'text-slate-100')}>
                   Upload Progress
                 </h2>
-                <p className="text-sm text-slate-400">
+                <p className={clsx('text-sm', 'text-slate-400')}>
                   {uploading.filter((item) => item.status === "success").length}
                   /{uploading.length} files uploaded
                 </p>
@@ -546,29 +689,29 @@ const GalleryPage = () => {
               <button
                 type="button"
                 onClick={() => setUploading([])}
-                className="text-sm text-slate-400 hover:text-slate-200"
+                className={clsx('text-sm', 'text-slate-400', 'hover:text-slate-200')}
               >
                 Clear all
               </button>
             </div>
 
-            <div className="mt-4 space-y-3">
+            <div className={clsx('mt-4', 'space-y-3')}>
               {uploading.map((file) => (
                 <div
                   key={file.id}
-                  className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 shadow-sm"
+                  className={clsx('rounded-xl', 'border', 'border-slate-800', 'bg-slate-900/80', 'p-4', 'shadow-sm')}
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm font-medium text-slate-100">
+                  <div className={clsx('flex-1', 'min-w-0')}>
+                    <p className={clsx('truncate', 'text-sm', 'font-medium', 'text-slate-100')}>
                       {file.name}
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className={clsx('text-xs', 'text-slate-400')}>
                       {formatBytes(file.size)}
                     </p>
                     {file.error && (
-                      <p className="mt-1 text-xs text-red-400">{file.error}</p>
+                      <p className={clsx('mt-1', 'text-xs', 'text-red-400')}>{file.error}</p>
                     )}
-                    <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                    <div className={clsx('mt-3', 'h-2', 'w-full', 'overflow-hidden', 'rounded-full', 'bg-slate-800')}>
                       <div
                         className={`h-full transition-all duration-500 ${
                           file.status === "error"
@@ -581,18 +724,18 @@ const GalleryPage = () => {
                       />
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className={clsx('flex', 'items-center', 'gap-3')}>
                     {file.status === "uploading" && (
-                      <Loader2 className="h-5 w-5 animate-spin text-primary-400" />
+                      <Loader2 className={clsx('h-5', 'w-5', 'animate-spin', 'text-primary-400')} />
                     )}
                     {file.status === "success" && (
-                      <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                      <CheckCircle2 className={clsx('h-5', 'w-5', 'text-emerald-400')} />
                     )}
                     {file.status === "error" ? (
                       <button
                         type="button"
                         onClick={() => removeUploadEntry(file.id)}
-                        className="text-sm text-red-400 hover:text-red-300"
+                        className={clsx('text-sm', 'text-red-400', 'hover:text-red-300')}
                       >
                         Dismiss
                       </button>
@@ -600,7 +743,7 @@ const GalleryPage = () => {
                       <button
                         type="button"
                         onClick={() => removeUploadEntry(file.id)}
-                        className="text-sm text-slate-400 hover:text-slate-200"
+                        className={clsx('text-sm', 'text-slate-400', 'hover:text-slate-200')}
                       >
                         Hide
                       </button>
@@ -613,36 +756,36 @@ const GalleryPage = () => {
         )}
 
         <form onSubmit={handleAddVideo} className="mt-10">
-          <h2 className="mb-3 text-lg font-semibold text-slate-100">
+          <h2 className={clsx('mb-3', 'text-lg', 'font-semibold', 'text-slate-100')}>
             Add your video links here:
           </h2>
-          <div className="flex flex-col space-y-3 rounded-2xl border border-slate-800 bg-slate-950/60 p-4 md:flex-row md:items-center md:space-x-3 md:space-y-0">
+          <div className={clsx('flex', 'flex-col', 'space-y-3', 'rounded-2xl', 'border', 'border-slate-800', 'bg-slate-950/60', 'p-4', 'md:flex-row', 'md:items-center', 'md:space-x-3', 'md:space-y-0')}>
             <div className="flex-1">
               <div className="relative">
-                <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Link2 className={clsx('absolute', 'left-3', 'top-1/2', 'h-4', 'w-4', '-translate-y-1/2', 'text-slate-500')} />
                 <input
                   type="url"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
                   placeholder="https://www.youtube.com/paste-your-video-url-here"
-                  className="w-full rounded-xl border border-slate-800 bg-slate-900/70 py-3 pl-9 pr-3 text-sm text-slate-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-xl', 'border', 'border-slate-800', 'bg-slate-900/70', 'py-3', 'pl-9', 'pr-3', 'text-sm', 'text-slate-100', 'shadow-sm', 'focus:border-primary-500', 'focus:ring-primary-500')}
                   required
                 />
               </div>
-              <div className="mt-3 flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-x-2 sm:space-y-0">
+              <div className={clsx('mt-3', 'flex', 'flex-col', 'space-y-3', 'sm:flex-row', 'sm:items-center', 'sm:space-x-2', 'sm:space-y-0')}>
                 <input
                   type="text"
                   value={videoTitle}
                   onChange={(e) => setVideoTitle(e.target.value)}
                   placeholder="Title (optional)"
-                  className="flex-1 rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  className={clsx('flex-1', 'rounded-xl', 'border', 'border-slate-800', 'bg-slate-900/70', 'px-4', 'py-3', 'text-sm', 'text-slate-100', 'shadow-sm', 'focus:border-primary-500', 'focus:ring-primary-500')}
                 />
                 <input
                   type="text"
                   value={videoDescription}
                   onChange={(e) => setVideoDescription(e.target.value)}
                   placeholder="Description (optional)"
-                  className="flex-1 rounded-xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  className={clsx('flex-1', 'rounded-xl', 'border', 'border-slate-800', 'bg-slate-900/70', 'px-4', 'py-3', 'text-sm', 'text-slate-100', 'shadow-sm', 'focus:border-primary-500', 'focus:ring-primary-500')}
                 />
               </div>
             </div>
@@ -655,12 +798,12 @@ const GalleryPage = () => {
                   : "bg-primary-500 text-white hover:bg-primary-400"
               }`}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className={clsx('w-4', 'h-4')} />
               <span>Add Link</span>
             </button>
           </div>
           {hasReachedVideoLimit && (
-            <p className="mt-3 text-sm text-amber-300">
+            <p className={clsx('mt-3', 'text-sm', 'text-amber-300')}>
               You already have {maxVideos} video links. Delete one to add more.
             </p>
           )}
@@ -669,14 +812,14 @@ const GalleryPage = () => {
 
       <div className="mt-10">
         {items.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-950/60 py-16 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-900/80">
-              <Image className="h-8 w-8 text-slate-500" />
+          <div className={clsx('rounded-3xl', 'border', 'border-dashed', 'border-slate-700', 'bg-slate-950/60', 'py-16', 'text-center')}>
+            <div className={clsx('mx-auto', 'mb-4', 'flex', 'h-16', 'w-16', 'items-center', 'justify-center', 'rounded-full', 'bg-slate-900/80')}>
+              <Image className={clsx('h-8', 'w-8', 'text-slate-500')} />
             </div>
-            <h3 className="text-lg font-medium text-slate-100">
+            <h3 className={clsx('text-lg', 'font-medium', 'text-slate-100')}>
               No items in your gallery yet
             </h3>
-            <p className="mt-1 text-slate-400">
+            <p className={clsx('mt-1', 'text-slate-400')}>
               Upload images or add a video link to see them here.
             </p>
           </div>
@@ -684,47 +827,47 @@ const GalleryPage = () => {
           <div className="space-y-12">
             {imageItems.length > 0 && (
               <section>
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-100">
+                <div className={clsx('mb-4', 'flex', 'items-center', 'justify-between')}>
+                  <h2 className={clsx('text-xl', 'font-semibold', 'text-slate-100')}>
                     Photos
                   </h2>
-                  <span className="text-sm text-slate-400">
+                  <span className={clsx('text-sm', 'text-slate-400')}>
                     {imageUsageText}
                   </span>
                 </div>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className={clsx('grid', 'grid-cols-1', 'gap-6', 'sm:grid-cols-2', 'lg:grid-cols-3')}>
                   {imageItems.map((item) => (
                     <article
                       key={item._id}
-                      className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-md shadow-slate-950/50"
+                      className={clsx('group', 'overflow-hidden', 'rounded-2xl', 'border', 'border-white/10', 'bg-slate-900/80', 'shadow-md', 'shadow-slate-950/50')}
                     >
                       <div className="relative">
                         <button
                           type="button"
                           onClick={() => setSelectedPhoto(item)}
-                          className="block w-full"
+                          className={clsx('block', 'w-full')}
                         >
                           <img
                             src={item.url}
                             alt={item.title || "Gallery image"}
                             loading="lazy"
                             decoding="async"
-                            className="w-full h-56 object-cover cursor-zoom-in"
+                            className={clsx('w-full', 'h-56', 'object-cover', 'cursor-zoom-in')}
                           />
                         </button>
                       </div>
                       <div className="p-5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <h3 className="truncate font-semibold text-slate-100">
+                        <div className={clsx('flex', 'items-start', 'justify-between', 'gap-3')}>
+                          <div className={clsx('min-w-0', 'flex-1')}>
+                            <h3 className={clsx('truncate', 'font-semibold', 'text-slate-100')}>
                               {item.title || "Untitled image"}
                             </h3>
                             {item.description ? (
-                              <p className="mt-1 line-clamp-3 text-sm text-slate-300">
+                              <p className={clsx('mt-1', 'line-clamp-3', 'text-sm', 'text-slate-300')}>
                                 {item.description}
                               </p>
                             ) : (
-                              <p className="mt-1 text-xs text-slate-500">
+                              <p className={clsx('mt-1', 'text-xs', 'text-slate-500')}>
                                 No description provided
                               </p>
                             )}
@@ -732,13 +875,13 @@ const GalleryPage = () => {
                           <button
                             type="button"
                             onClick={() => handleDelete(item._id)}
-                            className="text-red-400 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                            className={clsx('text-red-400', 'opacity-0', 'transition-opacity', 'hover:text-red-300', 'group-hover:opacity-100')}
                             aria-label={`Delete ${item.title || "image"}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className={clsx('h-4', 'w-4')} />
                           </button>
                         </div>
-                        <div className="mt-4 flex items-center justify-between text-xs text-slate-500">
+                        <div className={clsx('mt-4', 'flex', 'items-center', 'justify-between', 'text-xs', 'text-slate-500')}>
                           <span>{formatBytes(item.size)}</span>
                           <span>
                             {new Date(item.createdAt).toLocaleString()}
@@ -753,42 +896,42 @@ const GalleryPage = () => {
 
             {documentItems.length > 0 && (
               <section>
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-100">
+                <div className={clsx('mb-4', 'flex', 'items-center', 'justify-between')}>
+                  <h2 className={clsx('text-xl', 'font-semibold', 'text-slate-100')}>
                     Documents
                   </h2>
-                  <span className="text-sm text-slate-400">
+                  <span className={clsx('text-sm', 'text-slate-400')}>
                     {documentItems.length} files
                   </span>
                 </div>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className={clsx('grid', 'grid-cols-1', 'gap-6', 'sm:grid-cols-2', 'lg:grid-cols-3')}>
                   {documentItems.map((item) => (
                     <article
                       key={item._id}
-                      className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-md shadow-slate-950/50"
+                      className={clsx('group', 'overflow-hidden', 'rounded-2xl', 'border', 'border-white/10', 'bg-slate-900/80', 'shadow-md', 'shadow-slate-950/50')}
                     >
                       <button
                         type="button"
                         onClick={() => window.open(item.url, "_blank", "noopener,noreferrer")}
-                        className="flex w-full items-center gap-4 p-5 text-left"
+                        className={clsx('flex', 'w-full', 'items-center', 'gap-4', 'p-5', 'text-left')}
                       >
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-500/10 text-primary-300">
-                          <FileText className="h-6 w-6" />
+                        <div className={clsx('flex', 'h-12', 'w-12', 'items-center', 'justify-center', 'rounded-2xl', 'bg-primary-500/10', 'text-primary-300')}>
+                          <FileText className={clsx('h-6', 'w-6')} />
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="truncate font-semibold text-slate-100">
+                        <div className={clsx('min-w-0', 'flex-1')}>
+                          <h3 className={clsx('truncate', 'font-semibold', 'text-slate-100')}>
                             {item.title || "Untitled document"}
                           </h3>
                           {item.description ? (
-                            <p className="mt-1 line-clamp-2 text-sm text-slate-300">
+                            <p className={clsx('mt-1', 'line-clamp-2', 'text-sm', 'text-slate-300')}>
                               {item.description}
                             </p>
                           ) : (
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className={clsx('mt-1', 'text-xs', 'text-slate-500')}>
                               No description provided
                             </p>
                           )}
-                          <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                          <div className={clsx('mt-3', 'flex', 'items-center', 'justify-between', 'text-xs', 'text-slate-500')}>
                             <span>{formatBytes(item.size)}</span>
                             <span>
                               {new Date(item.createdAt).toLocaleString()}
@@ -796,14 +939,14 @@ const GalleryPage = () => {
                           </div>
                         </div>
                       </button>
-                      <div className="flex justify-end px-5 pb-5">
+                      <div className={clsx('flex', 'justify-end', 'px-5', 'pb-5')}>
                         <button
                           type="button"
                           onClick={() => handleDelete(item._id)}
-                          className="text-red-400 opacity-0 transition-opacity hover:text-red-300 group-hover:opacity-100"
+                          className={clsx('text-red-400', 'opacity-0', 'transition-opacity', 'hover:text-red-300', 'group-hover:opacity-100')}
                           aria-label={`Delete ${item.title || "document"}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className={clsx('h-4', 'w-4')} />
                         </button>
                       </div>
                     </article>
@@ -814,45 +957,45 @@ const GalleryPage = () => {
 
             {videoItems.length > 0 && (
               <section>
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-100">
+                <div className={clsx('mb-4', 'flex', 'items-center', 'justify-between')}>
+                  <h2 className={clsx('text-xl', 'font-semibold', 'text-slate-100')}>
                     Videos
                   </h2>
-                  <span className="text-sm text-slate-400">
+                  <span className={clsx('text-sm', 'text-slate-400')}>
                     {videoUsageText}
                   </span>
                 </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className={clsx('grid', 'grid-cols-1', 'gap-6', 'md:grid-cols-2')}>
                   {videoItems.map((item) => (
                     <article
                       key={item._id}
-                      className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-md shadow-slate-950/50"
+                      className={clsx('overflow-hidden', 'rounded-2xl', 'border', 'border-white/10', 'bg-slate-900/80', 'shadow-md', 'shadow-slate-950/50')}
                     >
-                      <div className="relative flex h-56 w-full items-center justify-center overflow-hidden bg-black">
+                      <div className={clsx('relative', 'flex', 'h-56', 'w-full', 'items-center', 'justify-center', 'overflow-hidden', 'bg-black')}>
                         {renderVideoEmbed(item.url) || (
-                          <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center px-6 text-center text-white">
-                            <Link2 className="w-10 h-10 mb-3" />
-                            <p className="font-semibold truncate w-full">
+                          <div className={clsx('absolute', 'inset-0', 'bg-black/60', 'flex', 'flex-col', 'items-center', 'justify-center', 'px-6', 'text-center', 'text-white')}>
+                            <Link2 className={clsx('w-10', 'h-10', 'mb-3')} />
+                            <p className={clsx('font-semibold', 'truncate', 'w-full')}>
                               {item.title || "Video"}
                             </p>
                             <a
                               href={item.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-primary-200 underline mt-2 block truncate"
+                              className={clsx('text-sm', 'text-primary-200', 'underline', 'mt-2', 'block', 'truncate')}
                             >
                               Open video
                             </a>
                           </div>
                         )}
                       </div>
-                      <div className="flex items-start justify-between gap-4 p-5">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="truncate font-semibold text-slate-100">
+                      <div className={clsx('flex', 'items-start', 'justify-between', 'gap-4', 'p-5')}>
+                        <div className={clsx('min-w-0', 'flex-1')}>
+                          <h3 className={clsx('truncate', 'font-semibold', 'text-slate-100')}>
                             {item.title || "Untitled video"}
                           </h3>
                           {item.description && (
-                            <p className="mt-1 line-clamp-2 text-sm text-slate-300">
+                            <p className={clsx('mt-1', 'line-clamp-2', 'text-sm', 'text-slate-300')}>
                               {item.description}
                             </p>
                           )}
@@ -860,14 +1003,14 @@ const GalleryPage = () => {
                         <button
                           type="button"
                           onClick={() => handleDelete(item._id)}
-                          className="text-slate-500 transition-colors hover:text-red-400"
+                          className={clsx('text-slate-500', 'transition-colors', 'hover:text-red-400')}
                           title="Delete"
                         >
-                          <Trash2 className="h-5 w-5" />
+                          <Trash2 className={clsx('h-5', 'w-5')} />
                         </button>
                       </div>
-                      <div className="px-5 pb-5">
-                        <p className="text-xs text-slate-500">
+                      <div className={clsx('px-5', 'pb-5')}>
+                        <p className={clsx('text-xs', 'text-slate-500')}>
                           {new Date(item.createdAt).toLocaleString()}
                         </p>
                       </div>
@@ -881,37 +1024,37 @@ const GalleryPage = () => {
       </div>
       {selectedPhoto && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          className={clsx('fixed', 'inset-0', 'z-50', 'flex', 'items-center', 'justify-center', 'bg-black/80', 'p-4')}
           onClick={() => setSelectedPhoto(null)}
         >
           <div
-            className="w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-slate-950/90 shadow-2xl shadow-slate-950/80"
+            className={clsx('w-full', 'max-w-4xl', 'overflow-hidden', 'rounded-3xl', 'border', 'border-white/10', 'bg-slate-950/90', 'shadow-2xl', 'shadow-slate-950/80')}
             onClick={(event) => event.stopPropagation()}
           >
             <button
               type="button"
               aria-label="Close image preview"
               onClick={() => setSelectedPhoto(null)}
-              className="absolute -top-4 -right-4 rounded-full bg-slate-900 text-slate-200 shadow-lg shadow-slate-950/70 p-2 hover:text-white"
+              className={clsx('absolute', '-top-4', '-right-4', 'rounded-full', 'bg-slate-900', 'text-slate-200', 'shadow-lg', 'shadow-slate-950/70', 'p-2', 'hover:text-white')}
             >
-              <X className="h-5 w-5" />
+              <X className={clsx('h-5', 'w-5')} />
             </button>
             <img
               src={selectedPhoto.url}
               alt={selectedPhoto.title || "Gallery image"}
               loading="lazy"
               decoding="async"
-              className="max-h-[80vh] w-full object-contain"
+              className={clsx('max-h-[80vh]', 'w-full', 'object-contain')}
             />
             {(selectedPhoto.title || selectedPhoto.description) && (
-              <div className="mt-4 px-6 pb-6 text-center text-white">
+              <div className={clsx('mt-4', 'px-6', 'pb-6', 'text-center', 'text-white')}>
                 {selectedPhoto.title && (
-                  <h3 className="text-lg font-semibold">
+                  <h3 className={clsx('text-lg', 'font-semibold')}>
                     {selectedPhoto.title}
                   </h3>
                 )}
                 {selectedPhoto.description && (
-                  <p className="mt-1 text-sm text-slate-200">
+                  <p className={clsx('mt-1', 'text-sm', 'text-slate-200')}>
                     {selectedPhoto.description}
                   </p>
                 )}

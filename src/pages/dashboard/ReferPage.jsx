@@ -20,7 +20,7 @@ import { getMyRewards } from "../../services/rewardService";
 
 const initialPagination = {
   page: 1,
-  limit: 20,
+  limit: 5,
   total: 0,
 };
 
@@ -141,6 +141,40 @@ const ReferPage = () => {
     fetchRewards();
   }, []);
 
+  const refreshRewards = async () => {
+    try {
+      const { data } = await getMyRewards();
+      if (data?.success) {
+        setMyRewards(Array.isArray(data.data) ? data.data : data.data?.items || []);
+        if (typeof data.data?.referralCount === "number") {
+          setRewardReferralCount(data.data.referralCount);
+        } else {
+          setRewardReferralCount(null);
+        }
+
+        if (typeof data.data?.currentProgress === "number") {
+          setRewardProgress(data.data.currentProgress);
+        } else {
+          setRewardProgress(null);
+        }
+
+        if (typeof data.data?.referralClaimCheckpoint === "number") {
+          setRewardCheckpoint(data.data.referralClaimCheckpoint);
+        } else {
+          setRewardCheckpoint(null);
+        }
+
+        if (Array.isArray(data.data?.levels)) {
+          setRewardLevels(data.data.levels);
+        } else {
+          setRewardLevels(null);
+        }
+      }
+    } catch {
+      // no-op
+    }
+  };
+
   useEffect(() => {
     if (!effectiveReferralLink) {
       setQrDataUrl(null);
@@ -189,29 +223,6 @@ const ReferPage = () => {
     loadHistory(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const leaderboardEntries = useMemo(() => {
-    if (!overview?.recentHistory) return [];
-    const aggregate = overview.recentHistory.reduce((acc, item) => {
-      const key = item.referrerId?.toString() || "self";
-      if (!acc[key]) {
-        acc[key] = {
-          id: key,
-          email: overview.referralCode,
-          totalReferrals: 0,
-          totalRewards: 0,
-        };
-      }
-      acc[key].totalReferrals += 1;
-      if (["completed", "rewarded"].includes(item.status)) {
-        acc[key].totalRewards += item.rewardAmount || 0;
-      }
-      return acc;
-    }, {});
-    return Object.values(aggregate)
-      .sort((a, b) => b.totalRewards - a.totalRewards)
-      .slice(0, 10);
-  }, [overview?.recentHistory, overview?.referralCode]);
 
   const handleCopyLink = async () => {
     if (!effectiveReferralLink) return;
@@ -375,9 +386,9 @@ const ReferPage = () => {
             onShare={handleShare}
           />
 
-          <div className={clsx('overflow-hidden', 'rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'shadow-xl', 'shadow-slate-950/50', 'backdrop-blur')}>
-            <div className={clsx('flex', 'items-center', 'justify-between', 'gap-4', 'border-b', 'border-white/10', 'px-6', 'py-5')}>
-              <div>
+          {/* <div className={clsx('overflow-hidden', 'rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'shadow-xl', 'shadow-slate-950/50', 'backdrop-blur')}> */}
+            {/* <div className={clsx('flex', 'items-center', 'justify-between', 'gap-4', 'border-b', 'border-white/10', 'px-6', 'py-5')}> */}
+              {/* <div>
                 <h3 className={clsx('text-lg', 'font-semibold', 'text-white')}>
                   Reward summary
                 </h3>
@@ -385,7 +396,7 @@ const ReferPage = () => {
                   Track total invites, completed referrals, and your
                   withdrawable wallet balance.
                 </p>
-              </div>
+              </div> */}
               {/* <div className={clsx('flex', 'flex-col', 'items-end', 'gap-1')}>
                 <button
                   type="button"
@@ -409,18 +420,18 @@ const ReferPage = () => {
                   </p>
                 )}
               </div> */}
-            </div>
+            {/* </div> */}
 
-            <div className={clsx('grid', 'grid-cols-1', 'gap-4', 'px-6', 'py-6', 'sm:grid-cols-2', 'lg:grid-cols-3')}>
-              <div className={clsx('rounded-2xl', 'border', 'border-slate-700', 'bg-slate-900/70', 'p-4')}>
+            {/* <div className={clsx('grid', 'grid-cols-1', 'gap-4', 'px-6', 'py-6', 'sm:grid-cols-2', 'lg:grid-cols-3')}> */}
+              {/* <div className={clsx('rounded-2xl', 'border', 'border-slate-700', 'bg-slate-900/70', 'p-4')}>
                 <p className={clsx('text-xs', 'uppercase', 'tracking-[0.3em]', 'text-slate-400')}>
                   Total invites
                 </p>
                 <p className={clsx('mt-2', 'text-3xl', 'font-semibold', 'text-slate-100')}>
                   {overview?.totalReferrals ?? "—"}
                 </p>
-              </div>
-              <div className={clsx('rounded-2xl', 'border', 'border-emerald-500/40', 'bg-emerald-500/10', 'p-4')}>
+              </div> */}
+              {/* <div className={clsx('rounded-2xl', 'border', 'border-emerald-500/40', 'bg-emerald-500/10', 'p-4')}>
                 <p className={clsx('text-xs', 'uppercase', 'tracking-[0.3em]', 'text-emerald-300')}>
                   Completed
                 </p>
@@ -451,8 +462,8 @@ const ReferPage = () => {
                   )}
                 </p>
               </div> */}
-            </div>
-          </div>
+            {/* </div> */}
+          {/* </div> */}
 
           <MyRewardsCard
             referralCount={effectiveRewardReferralCount}
@@ -460,6 +471,7 @@ const ReferPage = () => {
             currentProgress={rewardProgress}
             referralClaimCheckpoint={rewardCheckpoint}
             levels={rewardLevels}
+            onClaimed={refreshRewards}
           />
 
           <div className="space-y-4">
@@ -592,7 +604,7 @@ const ReferPage = () => {
         </div>
 
         <div className="space-y-6">
-          <LeaderboardCard entries={leaderboardEntries} />
+          <LeaderboardCard />
           <RewardRulesCard />
         </div>
       </div>

@@ -2,6 +2,9 @@ import api from "../api";
 
 export const getReferralOverview = () => api.get("/refer/me");
 
+export const getPremiumReferralLeaderboard = (params) =>
+  api.get("/referrals/leaderboard", { params });
+
 export const getReferralHistory = (params) =>
   api.get("/refer/history", { params });
 
