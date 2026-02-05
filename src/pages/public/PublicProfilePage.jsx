@@ -7,7 +7,7 @@ import React, {
   lazy,
   Suspense,
 } from "react";
-
+import clsx from "clsx";
 import { useParams, useNavigate } from "react-router-dom";
 // import Dashboard from "../components/Dashboard";
 import {
@@ -47,25 +47,29 @@ const PublicProfilePage = () => {
   const [videoItems, setVideoItems] = useState([]);
   const [documentItems, setDocumentItems] = useState([]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
-  const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
-  const [isGalleryTransitionEnabled, setIsGalleryTransitionEnabled] =
-    useState(true);
-  const [visibleGalleryCount, setVisibleGalleryCount] = useState(3);
-  const touchStartXRef = useRef(null);
+  // const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
+  // const [isGalleryTransitionEnabled, setIsGalleryTransitionEnabled] =
+  //   useState(true);
+  // const [visibleGalleryCount, setVisibleGalleryCount] = useState(3);
+  // const touchStartXRef = useRef(null);
   const qrCodeRef = useRef(null);
   const [copyToastMessage, setCopyToastMessage] = useState("");
   const [showCopyToast, setShowCopyToast] = useState(false);
   const copyToastTimeoutRef = useRef(null);
+  const [previewCount, setPreviewCount] = useState(0);
+  const [docPreviewCount, setDocPreviewCount] = useState(0);
+  const [videoPreviewCount, setVideoPreviewCount] = useState(0);
 
-  const featuredGallery = useMemo(() => [...imageItems], [imageItems]);
-  const effectiveVisibleCount =
-    featuredGallery.length > 0
-      ? Math.min(featuredGallery.length, visibleGalleryCount)
-      : 1;
-  const extendedGallery = useMemo(() => {
-    // No looping: we just show the images once
-    return featuredGallery;
-  }, [featuredGallery]);
+
+  // const featuredGallery = useMemo(() => [...imageItems], [imageItems]);
+  // const effectiveVisibleCount =
+  //   featuredGallery.length > 0
+  //     ? Math.min(featuredGallery.length, visibleGalleryCount)
+  //     : 1;
+  // const extendedGallery = useMemo(() => {
+  //   // No looping: we just show the images once
+  //   return featuredGallery;
+  // }, [featuredGallery]);
 
   // const downloadRef = useRef(null);
 
@@ -155,67 +159,67 @@ const PublicProfilePage = () => {
     };
   }, [selectedPhoto]);
 
-  useEffect(() => {
-    // Defer gallery layout calculation to after first paint, no resize listener
-    const updateVisibleCount = () => {
-      const width = window.innerWidth;
-      let nextCount = 3;
-      if (width < 640) {
-        nextCount = 1;
-      } else if (width < 1024) {
-        nextCount = 2;
-      }
+  // useEffect(() => {
+  //   // Defer gallery layout calculation to after first paint, no resize listener
+  //   const updateVisibleCount = () => {
+  //     const width = window.innerWidth;
+  //     let nextCount = 3;
+  //     if (width < 640) {
+  //       nextCount = 1;
+  //     } else if (width < 1024) {
+  //       nextCount = 2;
+  //     }
 
-      setVisibleGalleryCount((prev) => (prev === nextCount ? prev : nextCount));
-    };
+  //     setVisibleGalleryCount((prev) => (prev === nextCount ? prev : nextCount));
+  //   };
 
-    const rafId = window.requestAnimationFrame(updateVisibleCount);
+  //   const rafId = window.requestAnimationFrame(updateVisibleCount);
 
-    return () => {
-      window.cancelAnimationFrame(rafId);
-    };
-  }, []);
+  //   return () => {
+  //     window.cancelAnimationFrame(rafId);
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    if (!featuredGallery.length) {
-      setActiveGalleryIndex(0);
-      return;
-    }
+  // useEffect(() => {
+  //   if (!featuredGallery.length) {
+  //     setActiveGalleryIndex(0);
+  //     return;
+  //   }
 
-    if (featuredGallery.length <= visibleGalleryCount) {
-      setActiveGalleryIndex(0);
-      return;
-    }
+  //   if (featuredGallery.length <= visibleGalleryCount) {
+  //     setActiveGalleryIndex(0);
+  //     return;
+  //   }
 
-    const maxIndex = featuredGallery.length - visibleGalleryCount;
-    setActiveGalleryIndex((prev) => Math.min(prev, maxIndex));
-  }, [featuredGallery.length, visibleGalleryCount]);
+  //   const maxIndex = featuredGallery.length - visibleGalleryCount;
+  //   setActiveGalleryIndex((prev) => Math.min(prev, maxIndex));
+  // }, [featuredGallery.length, visibleGalleryCount]);
 
-  const handleGalleryNext = useCallback(() => {
-    if (featuredGallery.length <= visibleGalleryCount) return;
-    const maxIndex = Math.max(0, featuredGallery.length - visibleGalleryCount);
-    setActiveGalleryIndex((prev) => Math.min(prev + 1, maxIndex));
-  }, [featuredGallery.length, visibleGalleryCount]);
+  // const handleGalleryNext = useCallback(() => {
+  //   if (featuredGallery.length <= visibleGalleryCount) return;
+  //   const maxIndex = Math.max(0, featuredGallery.length - visibleGalleryCount);
+  //   setActiveGalleryIndex((prev) => Math.min(prev + 1, maxIndex));
+  // }, [featuredGallery.length, visibleGalleryCount]);
 
-  const handleGalleryPrev = useCallback(() => {
-    if (featuredGallery.length <= visibleGalleryCount) return;
-    setActiveGalleryIndex((prev) => Math.max(prev - 1, 0));
-  }, [featuredGallery.length, visibleGalleryCount]);
+  // const handleGalleryPrev = useCallback(() => {
+  //   if (featuredGallery.length <= visibleGalleryCount) return;
+  //   setActiveGalleryIndex((prev) => Math.max(prev - 1, 0));
+  // }, [featuredGallery.length, visibleGalleryCount]);
 
-  useEffect(() => {
-    // With non-looping gallery we always keep transitions enabled
-    setIsGalleryTransitionEnabled(true);
-  }, [activeGalleryIndex, featuredGallery.length, visibleGalleryCount]);
+  // useEffect(() => {
+  //   // With non-looping gallery we always keep transitions enabled
+  //   setIsGalleryTransitionEnabled(true);
+  // }, [activeGalleryIndex, featuredGallery.length, visibleGalleryCount]);
 
-  useEffect(() => {
-    if (!isGalleryTransitionEnabled) {
-      const raf = window.requestAnimationFrame(() => {
-        setIsGalleryTransitionEnabled(true);
-      });
-      return () => window.cancelAnimationFrame(raf);
-    }
-    return undefined;
-  }, [isGalleryTransitionEnabled]);
+  // useEffect(() => {
+  //   if (!isGalleryTransitionEnabled) {
+  //     const raf = window.requestAnimationFrame(() => {
+  //       setIsGalleryTransitionEnabled(true);
+  //     });
+  //     return () => window.cancelAnimationFrame(raf);
+  //   }
+  //   return undefined;
+  // }, [isGalleryTransitionEnabled]);
 
   useEffect(() => {
     return () => {
@@ -380,7 +384,7 @@ const PublicProfilePage = () => {
               key={cleanId}
               title={`YouTube video ${cleanId}`}
               src={`https://www.youtube.com/embed/${cleanId}?${params.toString()}`}
-              className="w-full h-full"
+              className={clsx('w-full', 'h-full')}
               loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -399,7 +403,7 @@ const PublicProfilePage = () => {
               key={videoId}
               title={`Vimeo video ${videoId}`}
               src={`https://player.vimeo.com/video/${videoId}`}
-              className="w-full h-full"
+              className={clsx('w-full', 'h-full')}
               loading="lazy"
               allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
@@ -415,58 +419,70 @@ const PublicProfilePage = () => {
     return null;
   };
 
+useEffect(() => {
+  const w = window.innerWidth;
+  const base = w >= 1024 ? 3 : 4;
+
+  setPreviewCount(base);
+  setDocPreviewCount(base);
+  setVideoPreviewCount(base);
+
+}, [imageItems.length, documentItems.length, videoItems.length]);
+
+
+
   // Handle loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 px-4 py-8 flex justify-center">
-        <div className="w-full max-w-[1440px] space-y-6 animate-pulse">
-          <div className="h-8 w-28 rounded-full bg-slate-800" />
+      <div className={clsx('min-h-screen', 'bg-slate-950', 'px-4', 'py-8', 'flex', 'justify-center')}>
+        <div className={clsx('w-full', 'max-w-[1440px]', 'space-y-6', 'animate-pulse')}>
+          <div className={clsx('h-8', 'w-28', 'rounded-full', 'bg-slate-800')} />
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,380px),1fr]">
+          <div className={clsx('grid', 'gap-6', 'lg:grid-cols-[minmax(0,380px),1fr]')}>
             {/* Left column skeleton: profile card + QR card */}
             <div className="space-y-4">
-              <div className="rounded-3xl bg-slate-900/90 p-6 space-y-4">
-                <div className="mx-auto h-28 w-28 rounded-full bg-slate-800" />
-                <div className="mx-auto h-4 w-32 rounded bg-slate-800" />
-                <div className="mx-auto h-3 w-40 rounded bg-slate-800" />
-                <div className="space-y-2 pt-2">
-                  <div className="h-3 w-full rounded bg-slate-800" />
-                  <div className="h-3 w-5/6 rounded bg-slate-800" />
-                  <div className="h-3 w-4/6 rounded bg-slate-800" />
+              <div className={clsx('rounded-3xl', 'bg-slate-900/90', 'p-6', 'space-y-4')}>
+                <div className={clsx('mx-auto', 'h-28', 'w-28', 'rounded-full', 'bg-slate-800')} />
+                <div className={clsx('mx-auto', 'h-4', 'w-32', 'rounded', 'bg-slate-800')} />
+                <div className={clsx('mx-auto', 'h-3', 'w-40', 'rounded', 'bg-slate-800')} />
+                <div className={clsx('space-y-2', 'pt-2')}>
+                  <div className={clsx('h-3', 'w-full', 'rounded', 'bg-slate-800')} />
+                  <div className={clsx('h-3', 'w-5/6', 'rounded', 'bg-slate-800')} />
+                  <div className={clsx('h-3', 'w-4/6', 'rounded', 'bg-slate-800')} />
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-slate-900/90 p-6 space-y-4">
-                <div className="h-40 w-full rounded-2xl bg-slate-800" />
-                <div className="h-3 w-24 rounded bg-slate-800 mx-auto" />
+              <div className={clsx('rounded-3xl', 'bg-slate-900/90', 'p-6', 'space-y-4')}>
+                <div className={clsx('h-40', 'w-full', 'rounded-2xl', 'bg-slate-800')} />
+                <div className={clsx('h-3', 'w-24', 'rounded', 'bg-slate-800', 'mx-auto')} />
               </div>
             </div>
 
             {/* Right column skeleton: about + sections */}
             <div className="space-y-4">
-              <div className="rounded-3xl bg-slate-900/90 p-6 space-y-3">
-                <div className="h-4 w-32 rounded bg-slate-800" />
-                <div className="space-y-2 pt-1">
-                  <div className="h-3 w-full rounded bg-slate-800" />
-                  <div className="h-3 w-11/12 rounded bg-slate-800" />
-                  <div className="h-3 w-10/12 rounded bg-slate-800" />
+              <div className={clsx('rounded-3xl', 'bg-slate-900/90', 'p-6', 'space-y-3')}>
+                <div className={clsx('h-4', 'w-32', 'rounded', 'bg-slate-800')} />
+                <div className={clsx('space-y-2', 'pt-1')}>
+                  <div className={clsx('h-3', 'w-full', 'rounded', 'bg-slate-800')} />
+                  <div className={clsx('h-3', 'w-11/12', 'rounded', 'bg-slate-800')} />
+                  <div className={clsx('h-3', 'w-10/12', 'rounded', 'bg-slate-800')} />
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-slate-900/90 p-6 space-y-3">
-                <div className="h-4 w-40 rounded bg-slate-800" />
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="h-20 rounded-2xl bg-slate-800" />
-                  <div className="h-20 rounded-2xl bg-slate-800" />
+              <div className={clsx('rounded-3xl', 'bg-slate-900/90', 'p-6', 'space-y-3')}>
+                <div className={clsx('h-4', 'w-40', 'rounded', 'bg-slate-800')} />
+                <div className={clsx('grid', 'gap-3', 'sm:grid-cols-2')}>
+                  <div className={clsx('h-20', 'rounded-2xl', 'bg-slate-800')} />
+                  <div className={clsx('h-20', 'rounded-2xl', 'bg-slate-800')} />
                 </div>
-                <div className="h-3 w-32 rounded bg-slate-800" />
+                <div className={clsx('h-3', 'w-32', 'rounded', 'bg-slate-800')} />
               </div>
 
-              <div className="rounded-3xl bg-slate-900/90 p-6 space-y-3">
-                <div className="h-4 w-40 rounded bg-slate-800" />
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="h-16 rounded-2xl bg-slate-800" />
-                  <div className="h-16 rounded-2xl bg-slate-800" />
+              <div className={clsx('rounded-3xl', 'bg-slate-900/90', 'p-6', 'space-y-3')}>
+                <div className={clsx('h-4', 'w-40', 'rounded', 'bg-slate-800')} />
+                <div className={clsx('grid', 'gap-3', 'sm:grid-cols-2')}>
+                  <div className={clsx('h-16', 'rounded-2xl', 'bg-slate-800')} />
+                  <div className={clsx('h-16', 'rounded-2xl', 'bg-slate-800')} />
                 </div>
               </div>
             </div>
@@ -479,14 +495,14 @@ const PublicProfilePage = () => {
   // Handle error state
   if (!loading && (error || !user)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className={clsx('min-h-screen', 'flex', 'items-center', 'justify-center', 'bg-gray-50', 'p-4')}>
         <div className="text-center">
-          <div className="text-2xl font-semibold text-gray-700 mb-2">
+          <div className={clsx('text-2xl', 'font-semibold', 'text-gray-700', 'mb-2')}>
             {error || "Profile not found"}
           </div>
           <button
             onClick={() => navigate("/")}
-            className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            className={clsx('mt-4', 'px-4', 'py-2', 'bg-primary-600', 'text-white', 'rounded-lg', 'hover:bg-primary-700', 'transition-colors')}
           >
             Return to Home
           </button>
@@ -1203,7 +1219,7 @@ const PublicProfilePage = () => {
   // };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950">
+    <div className={clsx('relative', 'min-h-screen', 'overflow-hidden', 'bg-slate-950')}>
       <PageSEO
         title={`${displayName}'s digital business card`}
         description={
@@ -1214,41 +1230,41 @@ const PublicProfilePage = () => {
         ogType="profile"
         structuredData={profileSchema}
       />
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-950" />
+      <div className={clsx('pointer-events-none', 'absolute', 'inset-0')}>
+        <div className={clsx('absolute', 'inset-0', 'bg-gradient-to-b', 'from-slate-950', 'via-slate-950', 'to-slate-950')} />
       </div>
 
-      <div className="relative z-10 flex min-h-screen flex-col">
+      <div className={clsx('relative', 'z-10', 'flex', 'min-h-screen', 'flex-col')}>
         <div className="w-full">
-          <div className="mx-auto w-full max-w-[1440px] px-6 pt-8 xl:px-14 flex items-center justify-between gap-4">
+          <div className={clsx('mx-auto', 'w-full', 'max-w-[1440px]', 'px-6', 'pt-8', 'xl:px-14', 'flex', 'items-center', 'justify-between', 'gap-4')}>
             <button
               type="button"
               onClick={handleBackClick}
-              className="inline-flex items-center gap-2 rounded-full border border-indigo-500/40 bg-slate-900/60 px-4 py-2 text-sm font-semibold text-indigo-100 shadow-lg shadow-indigo-900/40 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/70 hover:bg-slate-900/80 hover:text-white"
+              className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-full', 'border', 'border-indigo-500/40', 'bg-slate-900/60', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'text-indigo-100', 'shadow-lg', 'shadow-indigo-900/40', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:border-indigo-300/70', 'hover:bg-slate-900/80', 'hover:text-white')}
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className={clsx('h-4', 'w-4')} />
               Back
             </button>
-            <div className="hidden text-xs font-medium uppercase tracking-[0.28em] text-indigo-200/80 sm:block">
+            <div className={clsx('hidden', 'text-xs', 'font-medium', 'uppercase', 'tracking-[0.28em]', 'text-indigo-200/80', 'sm:block')}>
               Public Profile
             </div>
           </div>
-          <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-10 px-6 pb-20 pt-10 lg:flex-row lg:gap-12 xl:px-14">
-            <aside className="w-full max-w-[380px] space-y-6 lg:sticky lg:top-10 lg:self-start">
+          <div className={clsx('mx-auto', 'flex', 'w-full', 'max-w-[1440px]', 'flex-col', 'gap-10', 'px-6', 'pb-20', 'pt-10', 'lg:flex-row', 'lg:gap-12', 'xl:px-14')}>
+            <aside className={clsx('w-full', 'max-w-[380px]', 'space-y-6', 'lg:sticky', 'lg:top-10', 'lg:self-start')}>
               <div
                 id="public-card-print"
                 ref={downloadRef}
-                className="space-y-6 rounded-[32px] bg-slate-900/80 p-[1px] shadow-xl shadow-slate-950/70 ring-1 ring-white/10"
+                className={clsx('space-y-6', 'rounded-[32px]', 'bg-slate-900/80', 'p-[1px]', 'shadow-xl', 'shadow-slate-950/70', 'ring-1', 'ring-white/10')}
               >
-                <div className="rounded-[30px] bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/80 p-8">
-                  <div className="flex flex-col items-center text-center">
+                <div className={clsx('rounded-[30px]', 'bg-gradient-to-b', 'from-slate-900/80', 'via-slate-900/60', 'to-slate-900/80', 'p-8')}>
+                  <div className={clsx('flex', 'flex-col', 'items-center', 'text-center')}>
                     <div className="relative">
-                      <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-indigo-400 via-sky-400 to-cyan-300 opacity-60 blur-md" />
-                      <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-indigo-300/70 bg-slate-900 shadow-[0_22px_40px_rgba(15,23,42,0.9)]">
+                      <div className={clsx('absolute', '-inset-1', 'rounded-full', 'bg-gradient-to-tr', 'from-indigo-400', 'via-sky-400', 'to-cyan-300', 'opacity-60', 'blur-md')} />
+                      <div className={clsx('relative', 'h-40', 'w-40', 'overflow-hidden', 'rounded-full', 'border-4', 'border-indigo-300/70', 'bg-slate-900', 'shadow-[0_22px_40px_rgba(15,23,42,0.9)]')}>
                         <img
                           src={user?.profilePhotoDataUri || avatar}
                           alt={displayName}
-                          className="h-full w-full object-cover"
+                          className={clsx('h-full', 'w-full', 'object-cover')}
                           data-profile-photo="true"
                           loading="eager"
                           onError={(e) => {
@@ -1258,23 +1274,23 @@ const PublicProfilePage = () => {
                         />
                       </div>
                     </div>
-                    <div className="mt-6 space-y-2">
-                      <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
+                    <div className={clsx('mt-6', 'space-y-2')}>
+                      <h1 className={clsx('text-2xl', 'font-semibold', 'tracking-tight', 'text-slate-50')}>
                         {displayName}
                       </h1>
-                      <div className="text-xs font-medium uppercase tracking-[0.22em] text-indigo-200/90">
+                      <div className={clsx('text-xs', 'font-medium', 'uppercase', 'tracking-[0.22em]', 'text-indigo-200/90')}>
                         {user?.designation || ""}
                       </div>
-                      <div className="text-sm font-medium text-slate-300">
+                      <div className={clsx('text-sm', 'font-medium', 'text-slate-300')}>
                         at{" "}
-                        <span className="font-semibold text-indigo-200">
+                        <span className={clsx('font-semibold', 'text-indigo-200')}>
                           {companyName !== "" ? companyName : "Company"}
                         </span>
                       </div>
                     </div>
                     {socialLinks.length > 0 && (
                       <>
-                        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                        <div className={clsx('mt-6', 'flex', 'flex-wrap', 'items-center', 'justify-center', 'gap-3')}>
                           {socialLinks.map((link) => (
                             <a
                               key={link.key}
@@ -1284,7 +1300,7 @@ const PublicProfilePage = () => {
                               aria-label={link.label}
                               className={`group flex h-9 w-9 items-center justify-center rounded-full ${link.bg} ${link.fg} text-[15px] shadow-md shadow-slate-900/70 ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-1 hover:scale-105 hover:ring-indigo-200/70`}
                             >
-                              <BrandIcon name={link.key} className="h-4 w-4" />
+                              <BrandIcon name={link.key} className={clsx('h-4', 'w-4')} />
                               <span className="sr-only">{link.label}</span>
                             </a>
                           ))}
@@ -1294,33 +1310,33 @@ const PublicProfilePage = () => {
                             href={companyWebsiteUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-slate-950/70 hover:bg-indigo-400"
+                            className={clsx('mt-4', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'bg-indigo-500', 'px-4', 'py-2', 'text-xs', 'font-semibold', 'text-white', 'shadow-md', 'shadow-slate-950/70', 'hover:bg-indigo-400')}
                           >
                             Visit website
                           </a>
                         )}
                       </>
                     )}
-                    <div className="mt-6 w-full space-y-3 text-left text-xs text-slate-200/90">
-                      <div className="flex items-center gap-3 rounded-2xl bg-slate-900/70 px-3 py-2 ring-1 ring-white/5">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-200">
-                          <Mail className="h-4 w-4" />
+                    <div className={clsx('mt-6', 'w-full', 'space-y-3', 'text-left', 'text-xs', 'text-slate-200/90')}>
+                      <div className={clsx('flex', 'items-center', 'gap-3', 'rounded-2xl', 'bg-slate-900/70', 'px-3', 'py-2', 'ring-1', 'ring-white/5')}>
+                        <span className={clsx('flex', 'h-8', 'w-8', 'items-center', 'justify-center', 'rounded-full', 'bg-indigo-500/15', 'text-indigo-200')}>
+                          <Mail className={clsx('h-4', 'w-4')} />
                         </span>
-                        <span className="break-all text-sm">
+                        <span className={clsx('break-all', 'text-sm')}>
                           {displayEmail}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 rounded-2xl bg-slate-900/70 px-3 py-2 ring-1 ring-white/5">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-200">
-                          <Phone className="h-4 w-4" />
+                      <div className={clsx('flex', 'items-center', 'gap-3', 'rounded-2xl', 'bg-slate-900/70', 'px-3', 'py-2', 'ring-1', 'ring-white/5')}>
+                        <span className={clsx('flex', 'h-8', 'w-8', 'items-center', 'justify-center', 'rounded-full', 'bg-indigo-500/15', 'text-indigo-200')}>
+                          <Phone className={clsx('h-4', 'w-4')} />
                         </span>
-                        <span className="break-all text-sm">{user?.phone}</span>
+                        <span className={clsx('break-all', 'text-sm')}>{user?.phone}</span>
                       </div>
-                      <div className="flex items-start gap-3 rounded-2xl bg-slate-900/70 px-3 py-2 ring-1 ring-white/5">
-                        <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-200">
-                          <MapPin className="h-4 w-4" />
+                      <div className={clsx('flex', 'items-start', 'gap-3', 'rounded-2xl', 'bg-slate-900/70', 'px-3', 'py-2', 'ring-1', 'ring-white/5')}>
+                        <span className={clsx('mt-0.5', 'flex', 'h-8', 'w-8', 'items-center', 'justify-center', 'rounded-full', 'bg-indigo-500/15', 'text-indigo-200')}>
+                          <MapPin className={clsx('h-4', 'w-4')} />
                         </span>
-                        <span className="break-words text-sm leading-snug">
+                        <span className={clsx('break-words', 'text-sm', 'leading-snug')}>
                           {address}
                         </span>
                       </div>
@@ -1328,15 +1344,15 @@ const PublicProfilePage = () => {
                   </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-900/80 p-6 text-white shadow-lg shadow-slate-950/80">
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(129,140,248,0.7),_transparent_55%)]" />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900/10 via-indigo-900/10 to-slate-950/60" />
-                  <div className="relative flex flex-col items-center text-center">
-                    <div className="rounded-3xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-emerald-400 p-[1px] shadow-[0_28px_50px_rgba(15,23,42,0.65)]">
-                      <div className="flex items-center justify-center rounded-[26px] bg-slate-950/95 p-2.5">
+                <div className={clsx('relative', 'overflow-hidden', 'rounded-[32px]', 'border', 'border-white/10', 'bg-slate-900/80', 'p-6', 'text-white', 'shadow-lg', 'shadow-slate-950/80')}>
+                  <div className={clsx('pointer-events-none', 'absolute', 'inset-0', 'bg-[radial-gradient(circle_at_top,_rgba(129,140,248,0.7),_transparent_55%)]')} />
+                  <div className={clsx('pointer-events-none', 'absolute', 'inset-0', 'bg-gradient-to-br', 'from-slate-900/10', 'via-indigo-900/10', 'to-slate-950/60')} />
+                  <div className={clsx('relative', 'flex', 'flex-col', 'items-center', 'text-center')}>
+                    <div className={clsx('rounded-3xl', 'bg-gradient-to-br', 'from-indigo-500', 'via-fuchsia-500', 'to-emerald-400', 'p-[1px]', 'shadow-[0_28px_50px_rgba(15,23,42,0.65)]')}>
+                      <div className={clsx('flex', 'items-center', 'justify-center', 'rounded-[26px]', 'bg-slate-950/95', 'p-2.5')}>
                         <Suspense
                           fallback={
-                            <div className="h-[150px] w-[150px] rounded-2xl bg-slate-800/80" />
+                            <div className={clsx('h-[150px]', 'w-[150px]', 'rounded-2xl', 'bg-slate-800/80')} />
                           }
                         >
                           <QRCodeGenerator
@@ -1348,193 +1364,168 @@ const PublicProfilePage = () => {
                             background="#FFFFFF"
                             logoSrc="/assets/QrLogo.webp"
                             logoSizeRatio={0.22}
-                            className="overflow-hidden rounded-2xl"
+                            className={clsx('overflow-hidden', 'rounded-2xl')}
                           />
                         </Suspense>
                       </div>
                     </div>
-                    <div className="mt-6 text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-indigo-100/90">
+                    <div className={clsx('mt-6', 'text-[0.65rem]', 'font-semibold', 'uppercase', 'tracking-[0.28em]', 'text-indigo-100/90')}>
                       Powered by
                     </div>
                     <button
                       type="button"
                       onClick={handlePoweredByClick}
-                      className="mt-2 inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 text-xs font-medium text-indigo-50 ring-1 ring-white/20 transition-all duration-200 hover:bg-white/10 hover:ring-indigo-200/70"
+                      className={clsx('mt-2', 'inline-flex', 'items-center', 'gap-2', 'rounded-full', 'bg-white/5', 'px-4', 'py-1.5', 'text-xs', 'font-medium', 'text-indigo-50', 'ring-1', 'ring-white/20', 'transition-all', 'duration-200', 'hover:bg-white/10', 'hover:ring-indigo-200/70')}
                     >
-                      <QrCode className="h-4 w-4" />
+                      <QrCode className={clsx('h-4', 'w-4')} />
                       QR Folio
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3">
+              <div className={clsx('flex', 'flex-col', 'gap-3')}>
                 <button
                   type="button"
                   onClick={handleShare}
-                  className="no-print inline-flex w-full items-center justify-center rounded-full bg-gradient-to-r from-indigo-400 via-sky-400 to-cyan-300 px-8 py-3 text-sm font-semibold text-slate-950 shadow-[0_16px_40px_rgba(56,189,248,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_48px_rgba(56,189,248,0.65)]"
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'bg-gradient-to-r', 'from-indigo-400', 'via-sky-400', 'to-cyan-300', 'px-8', 'py-3', 'text-sm', 'font-semibold', 'text-slate-950', 'shadow-[0_16px_40px_rgba(56,189,248,0.45)]', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:shadow-[0_22px_48px_rgba(56,189,248,0.65)]')}
                 >
                   Connect Now &gt;
                 </button>
                 <button
                   type="button"
                   onClick={handleDownloadPDF}
-                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-8', 'py-3', 'text-sm', 'font-semibold', 'text-indigo-100', 'shadow-lg', 'shadow-slate-950/70', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90', 'hover:text-white')}
                 >
                   Download Card PDF
                 </button>
                 <button
                   type="button"
                   onClick={handleDownloadCard}
-                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-8', 'py-3', 'text-sm', 'font-semibold', 'text-indigo-100', 'shadow-lg', 'shadow-slate-950/70', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90', 'hover:text-white')}
                 >
                   Download Card Image
                 </button>
                 <button
                   type="button"
                   onClick={handleDownloadQrCode}
-                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-8', 'py-3', 'text-sm', 'font-semibold', 'text-indigo-100', 'shadow-lg', 'shadow-slate-950/70', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90', 'hover:text-white')}
                 >
                   Download QR Code
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveContact}
-                  className="no-print inline-flex w-full items-center justify-center rounded-full border border-indigo-400/40 bg-slate-900/80 px-8 py-3 text-sm font-semibold text-indigo-100 shadow-lg shadow-slate-950/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white"
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-8', 'py-3', 'text-sm', 'font-semibold', 'text-indigo-100', 'shadow-lg', 'shadow-slate-950/70', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90', 'hover:text-white')}
                 >
                   Save Contact
                 </button>
               </div>
-              <div className="text-center text-[0.7rem] font-semibold text-slate-400">
+              <div className={clsx('text-center', 'text-[0.7rem]', 'font-semibold', 'text-slate-400')}>
                 <button
                   type="button"
                   onClick={handlePoweredByClick}
-                  className="mt-2 inline-flex items-center gap-2 text-slate-300 transition-colors hover:text-indigo-300"
+                  className={clsx('mt-2', 'inline-flex', 'items-center', 'gap-2', 'text-slate-300', 'transition-colors', 'hover:text-indigo-300')}
                 >
-                  <QrCode className="h-4 w-4" />
+                  <QrCode className={clsx('h-4', 'w-4')} />
                   Powered by QR Folio
                 </button>
               </div>
             </aside>
 
-            <main className="flex-1 space-y-6">
-              <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 shadow-lg shadow-slate-950/70">
+            <main className={clsx('flex-1', 'space-y-6')}>
+              <section className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8', 'shadow-lg', 'shadow-slate-950/70')}>
                 <div className="space-y-8">
-                  <div className="max-w-3xl space-y-4">
-                    <h2 className="text-2xl font-semibold text-left justify-center  tracking-tight text-indigo-100">
+                  <div className={clsx('max-w-3xl', 'space-y-4')}>
+                    <h2 className={clsx('text-2xl', 'font-semibold', 'text-left', 'justify-center', 'tracking-tight', 'text-indigo-100')}>
                       About Me
                     </h2>
-                    <p className="text-base leading-relaxed text-slate-200/90">
+                    <p className={clsx('text-base', 'leading-relaxed', 'text-slate-200/90')}>
                       {professionalSummary}
                     </p>
                   </div>
-                  {extendedGallery.length > 0 && (
-                    <div
-                      className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-3 shadow-inner shadow-slate-950/60 sm:p-4"
-                      onTouchStart={handleGalleryTouchStart}
-                      onTouchEnd={handleGalleryTouchEnd}
-                    >
-                      {featuredGallery.length > visibleGalleryCount && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={handleGalleryPrev}
-                            className="absolute left-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-slate-900/80 text-slate-100 shadow-md ring-1 ring-white/20 hover:bg-slate-800"
-                            aria-label="Previous photos"
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleGalleryNext}
-                            className="absolute right-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-slate-900/80 text-slate-100 shadow-md ring-1 ring-white/20 hover:bg-slate-800"
-                            aria-label="Next photos"
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </button>
-                        </>
-                      )}
-                      <div
-                        className="flex"
-                        style={{
-                          transform: `translateX(-${
-                            activeGalleryIndex * (100 / effectiveVisibleCount)
-                          }%)`,
-                          transition: isGalleryTransitionEnabled
-                            ? "transform 0.7s ease-out"
-                            : "none",
-                        }}
-                      >
-                        {extendedGallery.map((item, index) => {
-                          const basis = 100 / effectiveVisibleCount;
 
-                          return (
-                            <button
-                              key={`${item._id || item.id || index}-${index}`}
-                              type="button"
-                              onClick={() => setSelectedPhoto(item)}
-                              className="flex-shrink-0 px-1 sm:px-2"
-                              style={{
-                                flexBasis: `${basis}%`,
-                                maxWidth: `${basis}%`,
-                              }}
-                            >
-                              <div className="relative h-[200px] w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-lg shadow-slate-950/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:h-[240px]">
-                                <img
-                                  src={item.url}
-                                  alt={item.title || "Gallery image"}
-                                  className="h-full w-full object-cover"
-                                  loading="lazy"
-                                />
-                                {item.title && (
-                                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-3 pb-3 pt-10 text-left">
-                                    <p className="text-sm font-medium text-white/95">
-                                      {item.title}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
+            {imageItems.length > 0 && (() => {
+              const remaining = imageItems.length - previewCount;
+              const previewImages = imageItems.slice(0, previewCount);
+
+              return (
+                <div className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/60', 'p-3', 'sm:p-4')}>
+
+                  <div className={clsx('grid', 'grid-cols-2', 'md:grid-cols-3', 'gap-3')}>
+
+                    {previewImages.map((item, index) => {
+                      const isLast = index === previewImages.length - 1 && remaining > 0;
+
+                      return (
+                        <button
+                          key={item._id || index}
+                          onClick={() =>
+                            isLast ? setPreviewCount(imageItems.length) : setSelectedPhoto(item)
+                          }
+                          className={clsx('relative', 'overflow-hidden', 'rounded-2xl')}
+                        >
+                          <img
+                            src={item.url}
+                            className={clsx('w-full', 'aspect-square', 'object-cover')}
+                            loading="lazy"
+                          />
+
+                          {/* ✅ +More Overlay */}
+                          {isLast && (
+                            <div className={clsx('absolute', 'inset-0', 'bg-black/70', 'flex', 'items-center', 'justify-center')}>
+                              <span className={clsx('text-white', 'text-3xl', 'font-bold')}>
+                                +{remaining}
+                              </span>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+
+                  </div>
+
+                </div>
+              );
+            })()}
+
+
+
                 </div>
               </section>
 
-              <section className="grid gap-10 rounded-3xl border border-white/10 bg-slate-900/70 p-6 pt-10 shadow-lg shadow-slate-950/70 lg:grid-cols-[minmax(0,380px),1fr] sm:p-8">
+              <section className={clsx('grid', 'gap-10', 'rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'pt-10', 'shadow-lg', 'shadow-slate-950/70', 'lg:grid-cols-[minmax(0,380px),1fr]', 'sm:p-8')}>
                 {/* Professional Details */}
                 <div className="space-y-5">
-                  <h2 className="text-2xl font-semibold tracking-tight text-indigo-100">
+                  <h2 className={clsx('text-2xl', 'font-semibold', 'tracking-tight', 'text-indigo-100')}>
                     Professional Details
                   </h2>
-                  <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className={clsx('grid', 'min-h-0', 'grid-cols-1', 'gap-4', 'md:grid-cols-2')}>
                     {/* Company Name Card */}
-                    <div className="flex min-h-[200px] flex-col items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/80 p-5 text-center shadow-lg shadow-slate-950/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                      <div className="m-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/15 text-indigo-200 shadow-inner shadow-slate-950/70">
-                        <Building2 className="h-6 w-6" />
+                    <div className={clsx('flex', 'min-h-[200px]', 'flex-col', 'items-center', 'gap-3', 'rounded-2xl', 'border', 'border-white/10', 'bg-slate-900/80', 'p-5', 'text-center', 'shadow-lg', 'shadow-slate-950/80', 'transition-all', 'duration-300', 'hover:-translate-y-1', 'hover:shadow-xl')}>
+                      <div className={clsx('m-5', 'flex', 'h-12', 'w-12', 'items-center', 'justify-center', 'rounded-2xl', 'bg-indigo-500/15', 'text-indigo-200', 'shadow-inner', 'shadow-slate-950/70')}>
+                        <Building2 className={clsx('h-6', 'w-6')} />
                       </div>
-                      <div className="min-w-0 w-full">
-                        <p className="text-500 font-semibold uppercase tracking-wide text-slate-300">
+                      <div className={clsx('min-w-0', 'w-full')}>
+                        <p className={clsx('text-500', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-300')}>
                           Company Name
                         </p>
-                        <p className="mt-2 break-words whitespace-pre-wrap text-base font-semibold text-indigo-100 sm:text-lg">
+                        <p className={clsx('mt-2', 'break-words', 'whitespace-pre-wrap', 'text-base', 'font-semibold', 'text-indigo-100', 'sm:text-lg')}>
                           {companyName}
                         </p>
                       </div>
                     </div>
 
                     {/* Designation Card */}
-                    <div className="flex min-h-[200px] flex-col items-center gap-3 rounded-2xl border border-white/10 bg-slate-900/80 p-5 text-center shadow-[0_18px_40px_rgba(15,23,42,0.9)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.95)]">
-                      <div className="m-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-200 shadow-inner shadow-slate-950/70">
-                        <Briefcase className="h-6 w-6" />
+                    <div className={clsx('flex', 'min-h-[200px]', 'flex-col', 'items-center', 'gap-3', 'rounded-2xl', 'border', 'border-white/10', 'bg-slate-900/80', 'p-5', 'text-center', 'shadow-[0_18px_40px_rgba(15,23,42,0.9)]', 'transition-all', 'duration-300', 'hover:-translate-y-1', 'hover:shadow-[0_24px_60px_rgba(15,23,42,0.95)]')}>
+                      <div className={clsx('m-5', 'flex', 'h-12', 'w-12', 'items-center', 'justify-center', 'rounded-2xl', 'bg-sky-500/15', 'text-sky-200', 'shadow-inner', 'shadow-slate-950/70')}>
+                        <Briefcase className={clsx('h-6', 'w-6')} />
                       </div>
-                      <div className="min-w-0 w-full">
-                        <p className="text-500 font-semibold uppercase tracking-wide text-slate-300">
+                      <div className={clsx('min-w-0', 'w-full')}>
+                        <p className={clsx('text-500', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-300')}>
                           Designation
                         </p>
-                        <p className="mt-2 break-words whitespace-pre-wrap text-base font-semibold text-indigo-100 sm:text-lg">
+                        <p className={clsx('mt-2', 'break-words', 'whitespace-pre-wrap', 'text-base', 'font-semibold', 'text-indigo-100', 'sm:text-lg')}>
                           {user?.designation || "—"}
                         </p>
                       </div>
@@ -1545,10 +1536,10 @@ const PublicProfilePage = () => {
                 {/* Company Description */}
                 <div className="space-y-5">
                   <div className="space-y-4">
-                    <h2 className="text-2xl font-semibold tracking-tight text-indigo-100">
+                    <h2 className={clsx('text-2xl', 'font-semibold', 'tracking-tight', 'text-indigo-100')}>
                       Company Description
                     </h2>
-                    <p className="break-words text-base leading-relaxed text-slate-200/90">
+                    <p className={clsx('break-words', 'text-base', 'leading-relaxed', 'text-slate-200/90')}>
                       {companyDescription !== ""
                         ? companyDescription
                         : "We create visually stunning and engaging content."}
@@ -1556,18 +1547,18 @@ const PublicProfilePage = () => {
                   </div>
 
                   {/* Experience & Referral */}
-                  <div className="flex flex-col gap-3">
-                    <div className="flex w-full items-stretch rounded-[999px] border border-white/10 bg-slate-900/80 text-white shadow-md shadow-slate-950/60">
-                      <div className="flex items-center justify-center rounded-l-[999px] bg-gradient-to-r from-indigo-500 to-sky-400 px-16 py-3 text-xs font-semibold uppercase tracking-wide">
+                  <div className={clsx('flex', 'flex-col', 'gap-3')}>
+                    <div className={clsx('flex', 'w-full', 'items-stretch', 'rounded-[999px]', 'border', 'border-white/10', 'bg-slate-900/80', 'text-white', 'shadow-md', 'shadow-slate-950/60')}>
+                      <div className={clsx('flex', 'items-center', 'justify-center', 'rounded-l-[999px]', 'bg-gradient-to-r', 'from-indigo-500', 'to-sky-400', 'px-16', 'py-3', 'text-xs', 'font-semibold', 'uppercase', 'tracking-wide')}>
                         Experience
                       </div>
-                      <div className="flex flex-1 items-center justify-center px-5 py-3 text-base font-semibold text-indigo-100">
+                      <div className={clsx('flex', 'flex-1', 'items-center', 'justify-center', 'px-5', 'py-3', 'text-base', 'font-semibold', 'text-indigo-100')}>
                         {companyExperience || "-"}
                       </div>
                     </div>
-                    <div className="flex w-full flex-col gap-3 rounded-3xl border border-white/10 bg-slate-900/80 p-4 text-slate-100 shadow-md shadow-slate-950/60">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                    <div className={clsx('flex', 'w-full', 'flex-col', 'gap-3', 'rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/80', 'p-4', 'text-slate-100', 'shadow-md', 'shadow-slate-950/60')}>
+                      <div className={clsx('flex', 'flex-wrap', 'items-center', 'justify-between', 'gap-2')}>
+                        <p className={clsx('text-xs', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-400')}>
                           Referral Code
                         </p>
                         {companyReferralCode &&
@@ -1576,101 +1567,116 @@ const PublicProfilePage = () => {
                             <button
                               type="button"
                               onClick={handleCopyReferralCode}
-                              className="inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400 px-4 py-1.5 text-xs font-semibold text-white shadow-lg shadow-slate-950/60 transition hover:brightness-110"
+                              className={clsx('inline-flex', 'items-center', 'justify-center', 'gap-1.5', 'rounded-full', 'bg-gradient-to-r', 'from-indigo-500', 'via-sky-500', 'to-cyan-400', 'px-4', 'py-1.5', 'text-xs', 'font-semibold', 'text-white', 'shadow-lg', 'shadow-slate-950/60', 'transition', 'hover:brightness-110')}
                             >
-                              <Copy className="h-4 w-4" />
+                              <Copy className={clsx('h-4', 'w-4')} />
                             </button>
                           )}
                       </div>
-                      <p className="break-all text-sm font-medium text-indigo-100">
+                      <p className={clsx('break-all', 'text-sm', 'font-medium', 'text-indigo-100')}>
                         {companyReferralCode || "-"}
                       </p>
                     </div>
                   </div>
                 </div>
               </section>
+{documentItems.length > 0 && (() => {
+  const remaining = documentItems.length - docPreviewCount;
+  const previewDocs = documentItems.slice(0, docPreviewCount);
 
-              {documentItems.length > 0 && (
-                <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-950/70 sm:p-8">
-                  <h2 className="mb-4 text-xl font-semibold tracking-tight text-indigo-100">
-                    Certificates/Documents
-                  </h2>
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    {documentItems.map((item) => (
-                      <button
-                        key={item._id}
-                        type="button"
-                        onClick={() => window.open(item.url, "_blank", "noopener,noreferrer")}
-                        className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-slate-900/80 p-5 text-left shadow-lg shadow-slate-950/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                      >
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/15 text-indigo-200 shadow-inner shadow-slate-950/70">
-                          <FileText className="h-6 w-6" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="truncate text-sm font-semibold text-slate-50">
-                            {item.title || "Untitled document"}
-                          </h3>
-                          {item.description && (
-                            <p className="mt-1 line-clamp-2 text-xs text-slate-300">
-                              {item.description}
-                            </p>
-                          )}
-                          <p className="mt-2 text-xs text-slate-400">
-                            Click to open
-                          </p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+  return (
+    <div className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8')}>
+      <h2 className={clsx('mb-4', 'text-xl', 'font-semibold', 'text-indigo-100')}>
+        Certificates/Documents
+      </h2>
+
+      <div className={clsx('grid', 'grid-cols-2', 'md:grid-cols-3', 'gap-4')}>
+
+        {previewDocs.map((item, index) => {
+          const isLast = index === previewDocs.length - 1 && remaining > 0;
+
+          return (
+            <button
+              key={item._id || index}
+              onClick={() =>
+                isLast
+                  ? setDocPreviewCount(documentItems.length)
+                  : window.open(item.url, "_blank")
+              }
+              className={clsx('relative', 'rounded-2xl', 'bg-slate-900', 'border', 'border-white/10', 'p-6', 'flex', 'flex-col', 'items-center', 'justify-center', 'text-center')}
+            >
+              <FileText className={clsx('h-10', 'w-10', 'text-indigo-300', 'mb-3')} />
+              <p className={clsx('text-xs', 'text-slate-300', 'line-clamp-2')}>
+                {item.title || "Document"}
+              </p>
+
+              {isLast && (
+                <div className={clsx('absolute', 'inset-0', 'bg-black/70', 'flex', 'items-center', 'justify-center', 'rounded-2xl')}>
+                  <span className={clsx('text-white', 'text-3xl', 'font-bold')}>
+                    +{remaining}
+                  </span>
                 </div>
               )}
+            </button>
+          );
+        })}
 
-              {videoItems.length > 0 && (
-                <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-950/70 sm:p-8">
-                  <h2 className="mb-4 text-xl font-semibold tracking-tight text-indigo-100">
-                    Work Videos
-                  </h2>
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    {videoItems.map((item) => (
-                      <div
-                        key={item._id}
-                        className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 shadow-lg shadow-slate-950/80 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                      >
-                        <div className="relative flex h-60 w-full items-center justify-center overflow-hidden bg-black">
-                          {renderVideoEmbed(item.url) || (
-                            <div className="px-6 text-center text-indigo-100">
-                              <Link2 className="mx-auto mb-3 h-10 w-10" />
-                              <p className="truncate font-semibold">
-                                {item.title}
-                              </p>
-                              <a
-                                href={item.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-2 block truncate text-sm text-indigo-200 underline decoration-indigo-400/70 underline-offset-2 hover:text-indigo-100"
-                              >
-                                Open video
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                        <div className="mt-0.5 flex items-start gap-4 bg-slate-900/80 p-3">
-                          <div className="flex min-w-0">
-                            <h3 className="truncate text-sm font-semibold text-slate-50">
-                              {item.title}
-                              {item.description && (
-                                <p className="mt-1 line-clamp-2 text-xs text-slate-300">
-                                  {item.description}
-                                </p>
-                              )}
-                            </h3>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+      </div>
+    </div>
+  );
+})()}
+
+
+{videoItems.length > 0 && (() => {
+  const remaining = videoItems.length - videoPreviewCount;
+  const previewVideos = videoItems.slice(0, videoPreviewCount);
+
+  return (
+    <div className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8')}>
+      <h2 className={clsx('mb-4', 'text-xl', 'font-semibold', 'text-indigo-100')}>
+        Work Videos
+      </h2>
+
+      <div className={clsx('grid', 'grid-cols-2', 'md:grid-cols-3', 'gap-4')}>
+
+        {previewVideos.map((item, index) => {
+          const isLast = index === previewVideos.length - 1 && remaining > 0;
+
+          return (
+            <button
+              key={item._id || index}
+              onClick={() =>
+                isLast
+                  ? setVideoPreviewCount(videoItems.length)
+                  : window.open(item.url, "_blank")
+              }
+              className={clsx('relative', 'overflow-hidden', 'rounded-2xl', 'bg-black')}
+            >
+              <div className={clsx('aspect-square', 'flex', 'items-center', 'justify-center')}>
+                {renderVideoEmbed(item.url) || (
+                  <div className={clsx('text-center', 'text-indigo-200', 'p-4')}>
+                    <Link2 className={clsx('h-8', 'w-8', 'mx-auto', 'mb-2')} />
+                    <p className={clsx('text-xs', 'line-clamp-2')}>{item.title}</p>
                   </div>
+                )}
+              </div>
+
+              {isLast && (
+                <div className={clsx('absolute', 'inset-0', 'bg-black/70', 'flex', 'items-center', 'justify-center')}>
+                  <span className={clsx('text-white', 'text-3xl', 'font-bold')}>
+                    +{remaining}
+                  </span>
                 </div>
               )}
+            </button>
+          );
+        })}
+
+      </div>
+    </div>
+  );
+})()}
+
 
 
             </main>
@@ -1679,36 +1685,36 @@ const PublicProfilePage = () => {
 
         {selectedPhoto && (
           <div
-            className="fixed inset-0 z-50  flex items-center justify-center bg-black/80 p-4"
+            className={clsx('fixed', 'inset-0', 'z-50', 'flex', 'items-center', 'justify-center', 'bg-black/80', 'p-4')}
             onClick={() => setSelectedPhoto(null)}
           >
             <div
-              className="relative w-full max-w-4xl "
+              className={clsx('relative', 'w-full', 'max-w-4xl')}
               onClick={(event) => event.stopPropagation()}
             >
               <button
                 type="button"
                 aria-label="Close image preview"
                 onClick={() => setSelectedPhoto(null)}
-                className="absolute -top-4 -right-4 rounded-full bg-white p-2 text-gray-700 shadow-lg hover:text-gray-900"
+                className={clsx('absolute', '-top-4', '-right-4', 'rounded-full', 'bg-white', 'p-2', 'text-gray-700', 'shadow-lg', 'hover:text-gray-900')}
               >
-                <X className="h-5 w-5" />
+                <X className={clsx('h-5', 'w-5')} />
               </button>
               <img
                 src={selectedPhoto.url}
                 alt={selectedPhoto.title || "Gallery image"}
-                className="max-h-[80vh] w-full rounded-2xl bg-black object-contain"
+                className={clsx('max-h-[80vh]', 'w-full', 'rounded-2xl', 'bg-black', 'object-contain')}
                 loading="lazy"
               />
               {(selectedPhoto.title || selectedPhoto.description) && (
-                <div className="mt-4 text-center text-white">
+                <div className={clsx('mt-4', 'text-center', 'text-white')}>
                   {selectedPhoto.title && (
-                    <h3 className="text-lg font-semibold">
+                    <h3 className={clsx('text-lg', 'font-semibold')}>
                       {selectedPhoto.title}
                     </h3>
                   )}
                   {selectedPhoto.description && (
-                    <p className="mt-1 text-sm text-white">
+                    <p className={clsx('mt-1', 'text-sm', 'text-white')}>
                       {selectedPhoto.description}
                     </p>
                   )}
@@ -1719,8 +1725,8 @@ const PublicProfilePage = () => {
         )}
       </div>
       {showCopyToast && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
-          <div className="pointer-events-auto rounded-full border border-indigo-400/60 bg-slate-900/95 px-4 py-2 text-sm font-medium text-slate-50 shadow-lg shadow-slate-950/80">
+        <div className={clsx('pointer-events-none', 'fixed', 'inset-x-0', 'bottom-6', 'z-50', 'flex', 'justify-center', 'px-4')}>
+          <div className={clsx('pointer-events-auto', 'rounded-full', 'border', 'border-indigo-400/60', 'bg-slate-900/95', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-slate-50', 'shadow-lg', 'shadow-slate-950/80')}>
             {copyToastMessage}
           </div>
         </div>
