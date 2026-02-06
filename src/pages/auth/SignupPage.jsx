@@ -1019,14 +1019,14 @@ const SignupPage = () => {
                       </p>
                     )}
 
-                    <div className={clsx('flex', 'gap-3')}>
+                    <div className={clsx('flex', 'w-full', 'gap-3')}>
                       <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
                         placeholder="Mobile Number"
-                        className={`flex-1 px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                        className={`min-w-0 flex-1 px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
                           errors.phone
                             ? "border-red-500/60 bg-red-500/10"
                             : "border-slate-700"
@@ -1078,7 +1078,7 @@ const SignupPage = () => {
                           </p>
                         ) : null}
 
-                        <div className={clsx('flex', 'gap-3')}>
+                        <div className={clsx('flex', 'w-full', 'gap-3')}>
                           <input
                             type="text"
                             value={phoneOtpValue}
@@ -1086,7 +1086,7 @@ const SignupPage = () => {
                             inputMode="numeric"
                             autoComplete="one-time-code"
                             placeholder="6-digit OTP"
-                            className={clsx('flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
+                            className={clsx('min-w-0', 'flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
                             maxLength={6}
                           />
 
@@ -1129,14 +1129,14 @@ const SignupPage = () => {
                     
 
 
-                    <div className={clsx('flex', 'gap-3')}>
+                    <div className={clsx('flex', 'w-full', 'gap-3')}>
                       <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder="Email"
-                        className={`flex-1 px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                        className={`min-w-0 flex-1 px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
                           errors.email
                             ? "border-red-500/60 bg-red-500/10"
                             : "border-slate-700"
@@ -1193,7 +1193,7 @@ const SignupPage = () => {
                           </p>
                         ) : null}
 
-                        <div className={clsx('flex', 'gap-3')}>
+                        <div className={clsx('flex', 'w-full', 'gap-3')}>
                           <input
                             type="text"
                             value={emailOtpValue}
@@ -1201,7 +1201,7 @@ const SignupPage = () => {
                             inputMode="numeric"
                             autoComplete="one-time-code"
                             placeholder="6-digit OTP"
-                            className={clsx('flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
+                            className={clsx('min-w-0', 'flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
                             maxLength={6}
                           />
 
