@@ -759,19 +759,6 @@ const GalleryPage = () => {
           <h2 className={clsx('mb-3', 'text-lg', 'font-semibold', 'text-slate-100')}>
             Add your video links here:
           </h2>
-          <div className={clsx('flex', 'flex-col', 'space-y-3', 'rounded-2xl', 'border', 'border-slate-800', 'bg-slate-950/60', 'p-4', 'md:flex-row', 'md:items-center', 'md:space-x-3', 'md:space-y-0')}>
-            <div className="flex-1">
-              <div className="relative">
-                <Link2 className={clsx('absolute', 'left-3', 'top-1/2', 'h-4', 'w-4', '-translate-y-1/2', 'text-slate-500')} />
-                <input
-                  type="url"
-                  value={videoUrl}
-                  onChange={(e) => setVideoUrl(e.target.value)}
-                  placeholder="https://www.youtube.com/paste-your-video-url-here"
-                  className={clsx('w-full', 'rounded-xl', 'border', 'border-slate-800', 'bg-slate-900/70', 'py-3', 'pl-9', 'pr-3', 'text-sm', 'text-slate-100', 'shadow-sm', 'focus:border-primary-500', 'focus:ring-primary-500')}
-                  required
-                />
-              </div>
               <div className={clsx('mt-3', 'flex', 'flex-col', 'space-y-3', 'sm:flex-row', 'sm:items-center', 'sm:space-x-2', 'sm:space-y-0')}>
                 <input
                   type="text"
@@ -788,6 +775,20 @@ const GalleryPage = () => {
                   className={clsx('flex-1', 'rounded-xl', 'border', 'border-slate-800', 'bg-slate-900/70', 'px-4', 'py-3', 'text-sm', 'text-slate-100', 'shadow-sm', 'focus:border-primary-500', 'focus:ring-primary-500')}
                 />
               </div>
+          <div className={clsx('flex', 'flex-col','mt-3', 'space-y-3', 'rounded-2xl', 'border', 'border-slate-800', 'bg-slate-950/60', 'p-4', 'md:flex-row', 'md:items-center', 'md:space-x-3', 'md:space-y-0')}>
+            <div className="flex-1">
+              <div className="relative">
+                <Link2 className={clsx('absolute', 'left-3', 'top-1/2', 'h-4', 'w-4', '-translate-y-1/2', 'text-slate-500')} />
+                <input
+                  type="url"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://www.youtube.com/paste-your-video-url-here"
+                  className={clsx('w-full', 'rounded-xl', 'border', 'border-slate-800', 'bg-slate-900/70', 'py-3', 'pl-9', 'pr-3', 'text-sm', 'text-slate-100', 'shadow-sm', 'focus:border-primary-500', 'focus:ring-primary-500')}
+                  required
+                />
+              </div>
+
             </div>
             <button
               type="submit"

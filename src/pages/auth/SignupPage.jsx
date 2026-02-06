@@ -16,6 +16,10 @@ import PageSEO from "../../components/seo/PageSEO";
 import toast from "react-hot-toast";
 import clsx from "clsx";
 
+ const SIGNUP_DRAFT_STORAGE_KEY = "signupDraft";
+ const SIGNUP_STEP_STORAGE_KEY = "signupStep";
+ const SIGNUP_DRAFT_EXPIRY_MS = 30 * 60 * 1000;
+
 const SignupPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -76,6 +80,113 @@ const SignupPage = () => {
     message: "",
   });
   const lastValidatedRef = useRef("");
+
+  const clearSignupDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(SIGNUP_DRAFT_STORAGE_KEY);
+      localStorage.removeItem(SIGNUP_STEP_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const persistSignupDraft = useCallback(
+    ({ stepOverride } = {}) => {
+      try {
+        const now = Date.now();
+        const existingRaw = localStorage.getItem(SIGNUP_DRAFT_STORAGE_KEY);
+        const existing = existingRaw ? JSON.parse(existingRaw) : null;
+
+        const draft = {
+          createdAt: existing?.createdAt || now,
+          updatedAt: now,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          couponCode: formData.couponCode,
+          agreeToTerms: Boolean(formData.agreeToTerms),
+          phoneOtpStep,
+          emailOtpStep,
+          isPhoneVerified: Boolean(verifiedPhoneDigits),
+          verifiedPhoneDigits: verifiedPhoneDigits,
+          emailOtpRequiresPayment: emailOtpRequiresPayment,
+        };
+
+        const computedStep =
+          stepOverride ??
+          (emailOtpStep === "verify" || emailOtpStep === "verified"
+            ? 3
+            : phoneOtpStep === "verify" || verifiedPhoneDigits
+              ? 2
+              : 1);
+
+        localStorage.setItem(SIGNUP_DRAFT_STORAGE_KEY, JSON.stringify(draft));
+        localStorage.setItem(SIGNUP_STEP_STORAGE_KEY, String(computedStep));
+      } catch {
+        // ignore
+      }
+    },
+    [
+      emailOtpRequiresPayment,
+      emailOtpStep,
+      formData.agreeToTerms,
+      formData.couponCode,
+      formData.email,
+      formData.name,
+      formData.phone,
+      phoneOtpStep,
+      verifiedPhoneDigits,
+    ]
+  );
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SIGNUP_DRAFT_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw);
+      const updatedAt = Number(parsed?.updatedAt || 0);
+      if (!updatedAt || Date.now() - updatedAt > SIGNUP_DRAFT_EXPIRY_MS) {
+        clearSignupDraft();
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        name: typeof parsed?.name === "string" ? parsed.name : prev.name,
+        email: typeof parsed?.email === "string" ? parsed.email : prev.email,
+        phone: typeof parsed?.phone === "string" ? parsed.phone : prev.phone,
+        couponCode:
+          typeof parsed?.couponCode === "string"
+            ? parsed.couponCode
+            : prev.couponCode,
+        agreeToTerms:
+          typeof parsed?.agreeToTerms === "boolean"
+            ? parsed.agreeToTerms
+            : prev.agreeToTerms,
+      }));
+
+      if (parsed?.phoneOtpStep === "verify" || parsed?.phoneOtpStep === "verified") {
+        setPhoneOtpStep(parsed.phoneOtpStep);
+      }
+
+      if (parsed?.emailOtpStep === "verify" || parsed?.emailOtpStep === "verified") {
+        setEmailOtpStep(parsed.emailOtpStep);
+      }
+
+      if (parsed?.isPhoneVerified && parsed?.verifiedPhoneDigits) {
+        setVerifiedPhoneDigits(parsed.verifiedPhoneDigits);
+        setPhoneOtpStep("verified");
+      }
+
+      if (typeof parsed?.emailOtpRequiresPayment === "boolean") {
+        setEmailOtpRequiresPayment(parsed.emailOtpRequiresPayment);
+      }
+    } catch {
+      clearSignupDraft();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toE164 = useCallback((phoneDigits) => {
     const digits = String(phoneDigits || "").replace(/\D/g, "");
@@ -263,6 +374,10 @@ const SignupPage = () => {
       );
     }
   };
+
+  useEffect(() => {
+    persistSignupDraft();
+  }, [persistSignupDraft]);
 
   useEffect(() => {
     if (cooldownSeconds <= 0) return;
@@ -606,7 +721,7 @@ const SignupPage = () => {
       return;
     }
 
-    if (!verifiedFirebaseIdToken || !verifiedPhoneDigits) {
+    if (!verifiedPhoneDigits) {
       toast.error("Please verify your phone number");
       return;
     }
@@ -617,6 +732,7 @@ const SignupPage = () => {
     }
 
     const requiresPayment = Boolean(emailOtpRequiresPayment);
+    clearSignupDraft();
     navigate(requiresPayment ? "/payment" : "/dashboard");
   };
 
@@ -968,6 +1084,7 @@ const SignupPage = () => {
                             value={phoneOtpValue}
                             onChange={(e) => setPhoneOtpValue(e.target.value)}
                             inputMode="numeric"
+                            autoComplete="one-time-code"
                             placeholder="6-digit OTP"
                             className={clsx('flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
                             maxLength={6}
@@ -1082,6 +1199,7 @@ const SignupPage = () => {
                             value={emailOtpValue}
                             onChange={(e) => setEmailOtpValue(e.target.value)}
                             inputMode="numeric"
+                            autoComplete="one-time-code"
                             placeholder="6-digit OTP"
                             className={clsx('flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
                             maxLength={6}
@@ -1164,7 +1282,7 @@ const SignupPage = () => {
 
                     <button
                       type="submit"
-                      disabled={loading || !verifiedFirebaseIdToken || emailOtpStep !== "verified"}
+                      disabled={loading || !verifiedPhoneDigits || emailOtpStep !== "verified"}
                       className={clsx('w-full', 'bg-primary-500', 'text-white', 'py-3.5', 'px-6', 'rounded-xl', 'font-semibold', 'shadow-lg', 'shadow-primary-500/40', 'hover:bg-primary-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:ring-offset-0', 'transition-all', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                     >
                       {loading ? "Registering..." : "Register"}

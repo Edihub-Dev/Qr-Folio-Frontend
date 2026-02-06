@@ -174,6 +174,7 @@ const OTPPage = () => {
                   ref={(el) => (inputRefs.current[i] = el)}
                   type="text"
                   inputMode="numeric"
+                  autoComplete="one-time-code"
                   maxLength={1}
                   value={digit}
                   onChange={(e) =>

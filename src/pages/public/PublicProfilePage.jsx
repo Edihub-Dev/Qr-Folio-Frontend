@@ -47,11 +47,6 @@ const PublicProfilePage = () => {
   const [videoItems, setVideoItems] = useState([]);
   const [documentItems, setDocumentItems] = useState([]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
-  // const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
-  // const [isGalleryTransitionEnabled, setIsGalleryTransitionEnabled] =
-  //   useState(true);
-  // const [visibleGalleryCount, setVisibleGalleryCount] = useState(3);
-  // const touchStartXRef = useRef(null);
   const qrCodeRef = useRef(null);
   const [copyToastMessage, setCopyToastMessage] = useState("");
   const [showCopyToast, setShowCopyToast] = useState(false);
@@ -59,19 +54,6 @@ const PublicProfilePage = () => {
   const [previewCount, setPreviewCount] = useState(0);
   const [docPreviewCount, setDocPreviewCount] = useState(0);
   const [videoPreviewCount, setVideoPreviewCount] = useState(0);
-
-
-  // const featuredGallery = useMemo(() => [...imageItems], [imageItems]);
-  // const effectiveVisibleCount =
-  //   featuredGallery.length > 0
-  //     ? Math.min(featuredGallery.length, visibleGalleryCount)
-  //     : 1;
-  // const extendedGallery = useMemo(() => {
-  //   // No looping: we just show the images once
-  //   return featuredGallery;
-  // }, [featuredGallery]);
-
-  // const downloadRef = useRef(null);
 
   const fetchUser = useCallback(async () => {
     if (!id) return;
@@ -158,68 +140,6 @@ const PublicProfilePage = () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedPhoto]);
-
-  // useEffect(() => {
-  //   // Defer gallery layout calculation to after first paint, no resize listener
-  //   const updateVisibleCount = () => {
-  //     const width = window.innerWidth;
-  //     let nextCount = 3;
-  //     if (width < 640) {
-  //       nextCount = 1;
-  //     } else if (width < 1024) {
-  //       nextCount = 2;
-  //     }
-
-  //     setVisibleGalleryCount((prev) => (prev === nextCount ? prev : nextCount));
-  //   };
-
-  //   const rafId = window.requestAnimationFrame(updateVisibleCount);
-
-  //   return () => {
-  //     window.cancelAnimationFrame(rafId);
-  //   };
-  // }, []);
-
-  // useEffect(() => {
-  //   if (!featuredGallery.length) {
-  //     setActiveGalleryIndex(0);
-  //     return;
-  //   }
-
-  //   if (featuredGallery.length <= visibleGalleryCount) {
-  //     setActiveGalleryIndex(0);
-  //     return;
-  //   }
-
-  //   const maxIndex = featuredGallery.length - visibleGalleryCount;
-  //   setActiveGalleryIndex((prev) => Math.min(prev, maxIndex));
-  // }, [featuredGallery.length, visibleGalleryCount]);
-
-  // const handleGalleryNext = useCallback(() => {
-  //   if (featuredGallery.length <= visibleGalleryCount) return;
-  //   const maxIndex = Math.max(0, featuredGallery.length - visibleGalleryCount);
-  //   setActiveGalleryIndex((prev) => Math.min(prev + 1, maxIndex));
-  // }, [featuredGallery.length, visibleGalleryCount]);
-
-  // const handleGalleryPrev = useCallback(() => {
-  //   if (featuredGallery.length <= visibleGalleryCount) return;
-  //   setActiveGalleryIndex((prev) => Math.max(prev - 1, 0));
-  // }, [featuredGallery.length, visibleGalleryCount]);
-
-  // useEffect(() => {
-  //   // With non-looping gallery we always keep transitions enabled
-  //   setIsGalleryTransitionEnabled(true);
-  // }, [activeGalleryIndex, featuredGallery.length, visibleGalleryCount]);
-
-  // useEffect(() => {
-  //   if (!isGalleryTransitionEnabled) {
-  //     const raf = window.requestAnimationFrame(() => {
-  //       setIsGalleryTransitionEnabled(true);
-  //     });
-  //     return () => window.cancelAnimationFrame(raf);
-  //   }
-  //   return undefined;
-  // }, [isGalleryTransitionEnabled]);
 
   useEffect(() => {
     return () => {
@@ -421,14 +341,13 @@ const PublicProfilePage = () => {
 
 useEffect(() => {
   const w = window.innerWidth;
-  const base = w >= 1024 ? 3 : 4;
+  const base = w >= 1024 ? 4 : 4;
 
   setPreviewCount(base);
   setDocPreviewCount(base);
   setVideoPreviewCount(base);
 
 }, [imageItems.length, documentItems.length, videoItems.length]);
-
 
 
   // Handle loading state
@@ -645,209 +564,6 @@ useEffect(() => {
       new Date(user?.createdAt || new Date()).getFullYear() + 1
     )
   ).toLocaleDateString("en-GB");
-
-  // const fetchAsDataUrl = async (url) => {
-  //   try {
-  //     const res = await fetch(url, { mode: "cors" });
-  //     const blob = await res.blob();
-  //     return await new Promise((resolve) => {
-  //       const reader = new FileReader();
-  //       reader.onloadend = () => resolve(reader.result);
-  //       reader.readAsDataURL(blob);
-  //     });
-  //   } catch (e) {
-  //     return null;
-  //   }
-  // };
-
-  // const waitForImage = (imgEl, nextSrc) =>
-  //   new Promise((resolve) => {
-  //     if (!imgEl) {
-  //       return resolve();
-  //     }
-
-  //   const finalize = () => {
-  //     imgEl.removeEventListener("load", finalize);
-  //     imgEl.removeEventListener("error", finalize);
-  //     resolve();
-  //   };
-
-  //   if (nextSrc && imgEl.getAttribute("src") !== nextSrc) {
-  //     imgEl.setAttribute("src", nextSrc);
-  //   }
-
-  //   const naturalWidth = imgEl.naturalWidth || 0;
-  //   if (
-  //     imgEl.complete &&
-  //     naturalWidth > 0 &&
-  //     (!nextSrc || imgEl.src === nextSrc)
-  //   ) {
-  //     return resolve();
-  //   }
-
-  //   imgEl.addEventListener("load", finalize, { once: true });
-  //   imgEl.addEventListener("error", finalize, { once: true });
-  // });
-
-  // const handleDownloadCard = async () => {
-  //   if (!downloadRef.current) {
-  //     alert("Card not ready yet");
-  //     return;
-  //   }
-
-  //   const node = downloadRef.current;
-
-  //   const cloneContainer = document.createElement("div");
-  //   cloneContainer.style.position = "fixed";
-  //   cloneContainer.style.pointerEvents = "none";
-  //   cloneContainer.style.opacity = "0";
-  //   cloneContainer.style.left = "-10000px";
-  //   cloneContainer.style.top = "0";
-  //   cloneContainer.style.zIndex = "-1";
-  //   cloneContainer.style.width = `${downloadRef.current.offsetWidth}px`;
-  //   cloneContainer.style.height = `${downloadRef.current.offsetHeight}px`;
-
-  //   const clone = downloadRef.current.cloneNode(true);
-  //   clone.style.backgroundColor = "#ffffff";
-
-  //   const ensurePrimaryBg = () => {
-  //     const header = clone.querySelector(".card-header-bg");
-  //     if (header) {
-  //       header.style.backgroundColor =
-  //         getComputedStyle(downloadRef.current.querySelector(".card-header-bg"))
-  //           .backgroundColor || "#2563EB";
-  //       header.style.setProperty("print-color-adjust", "exact");
-  //       header.style.setProperty("-webkit-print-color-adjust", "exact");
-  //       header.style.setProperty("color-adjust", "exact");
-  //     }
-  //   };
-
-  //   cloneContainer.appendChild(clone);
-  //   document.body.appendChild(cloneContainer);
-
-  //   ensurePrimaryBg();
-
-  //   const cleanup = () => {
-  //     if (cloneContainer.parentNode) {
-  //       cloneContainer.parentNode.removeChild(cloneContainer);
-  //     }
-  //   };
-
-  //   try {
-  //     const imgNodes = Array.from(clone.querySelectorAll("img"));
-  //     await Promise.all(
-  //       imgNodes.map(async (imgEl) => {
-  //         const src = imgEl.getAttribute("src");
-  //         if (!src) return;
-  //         if (src.startsWith("data:")) return;
-
-  //         if (
-  //           imgEl.dataset.profilePhoto === "true" &&
-  //           user?.profilePhotoDataUri
-  //         ) {
-  //           await waitForImage(imgEl, user?.profilePhotoDataUri);
-  //           return;
-  //         }
-
-  //         if (imgEl.dataset.qrCode === "true") {
-  //           await waitForImage(imgEl);
-  //           return;
-  //         }
-
-  //         try {
-  //           const parsed = new URL(src, window.location.href);
-  //           const sameOrigin = parsed.origin === window.location.origin;
-  //           if (!sameOrigin) {
-  //             const dataUrl = await fetchAsDataUrl(src);
-  //             if (dataUrl) {
-  //               await waitForImage(imgEl, dataUrl);
-  //               return;
-  //             }
-  //             await waitForImage(imgEl, avatar);
-  //             return;
-  //           }
-  //           const dataUrl = await fetchAsDataUrl(src);
-  //           if (dataUrl) {
-  //             await waitForImage(imgEl, dataUrl);
-  //           }
-  //         } catch (_) {
-  //           const dataUrl = await fetchAsDataUrl(src);
-  //           if (dataUrl) {
-  //             await waitForImage(imgEl, dataUrl);
-  //           } else {
-  //             await waitForImage(imgEl, avatar);
-  //           }
-  //         }
-  //       })
-  //     );
-
-  //     let dataUrl;
-  //     try {
-  //       const { toPng } = await import("html-to-image");
-  //       dataUrl = await toPng(clone, {
-  //         cacheBust: true,
-  //         backgroundColor: "#ffffff",
-  //         pixelRatio: 2,
-  //         skipFonts: true,
-  //         filter: (node) => {
-  //           if (!node) return true;
-  //           if (
-  //             node.classList &&
-  //             (node.classList.contains("no-export") ||
-  //               node.classList.contains("no-print"))
-  //           ) {
-  //             return false;
-  //           }
-  //           return true;
-  //         },
-  //       });
-  //     } catch (err) {
-  //       const { default: html2canvas } = await import("html2canvas");
-  //       const canvas = await html2canvas(clone, {
-  //         backgroundColor: "#ffffff",
-  //         scale: 2,
-  //         useCORS: true,
-  //         allowTaint: true,
-  //         logging: false,
-  //       });
-  //       dataUrl = canvas.toDataURL("image/png");
-  //     }
-
-  //     const link = document.createElement("a");
-  //     link.download = `${(displayName || "profile_card").replace(
-  //       /\s+/g,
-  //       "_"
-  //     )}.png`;
-  //     link.href = dataUrl;
-  //     link.click();
-  //   } catch (e) {
-  //     console.error("Download failed:", e);
-  //     alert('Unable to download card image. Try using "Save as PDF" instead.');
-  //   } finally {
-  //     cleanup();
-  //   }
-  // };
-
-  //   const handlePrintCard = () => {
-  //     if (!downloadRef .current) return;
-  //     const style = document.createElement("style");
-  //     style.setAttribute("id", "print-card-style");
-  //     style.innerHTML = `
-  //       <div
-  //   id="download-card-print"
-  //   style={{ position: "fixed", left: "-10000px", top: 0 }}
-  // >
-  //   <DownloadProfileCard ref={downloadRef } ... />
-  // </div>
-
-  //       }`;
-  //     document.head.appendChild(style);
-  //     window.print();
-  //     setTimeout(() => {
-  //       const el = document.getElementById("print-card-style");
-  //       if (el) el.remove();
-  //     }, 100);
-  //   };
 
   const waitForImages = async (container) => {
     const images = Array.from(container.querySelectorAll("img"));
@@ -1194,30 +910,6 @@ useEffect(() => {
     sameAs: socialLinks.map((link) => link.href),
   };
 
-  // const waitForImages = async (container) => {
-  //   const images = Array.from(container.querySelectorAll("img"));
-
-  //   await Promise.all(
-  //     images.map(
-  //       (img) =>
-  //         new Promise((resolve) => {
-  //           if (img.complete && img.naturalWidth > 0) {
-  //             return resolve();
-  //           }
-
-  //           const done = () => {
-  //             img.removeEventListener("load", done);
-  //             img.removeEventListener("error", done);
-  //             resolve();
-  //           };
-
-  //           img.addEventListener("load", done, { once: true });
-  //           img.addEventListener("error", done, { once: true });
-  //         })
-  //     )
-  //   );
-  // };
-
   return (
     <div className={clsx('relative', 'min-h-screen', 'overflow-hidden', 'bg-slate-950')}>
       <PageSEO
@@ -1445,52 +1137,6 @@ useEffect(() => {
                     </p>
                   </div>
 
-            {imageItems.length > 0 && (() => {
-              const remaining = imageItems.length - previewCount;
-              const previewImages = imageItems.slice(0, previewCount);
-
-              return (
-                <div className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/60', 'p-3', 'sm:p-4')}>
-
-                  <div className={clsx('grid', 'grid-cols-2', 'md:grid-cols-3', 'gap-3')}>
-
-                    {previewImages.map((item, index) => {
-                      const isLast = index === previewImages.length - 1 && remaining > 0;
-
-                      return (
-                        <button
-                          key={item._id || index}
-                          onClick={() =>
-                            isLast ? setPreviewCount(imageItems.length) : setSelectedPhoto(item)
-                          }
-                          className={clsx('relative', 'overflow-hidden', 'rounded-2xl')}
-                        >
-                          <img
-                            src={item.url}
-                            className={clsx('w-full', 'aspect-square', 'object-cover')}
-                            loading="lazy"
-                          />
-
-                          {/* ✅ +More Overlay */}
-                          {isLast && (
-                            <div className={clsx('absolute', 'inset-0', 'bg-black/70', 'flex', 'items-center', 'justify-center')}>
-                              <span className={clsx('text-white', 'text-3xl', 'font-bold')}>
-                                +{remaining}
-                              </span>
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-
-                  </div>
-
-                </div>
-              );
-            })()}
-
-
-
                 </div>
               </section>
 
@@ -1580,6 +1226,54 @@ useEffect(() => {
                   </div>
                 </div>
               </section>
+
+
+            {imageItems.length > 0 && (() => {
+              const remaining = imageItems.length - previewCount;
+              const previewImages = imageItems.slice(0, previewCount);
+
+              return (
+    <div className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8')}>
+<h2 className="mb-4 text-xl font-semibold text-indigo-100">
+  Photo Gallery
+</h2>
+                  <div className={clsx('grid', 'grid-cols-2', 'md:grid-cols-3', 'gap-3')}>
+
+                    {previewImages.map((item, index) => {
+                      const isLast = index === previewImages.length - 1 && remaining > 0;
+
+                      return (
+                        <button
+                          key={item._id || index}
+                          onClick={() =>
+                            isLast ? setPreviewCount(imageItems.length) : setSelectedPhoto(item)
+                          }
+                          className={clsx('relative', 'overflow-hidden', 'rounded-2xl')}
+                        >
+                          <img
+                            src={item.url}
+                            className={clsx('w-full', 'aspect-square', 'object-cover')}
+                            loading="lazy"
+                          />
+
+                          {/* ✅ +More Overlay */}
+                          {isLast && (
+                            <div className={clsx('absolute', 'inset-0', 'bg-black/70', 'flex', 'items-center', 'justify-center')}>
+                              <span className={clsx('text-white', 'text-3xl', 'font-bold')}>
+                                +{remaining}
+                              </span>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+
+                  </div>
+
+                </div>
+              );
+            })()}
+
 {documentItems.length > 0 && (() => {
   const remaining = documentItems.length - docPreviewCount;
   const previewDocs = documentItems.slice(0, docPreviewCount);

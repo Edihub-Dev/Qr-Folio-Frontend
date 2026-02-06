@@ -200,6 +200,8 @@ const VerifyOTPPage = () => {
                   type="text"
                   value={otp}
                   onChange={handleOTPChange}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
                   placeholder="Enter 6-digit OTP"
                   className={`w-full px-4 py-3.5 border rounded-xl text-center text-2xl font-mono tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
                     errors.otp
