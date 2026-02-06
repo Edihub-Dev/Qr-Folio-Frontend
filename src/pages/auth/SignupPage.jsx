@@ -1019,14 +1019,14 @@ const SignupPage = () => {
                       </p>
                     )}
 
-                    <div className={clsx('flex', 'flex-col', 'sm:flex-row', 'gap-3')}>
+                    <div className={clsx('flex', 'gap-3')}>
                       <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
                         placeholder="Mobile Number"
-                        className={`w-full flex-1 px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                        className={`flex-1 px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
                           errors.phone
                             ? "border-red-500/60 bg-red-500/10"
                             : "border-slate-700"
@@ -1037,7 +1037,7 @@ const SignupPage = () => {
                         <button
                           type="button"
                           disabled
-                          className={clsx('w-full', 'sm:w-auto', 'px-4', 'py-3', 'rounded-xl', 'border', 'border-emerald-400/40', 'bg-emerald-500/10', 'text-emerald-200', 'font-semibold')}
+                          className={clsx('px-4', 'py-3', 'rounded-xl', 'border', 'border-emerald-400/40', 'bg-emerald-500/10', 'text-emerald-200', 'font-semibold')}
                         >
                           Verified
                         </button>
@@ -1046,7 +1046,7 @@ const SignupPage = () => {
                           type="button"
                           onClick={handleSendOtpClick}
                           disabled={phoneOtpLoading || cooldownSeconds > 0}
-                          className={clsx('w-full', 'sm:w-auto', 'px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
+                          className={clsx('px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                         >
                           {cooldownSeconds > 0
                             ? `Resend (${cooldownSeconds}s)`
@@ -1078,7 +1078,7 @@ const SignupPage = () => {
                           </p>
                         ) : null}
 
-                        <div className={clsx('flex', 'flex-col', 'sm:flex-row', 'gap-3')}>
+                        <div className={clsx('flex', 'gap-3')}>
                           <input
                             type="text"
                             value={phoneOtpValue}
@@ -1086,7 +1086,7 @@ const SignupPage = () => {
                             inputMode="numeric"
                             autoComplete="one-time-code"
                             placeholder="6-digit OTP"
-                            className={clsx('w-full', 'flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
+                            className={clsx('flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
                             maxLength={6}
                           />
 
@@ -1094,7 +1094,7 @@ const SignupPage = () => {
                             type="button"
                             onClick={(e) => verifyPhoneOtp(e)}
                             disabled={phoneOtpLoading}
-                            className={clsx('w-full', 'sm:w-auto', 'px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
+                            className={clsx('px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                           >
                             {phoneOtpLoading ? "Verifying..." : "Verify"}
                           </button>
@@ -1129,14 +1129,14 @@ const SignupPage = () => {
                     
 
 
-                    <div className={clsx('flex', 'flex-col', 'sm:flex-row', 'gap-3')}>
+                    <div className={clsx('flex', 'gap-3')}>
                       <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder="Email"
-                        className={`w-full flex-1 px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
+                        className={`flex-1 px-4 py-3 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
                           errors.email
                             ? "border-red-500/60 bg-red-500/10"
                             : "border-slate-700"
@@ -1147,7 +1147,7 @@ const SignupPage = () => {
                         <button
                           type="button"
                           disabled
-                          className={clsx('w-full', 'sm:w-auto', 'px-4', 'py-3', 'rounded-xl', 'border', 'border-emerald-400/40', 'bg-emerald-500/10', 'text-emerald-200', 'font-semibold')}
+                          className={clsx('px-4', 'py-3', 'rounded-xl', 'border', 'border-emerald-400/40', 'bg-emerald-500/10', 'text-emerald-200', 'font-semibold')}
                         >
                           Verified
                         </button>
@@ -1161,7 +1161,7 @@ const SignupPage = () => {
                             emailOtpCountdown > 0 ||
                             !verifiedFirebaseIdToken
                           }
-                          className={clsx('w-full', 'sm:w-auto', 'px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
+                          className={clsx('px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                         >
                           {emailOtpCountdown > 0
                             ? `Resend (${emailOtpCountdown}s)`
@@ -1193,7 +1193,7 @@ const SignupPage = () => {
                           </p>
                         ) : null}
 
-                        <div className={clsx('flex', 'flex-col', 'sm:flex-row', 'gap-3')}>
+                        <div className={clsx('flex', 'gap-3')}>
                           <input
                             type="text"
                             value={emailOtpValue}
@@ -1201,7 +1201,7 @@ const SignupPage = () => {
                             inputMode="numeric"
                             autoComplete="one-time-code"
                             placeholder="6-digit OTP"
-                            className={clsx('w-full', 'flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
+                            className={clsx('flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
                             maxLength={6}
                           />
 
@@ -1209,7 +1209,7 @@ const SignupPage = () => {
                             type="button"
                             onClick={handleVerifyEmailOtpClick}
                             disabled={emailOtpLoading}
-                            className={clsx('w-full', 'sm:w-auto', 'px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
+                            className={clsx('px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                           >
                             {emailOtpLoading ? "Verifying..." : "Verify"}
                           </button>

@@ -741,7 +741,7 @@ const AdminUsersPage = () => {
               onChange={(search) =>
                 setParams((prev) => ({ ...prev, page: 1, search }))
               }
-              placeholder="Search name or email"
+              placeholder="Search name, email, mobile or referral code"
             />
 
             <div className={clsx('grid', 'gap-3', 'sm:grid-cols-2')}>
