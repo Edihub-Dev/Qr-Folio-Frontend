@@ -166,17 +166,29 @@ const SignupPage = () => {
             : prev.agreeToTerms,
       }));
 
-      if (parsed?.phoneOtpStep === "verify" || parsed?.phoneOtpStep === "verified") {
-        setPhoneOtpStep(parsed.phoneOtpStep);
-      }
-
-      if (parsed?.emailOtpStep === "verify" || parsed?.emailOtpStep === "verified") {
-        setEmailOtpStep(parsed.emailOtpStep);
-      }
-
+      // Do not restore in-progress OTP screens after refresh because the
+      // Firebase confirmation session is held in-memory.
+      // Only restore verified state.
       if (parsed?.isPhoneVerified && parsed?.verifiedPhoneDigits) {
         setVerifiedPhoneDigits(parsed.verifiedPhoneDigits);
         setPhoneOtpStep("verified");
+      } else {
+        setVerifiedPhoneDigits(null);
+        setPhoneOtpStep("idle");
+        setLockedPhoneDigits(null);
+        setPhoneOtpValue("");
+        setPhoneOtpError("");
+        setCooldownSeconds(0);
+        confirmationResultRef.current = null;
+      }
+
+      if (parsed?.emailOtpStep === "verified") {
+        setEmailOtpStep("verified");
+      } else {
+        setEmailOtpStep("idle");
+        setEmailOtpValue("");
+        setEmailOtpError("");
+        setEmailOtpCountdown(0);
       }
 
       if (typeof parsed?.emailOtpRequiresPayment === "boolean") {
