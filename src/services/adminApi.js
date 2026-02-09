@@ -142,3 +142,13 @@ export const unlockAdminReward = async (payload = {}) => {
   const response = await api.post('/admin/rewards/unlock', payload);
   return response.data;
 };
+
+export const fetchAdminSubadmins = async (params = {}) => {
+  const response = await api.get('/admin/subadmins', { params });
+  return response.data;
+};
+
+export const createAdminSubadmin = async (payload = {}) => {
+  const response = await api.post('/admin/create-subadmin', payload);
+  return response.data;
+};

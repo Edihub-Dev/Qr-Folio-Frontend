@@ -8,6 +8,7 @@ import React, {
 } from "react";
 
 import api from "../api";
+import { canUser } from "../utils/permissionHelper";
 
 const PAYMENT_SUCCESS_STATES = new Set([
   "COMPLETED",
@@ -58,6 +59,13 @@ export const AuthProvider = ({ children }) => {
   const [signupData, setSignupData] = useState(null);
   const signupDataRef = useRef(null);
   const hasInitialized = useRef(false);
+
+  const can = useCallback(
+    (permission) => {
+      return canUser(user, permission);
+    },
+    [user]
+  );
 
   const normalizePlan = useCallback((planKey, fallbackName) => {
     const aliases = {
@@ -196,6 +204,9 @@ export const AuthProvider = ({ children }) => {
               const normalized = {
                 ...parsed,
                 role: parsed?.role || "user",
+                permissions: Array.isArray(parsed?.permissions)
+                  ? parsed.permissions
+                  : [],
                 isBlocked: Boolean(parsed?.isBlocked),
                 paymentStatus:
                   parsed?.paymentStatus ||
@@ -1083,6 +1094,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         loading,
+        can,
         signupData,
         signup,
         submitSignupAfterPhoneVerification,

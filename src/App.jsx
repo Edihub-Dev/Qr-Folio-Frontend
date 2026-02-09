@@ -37,6 +37,7 @@ const AdminUserRewardsPage = lazy(() =>
 const AdminRewardUnlockPage = lazy(() =>
   import("./pages/admin/AdminRewardUnlockPage")
 );
+const AdminSubadminsPage = lazy(() => import("./pages/admin/AdminSubadminsPage"));
 const AdminNfcPage = lazy(() => import("./pages/admin/AdminNfcPage"));
 const AdminPublicProfilesPage = lazy(() =>
   import("./pages/admin/AdminPublicProfilesPage")
@@ -50,6 +51,8 @@ import PaymentSuccess from "./pages/payment/PaymentSuccess";
 import PaymentFailure from "./pages/payment/PaymentFailure";
 import ChainpayCheckout from "./pages/payment/ChainpayCheckout";
 import MaintenancePage from "./pages/misc/MaintenancePage";
+import RouteGuard from "./components/RouteGuard";
+import { ROLES, PERMISSIONS } from "./config/permissions";
 // import MatrimonialLoginPage from "./pages/MatrimonialLoginPage";
 // import MatrimonialProfileForm from "./pages/MatrimonialProfileForm";
 
@@ -301,27 +304,143 @@ function App() {
                 <Route
                   path="/admin"
                   element={
-                    <ProtectedRoute requireAdmin>
+                    <RouteGuard
+                      allowedRoles={[ROLES.ADMIN, ROLES.SUBADMIN]}
+                      requiredPermissions={[PERMISSIONS.ADMIN_ACCESS]}
+                      redirectTo="/dashboard"
+                    >
                       <AdminLayout />
-                    </ProtectedRoute>
+                    </RouteGuard>
                   }
                 >
-                  <Route index element={<AdminDashboardPage />} />
-                  <Route path="users" element={<AdminUsersPage />} />
+                  <Route
+                    index
+                    element={
+                      <RouteGuard allowedRoles={[ROLES.ADMIN]} redirectTo="/admin/users">
+                        <AdminDashboardPage />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="users"
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.USERS_VIEW]}
+                        redirectTo="/admin"
+                      >
+                        <AdminUsersPage />
+                      </RouteGuard>
+                    }
+                  />
                   <Route
                     path="public-profiles"
-                    element={<AdminPublicProfilesPage />}
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.PROFILES_VIEW]}
+                        redirectTo="/admin"
+                      >
+                        <AdminPublicProfilesPage />
+                      </RouteGuard>
+                    }
                   />
-                  <Route path="exports" element={<AdminExportsPage />} />
-                  <Route path="invoices" element={<AdminInvoicesPage />} />
-                  <Route path="refer" element={<AdminReferralsPage />} />
-                  <Route path="nfc" element={<AdminNfcPage />} />
-                  <Route path="coupons" element={<AdminCouponsPage />} />
-                  <Route path="user-rewards" element={<AdminUserRewardsPage />} />
-                  <Route path="reward-unlock" element={<AdminRewardUnlockPage />} />
+                  <Route
+                    path="exports"
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.SYSTEM_SETTINGS]}
+                        redirectTo="/admin"
+                      >
+                        <AdminExportsPage />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="invoices"
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.INVOICES_VIEW]}
+                        redirectTo="/admin"
+                      >
+                        <AdminInvoicesPage />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="refer"
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.REFERRALS_VIEW]}
+                        redirectTo="/admin"
+                      >
+                        <AdminReferralsPage />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="nfc"
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.SYSTEM_SETTINGS]}
+                        redirectTo="/admin"
+                      >
+                        <AdminNfcPage />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="coupons"
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.SYSTEM_SETTINGS]}
+                        redirectTo="/admin"
+                      >
+                        <AdminCouponsPage />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="user-rewards"
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.REWARDS_VIEW]}
+                        redirectTo="/admin"
+                      >
+                        <AdminUserRewardsPage />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="reward-unlock"
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.REWARDS_APPROVE]}
+                        redirectTo="/admin"
+                      >
+                        <AdminRewardUnlockPage />
+                      </RouteGuard>
+                    }
+                  />
+                  <Route
+                    path="subadmins"
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.ADMIN_CREATE]}
+                        redirectTo="/admin"
+                      >
+                        <AdminSubadminsPage />
+                      </RouteGuard>
+                    }
+                  />
                   <Route
                     path="withdrawals"
-                    element={<AdminWithdrawalsPage />}
+                    element={
+                      <RouteGuard
+                        requiredPermissions={[PERMISSIONS.SYSTEM_SETTINGS]}
+                        redirectTo="/admin"
+                      >
+                        <AdminWithdrawalsPage />
+                      </RouteGuard>
+                    }
                   />
                 </Route>
 

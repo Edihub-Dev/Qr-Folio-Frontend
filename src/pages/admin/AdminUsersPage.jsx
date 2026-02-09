@@ -21,6 +21,8 @@ import AdminFilterDropdown from "../../components/admin/AdminFilterDropdown";
 import AdminPagination from "../../components/admin/AdminPagination";
 import AdminTable from "../../components/admin/AdminTable";
 import AdminModal from "../../components/admin/AdminModal";
+import PermissionWrapper from "../../components/PermissionWrapper";
+import { PERMISSIONS } from "../../config/permissions";
 import {
   fetchAdminUsers,
   fetchAdminUserById,
@@ -372,10 +374,50 @@ const AdminUsersPage = () => {
           return base + rowIndex + 1;
         },
       },
-      { key: "name", label: "Name", sortable: true },
-      { key: "email", label: "Email", sortable: true },
-      { key: "phone", label: "Mobile", sortable: false },
-      { key: "referralCode", label: "Referral Code", sortable: false },
+      {
+        key: "nameAndEmail",
+        sortable: true,
+        sortKey: "name",
+        label: (
+          <div className={clsx('flex', 'flex-col', 'leading-tight')}>
+            <span>Name</span>
+            <span className={clsx('text-gray-400', 'font-medium')}>Email</span>
+          </div>
+        ),
+        render: (_value, row) => (
+          <div className={clsx('flex', 'flex-col')}>
+            <span className={clsx('text-sm', 'font-medium', 'text-gray-900')}>
+              {row?.name || '—'}
+            </span>
+            <span className={clsx('text-xs', 'text-gray-500', 'break-all')}>
+              {row?.email || '—'}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: "mobileAndCoupon",
+        sortable: false,
+        label: (
+          <div className={clsx('flex', 'flex-col', 'leading-tight')}>
+            <span>Mobile</span>
+            <span className={clsx('text-gray-400', 'font-medium')}>Coupon</span>
+          </div>
+        ),
+        render: (_value, row) => {
+          const coupon = row?.couponCode || row?.referralCode || row?.referral || row?.coupon || '';
+          return (
+            <div className={clsx('flex', 'flex-col')}>
+              <span className={clsx('text-sm', 'text-gray-900')}>
+                {row?.phone || '—'}
+              </span>
+              <span className={clsx('text-xs', 'text-gray-500', 'break-all')}>
+                {coupon || '—'}
+              </span>
+            </div>
+          );
+        },
+      },
 
       /* ================= PLAN + METHOD ================= */
       {
@@ -534,96 +576,107 @@ const AdminUsersPage = () => {
     [params.page, params.limit]
   );
 
-  const renderActions = (user) => {
-    const blockActionLabel = user.isBlocked ? "Unblock user" : "Block user";
+  const renderActions = (row) => {
+    const blockActionLabel = row.isBlocked ? "Unblock user" : "Block user";
 
     return (
       <div className={clsx('flex', 'items-center', 'justify-end', 'gap-2')}>
         <button
           type="button"
-          onClick={() => openModal("view", user.id || user._id)}
+          onClick={() => openModal("view", row.id || row._id)}
           title="View user details"
           aria-label="View user details"
           className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
         >
           <Eye className={clsx('h-4', 'w-4')} />
         </button>
-        <button
-          type="button"
-          onClick={() => handleRefreshSubscription(user)}
-          disabled={actionLoading}
-          title="Refresh subscription"
-          aria-label="Refresh subscription"
-          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700', 'disabled:cursor-not-allowed', 'disabled:opacity-60')}
-        >
-          <RefreshCw
-            className={`h-4 w-4 ${actionLoading ? "animate-spin" : ""}`}
-          />
-        </button>
-        <button
-          type="button"
-          onClick={() => openModal("remind", user.id || user._id)}
-          title="Send reminder"
-          aria-label="Send reminder"
-          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
-        >
-          <Bell className={clsx('h-4', 'w-4')} />
-        </button>
-        <button
-          type="button"
-          onClick={() => openModal("renew", user.id || user._id)}
-          title="Renew subscription"
-          aria-label="Renew subscription"
-          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
-        >
-          <CalendarClock className={clsx('h-4', 'w-4')} />
-        </button>
-        <button
-          type="button"
-          onClick={() => openModal("expiry", user.id || user._id)}
-          title="Set custom expiry"
-          aria-label="Set custom expiry"
-          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
-        >
-          <CalendarPlus className={clsx('h-4', 'w-4')} />
-        </button>
-        <button
-          type="button"
-          onClick={() => openModal("logs", user.id || user._id)}
-          title="View reminder history"
-          aria-label="View reminder history"
-          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
-        >
-          <History className={clsx('h-4', 'w-4')} />
-        </button>
+        <PermissionWrapper permission={PERMISSIONS.SYSTEM_SETTINGS}>
+          <button
+            type="button"
+            onClick={() => handleRefreshSubscription(row)}
+            disabled={actionLoading}
+            title="Refresh subscription"
+            aria-label="Refresh subscription"
+            className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700', 'disabled:cursor-not-allowed', 'disabled:opacity-60')}
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${actionLoading ? "animate-spin" : ""}`}
+            />
+          </button>
+        </PermissionWrapper>
+        <PermissionWrapper permission={PERMISSIONS.SYSTEM_SETTINGS}>
+          <button
+            type="button"
+            onClick={() => openModal("remind", row.id || row._id)}
+            title="Send reminder"
+            aria-label="Send reminder"
+            className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
+          >
+            <Bell className={clsx('h-4', 'w-4')} />
+          </button>
+        </PermissionWrapper>
+        <PermissionWrapper permission={PERMISSIONS.SYSTEM_SETTINGS}>
+          <button
+            type="button"
+            onClick={() => openModal("renew", row.id || row._id)}
+            title="Renew subscription"
+            aria-label="Renew subscription"
+            className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
+          >
+            <CalendarClock className={clsx('h-4', 'w-4')} />
+          </button>
+        </PermissionWrapper>
+        <PermissionWrapper permission={PERMISSIONS.SYSTEM_SETTINGS}>
+          <button
+            type="button"
+            onClick={() => openModal("expiry", row.id || row._id)}
+            title="Set custom expiry"
+            aria-label="Set custom expiry"
+            className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
+          >
+            <CalendarPlus className={clsx('h-4', 'w-4')} />
+          </button>
+        </PermissionWrapper>
+        <PermissionWrapper permission={PERMISSIONS.SYSTEM_SETTINGS}>
+          <button
+            type="button"
+            onClick={() => openModal("logs", row.id || row._id)}
+            title="View reminder history"
+            aria-label="View reminder history"
+            className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
+          >
+            <History className={clsx('h-4', 'w-4')} />
+          </button>
+        </PermissionWrapper>
         <button
           type="button"
           onClick={() => {
-            setPendingAction({ type: "block", value: !user.isBlocked });
-            openModal("confirm", user.id || user._id);
+            setPendingAction({ type: "block", value: !row.isBlocked });
+            openModal("confirm", row.id || row._id);
           }}
           title={blockActionLabel}
           aria-label={blockActionLabel}
           className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-gray-200', 'p-2', 'text-gray-500', 'transition-colors', 'hover:bg-gray-100', 'hover:text-gray-700')}
         >
-          {user.isBlocked ? (
+          {row.isBlocked ? (
             <ShieldOff className={clsx('h-4', 'w-4')} />
           ) : (
             <Shield className={clsx('h-4', 'w-4')} />
           )}
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            setPendingAction({ type: "delete" });
-            openModal("confirm", user.id || user._id);
-          }}
-          title="Delete user"
-          aria-label="Delete user"
-          className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-red-200', 'p-2', 'text-red-500', 'transition-colors', 'hover:bg-red-50', 'hover:text-red-600')}
-        >
-          <Trash2 className={clsx('h-4', 'w-4')} />
-        </button>
+        <PermissionWrapper permission={PERMISSIONS.USERS_DELETE}>
+          <button
+            type="button"
+            onClick={() => {
+              setPendingAction({ type: "delete" });
+              openModal("confirm", row.id || row._id);
+            }}
+            aria-label="Delete user"
+            className={clsx('inline-flex', 'items-center', 'rounded-full', 'border', 'border-red-200', 'p-2', 'text-red-500', 'transition-colors', 'hover:bg-red-50', 'hover:text-red-600')}
+          >
+            <Trash2 className={clsx('h-4', 'w-4')} />
+          </button>
+        </PermissionWrapper>
       </div>
     );
   };

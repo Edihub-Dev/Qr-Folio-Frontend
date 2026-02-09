@@ -8,6 +8,8 @@ import {
   RefreshCcw,
   Truck,
 } from "lucide-react";
+import PermissionWrapper from "../../components/PermissionWrapper";
+import { PERMISSIONS } from "../../config/permissions";
 import AdminSearchBar from "../../components/admin/AdminSearchBar";
 import AdminPagination from "../../components/admin/AdminPagination";
 import {
@@ -420,43 +422,45 @@ const AdminNfcPage = () => {
                             </p>
                           </div>
                         ) : (
-                          <span className="text-slate-400">
-                            No tracking set
-                          </span>
+                          <span className="text-slate-400">No tracking set</span>
                         )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-2">
-                          <button
-                            type="button"
-                            disabled={
-                              !canMoveToProduction(status) || isUpdating
-                            }
-                            onClick={() =>
-                              handleUpdateStatus(entry, "in_production")
-                            }
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                          >
-                            Move to production
-                          </button>
-                          <button
-                            type="button"
-                            disabled={!canShip(status) || isUpdating}
-                            onClick={() => handleUpdateStatus(entry, "shipped")}
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-50"
-                          >
-                            Mark shipped
-                          </button>
-                          <button
-                            type="button"
-                            disabled={!canMarkDelivered(status) || isUpdating}
-                            onClick={() =>
-                              handleUpdateStatus(entry, "delivered")
-                            }
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-50"
-                          >
-                            Mark delivered
-                          </button>
+                          <PermissionWrapper permission={PERMISSIONS.SYSTEM_SETTINGS}>
+                            <button
+                              type="button"
+                              disabled={
+                                isUpdating || !canMoveToProduction(status)
+                              }
+                              onClick={() => handleUpdateStatus(entry, "in_production")}
+                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-amber-700 disabled:opacity-50"
+                            >
+                              <Truck className="h-4 w-4" /> Move to production
+                            </button>
+                          </PermissionWrapper>
+
+                          <PermissionWrapper permission={PERMISSIONS.SYSTEM_SETTINGS}>
+                            <button
+                              type="button"
+                              disabled={isUpdating || !canShip(status)}
+                              onClick={() => handleUpdateStatus(entry, "shipped")}
+                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-50"
+                            >
+                              <Truck className="h-4 w-4" /> Mark shipped
+                            </button>
+                          </PermissionWrapper>
+
+                          <PermissionWrapper permission={PERMISSIONS.SYSTEM_SETTINGS}>
+                            <button
+                              type="button"
+                              disabled={isUpdating || !canMarkDelivered(status)}
+                              onClick={() => handleUpdateStatus(entry, "delivered")}
+                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                              <CheckCircle2 className="h-4 w-4" /> Delivered
+                            </button>
+                          </PermissionWrapper>
                         </div>
                       </td>
                     </tr>

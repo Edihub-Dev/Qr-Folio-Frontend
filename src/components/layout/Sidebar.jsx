@@ -19,6 +19,7 @@ import {
   getPlanRank,
   normalizePlan,
 } from "../../utils/subscriptionPlan";
+import { PERMISSIONS } from "../../config/permissions";
 
 const Sidebar = ({
   activeTab,
@@ -27,7 +28,7 @@ const Sidebar = ({
   setIsCollapsed,
   isMobile,
 }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, can } = useAuth();
   const navigate = useNavigate();
 
   /* ---------------- MENU ---------------- */
@@ -86,7 +87,7 @@ const Sidebar = ({
       },
     ];
 
-    if (user?.role === "admin") {
+    if (can(PERMISSIONS.ADMIN_ACCESS)) {
       items.unshift({
         id: "admin",
         label: "Admin",
@@ -97,7 +98,7 @@ const Sidebar = ({
     }
 
     return items;
-  }, [user]);
+  }, [user, can]);
 
   const menuItems = useMemo(() => {
     const plan = normalizePlan(user?.subscriptionPlan);

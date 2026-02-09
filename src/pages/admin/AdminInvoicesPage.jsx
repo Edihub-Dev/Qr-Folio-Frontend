@@ -48,13 +48,13 @@ const InvoiceStats = ({ stats = {} }) => {
       value: stats.totalInvoices ?? 0,
       icon: FileText,
     },
-    {
-      key: "totalCollected",
-      label: "Total Collected",
-      value: stats.totalCollected ?? 0,
-      icon: FileText,
-      formatter: (value) => formatCurrency(value),
-    },
+    // {
+    //   key: "totalCollected",
+    //   label: "Total Collected",
+    //   value: stats.totalCollected ?? 0,
+    //   icon: FileText,
+    //   formatter: (value) => formatCurrency(value),
+    // },
   ];
 
   return (
