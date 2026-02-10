@@ -8,7 +8,7 @@ import {
   Wallet,
   XCircle,
 } from "lucide-react";
-import PermissionWrapper from "../../components/PermissionWrapper";
+import PermissionWrapper from "../../components/subAdmin/PermissionWrapper";
 import { PERMISSIONS } from "../../config/permissions";
 import {
   adminListWithdrawalRequests,

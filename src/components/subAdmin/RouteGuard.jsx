@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { normalizeRole } from "../config/permissions";
+import { useAuth } from "../../context/AuthContext";
+import { normalizeRole } from "../../config/permissions";
 
 const RouteGuard = ({
   children,

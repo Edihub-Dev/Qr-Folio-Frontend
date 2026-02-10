@@ -5,7 +5,7 @@ import AdminSearchBar from "../../components/admin/AdminSearchBar";
 import AdminPagination from "../../components/admin/AdminPagination";
 import AdminTable from "../../components/admin/AdminTable";
 import AdminModal from "../../components/admin/AdminModal";
-import PermissionWrapper from "../../components/PermissionWrapper";
+import PermissionWrapper from "../../components/subAdmin/PermissionWrapper";
 import { PERMISSIONS } from "../../config/permissions";
 import { fetchAdminSubadmins, createAdminSubadmin } from "../../services/adminApi";
 

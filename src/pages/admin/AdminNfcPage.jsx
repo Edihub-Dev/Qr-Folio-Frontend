@@ -8,7 +8,7 @@ import {
   RefreshCcw,
   Truck,
 } from "lucide-react";
-import PermissionWrapper from "../../components/PermissionWrapper";
+import PermissionWrapper from "../../components/subAdmin/PermissionWrapper";
 import { PERMISSIONS } from "../../config/permissions";
 import AdminSearchBar from "../../components/admin/AdminSearchBar";
 import AdminPagination from "../../components/admin/AdminPagination";
