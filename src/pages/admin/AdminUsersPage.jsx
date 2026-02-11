@@ -23,6 +23,8 @@ import AdminTable from "../../components/admin/AdminTable";
 import AdminModal from "../../components/admin/AdminModal";
 import PermissionWrapper from "../../components/subAdmin/PermissionWrapper";
 import { PERMISSIONS } from "../../config/permissions";
+import { useAuth } from "../../context/AuthContext";
+import { ROLES, normalizeRole } from "../../config/permissions";
 import {
   fetchAdminUsers,
   fetchAdminUserById,
@@ -58,6 +60,7 @@ const PLAN_OPTIONS = [
 ];
 
 const AdminUsersPage = () => {
+  const { user } = useAuth();
   const [params, setParams] = useState({
     page: 1,
     limit: 10,
@@ -401,7 +404,7 @@ const AdminUsersPage = () => {
         label: (
           <div className={clsx('flex', 'flex-col', 'leading-tight')}>
             <span>Mobile</span>
-            <span className={clsx('text-gray-400', 'font-medium')}>Coupon</span>
+            <span className={clsx('text-gray-400', 'font-medium')}>Referral code</span>
           </div>
         ),
         render: (_value, row) => {
@@ -492,7 +495,7 @@ const AdminUsersPage = () => {
         sortKey: "createdAt",
         label: (
           <div className={clsx('flex', 'flex-col', 'leading-tight')}>
-            <span>Plan Joined/</span>
+            <span>Plan Joined</span>
             <span className={clsx('text-gray-400', 'font-medium')}>Block Status</span>
           </div>
         ),
@@ -540,7 +543,7 @@ const AdminUsersPage = () => {
         sortKey: "planExpireDate",
         label: (
           <div className={clsx('flex', 'flex-col', 'leading-tight')}>
-            <span>Plan Expires/</span>
+            <span>Plan Expires</span>
             <span className={clsx('text-gray-400', 'font-medium')}>Plan Status</span>
           </div>
         ),
@@ -574,6 +577,11 @@ const AdminUsersPage = () => {
       },
     ],
     [params.page, params.limit]
+  );
+
+  const canShowDownload = useMemo(
+    () => normalizeRole(user?.role) === ROLES.ADMIN,
+    [user?.role]
   );
 
   const renderActions = (row) => {
@@ -648,6 +656,7 @@ const AdminUsersPage = () => {
             <History className={clsx('h-4', 'w-4')} />
           </button>
         </PermissionWrapper>
+        <PermissionWrapper permission={PERMISSIONS.SYSTEM_SETTINGS}>
         <button
           type="button"
           onClick={() => {
@@ -664,6 +673,7 @@ const AdminUsersPage = () => {
             <Shield className={clsx('h-4', 'w-4')} />
           )}
         </button>
+        </PermissionWrapper>
         <PermissionWrapper permission={PERMISSIONS.USERS_DELETE}>
           <button
             type="button"
@@ -703,15 +713,17 @@ const AdminUsersPage = () => {
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             {loading ? "Refreshing..." : "Refresh"}
           </button>
-          <button
-            type="button"
-            onClick={handleCsvDownload}
-            disabled={csvLoading}
-            className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-2xl', 'bg-primary-600', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'text-white', 'shadow-lg', 'shadow-primary-500/30', 'transition', 'hover:bg-primary-700', 'disabled:cursor-not-allowed', 'disabled:bg-primary-300')}
-          >
-            <Download className={clsx('h-4', 'w-4')} />
-            {csvLoading ? "Downloading..." : "Download CSV"}
-          </button>
+          {canShowDownload && (
+            <button
+              type="button"
+              onClick={handleCsvDownload}
+              disabled={csvLoading}
+              className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-2xl', 'bg-primary-600', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'text-white', 'shadow-lg', 'shadow-primary-500/30', 'transition', 'hover:bg-primary-700', 'disabled:cursor-not-allowed', 'disabled:bg-primary-300')}
+            >
+              <Download className={clsx('h-4', 'w-4')} />
+              {csvLoading ? "Downloading..." : "Download CSV"}
+            </button>
+          )}
         </div>
       </div>
 

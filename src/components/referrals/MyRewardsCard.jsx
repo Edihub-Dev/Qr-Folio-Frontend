@@ -189,12 +189,12 @@ const MyRewardsCard = ({
       </div>
 
       <div className={clsx('block', 'sm:hidden', 'overflow-x-auto')}>
-        <table className={clsx('min-w-full', 'text-xs', 'text-slate-100')}>
+        <table className={clsx('w-full', 'table-fixed', 'text-xs', 'text-slate-100')}>
           <thead>
             <tr className={clsx('bg-slate-900/80', 'text-left', 'text-[10px]', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400')}>
               <th className={clsx('px-3', 'py-2')}> </th>
               {rows.map((row) => (
-                <th key={row.code} className={clsx('px-3', 'py-2', 'whitespace-nowrap')}>
+                <th key={row.code} className={clsx('px-3', 'py-2')}>
                   {row.code}
                 </th>
               ))}
@@ -240,10 +240,10 @@ const MyRewardsCard = ({
                 const coupon = row.couponCode || "—";
                 return (
                   <td key={row.code} className={clsx('px-3', 'py-2', 'align-top')}>
-                    <div className={clsx('max-w-[110px]', 'truncate', 'text-wrap','font-semibold', 'text-slate-100')} title={coupon}>
+                    <div className={clsx('max-w-[110px]', 'break-all', 'whitespace-normal', 'font-semibold', 'text-slate-100')} title={coupon}>
                       {coupon}
                     </div>
-                    <div className={clsx('mt-1', 'text-xs','text-wrap', 'text-slate-400')}>
+                    <div className={clsx('mt-1', 'text-xs', 'whitespace-normal', 'text-slate-400')}>
                       Exp: {row.expiresAt ? formatDate(row.expiresAt) : "—"}
                     </div>
                   </td>
@@ -268,7 +268,7 @@ const MyRewardsCard = ({
               </td>
               {rows.map((row) => (
                 <td key={row.code} className={clsx('px-3','text-wrap', 'py-2', 'text-slate-200')}>
-                  <div className={clsx('max-w-[130px]','text-wrap', 'truncate')} title={row.rewardLabel}>
+                  <div className={clsx('max-w-[130px]', 'break-words', 'whitespace-normal')} title={row.rewardLabel}>
                     {row.rewardLabel}
                   </div>
                 </td>
@@ -307,7 +307,7 @@ const MyRewardsCard = ({
         <table className={clsx('min-w-full', 'text-sm', 'text-slate-100')}>
           <thead>
             <tr className={clsx('bg-slate-900/80', 'text-left', 'text-xs', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400')}>
-              {/* <th className={clsx('px-6', 'py-3')}>Level</th> */}
+              <th className={clsx('px-6', 'py-3')}>Level</th>
               <th className={clsx('px-6', 'py-3')}>No. of referrals</th>
               <th className={clsx('px-6', 'py-3')}>Coupon</th>
               <th className={clsx('px-6', 'py-3')}>Status</th>

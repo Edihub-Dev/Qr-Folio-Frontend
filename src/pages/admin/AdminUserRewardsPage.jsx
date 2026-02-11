@@ -7,6 +7,8 @@ import AdminTable from "../../components/admin/AdminTable";
 import AdminModal from "../../components/admin/AdminModal";
 import { fetchAdminUserRewards, updateAdminUserReward } from "../../services/adminApi";
 import clsx from "clsx";
+import { useAuth } from "../../context/AuthContext";
+import { ROLES, normalizeRole } from "../../config/permissions";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All" },
@@ -42,6 +44,7 @@ const toLocalInputValue = (value) => {
 };
 
 const AdminUserRewardsPage = () => {
+  const { user } = useAuth();
   const [params, setParams] = useState({
     page: 1,
     limit: 20,
@@ -228,6 +231,11 @@ const AdminUserRewardsPage = () => {
     [params.page, params.limit]
   );
 
+  const canShowActions = useMemo(
+    () => normalizeRole(user?.role) === ROLES.ADMIN,
+    [user?.role]
+  );
+
   return (
     <div className="space-y-4">
       <div className={clsx('flex', 'flex-col', 'gap-3', 'rounded-3xl', 'border', 'border-gray-200', 'bg-gradient-to-br', 'from-white', 'via-white', 'to-slate-100', 'p-5', 'shadow-sm', 'sm:flex-row', 'sm:items-center', 'sm:justify-between')}>
@@ -309,16 +317,20 @@ const AdminUserRewardsPage = () => {
               sortBy={params.sortBy}
               sortDir={params.sortDir}
               onSort={handleSort}
-              renderActions={(row) => (
-                <button
-                  type="button"
-                  onClick={() => openEdit(row)}
-                  className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-full', 'border', 'border-gray-200', 'px-3', 'py-1.5', 'text-sm', 'text-gray-600', 'transition-colors', 'hover:bg-gray-100')}
-                >
-                  <Pencil className={clsx('h-4', 'w-4')} />
-                  Edit
-                </button>
-              )}
+              renderActions={
+                canShowActions
+                  ? (row) => (
+                      <button
+                        type="button"
+                        onClick={() => openEdit(row)}
+                        className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-full', 'border', 'border-gray-200', 'px-3', 'py-1.5', 'text-sm', 'text-gray-600', 'transition-colors', 'hover:bg-gray-100')}
+                      >
+                        <Pencil className={clsx('h-4', 'w-4')} />
+                        Edit
+                      </button>
+                    )
+                  : undefined
+              }
             />
           </div>
         </div>

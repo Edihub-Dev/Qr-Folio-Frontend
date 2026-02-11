@@ -57,18 +57,18 @@ const ReferralHistoryTable = ({
       </div>
 
       <div className="overflow-x-auto">
-        <table className={clsx('min-w-full', 'text-sm', 'text-slate-100')}>
+        <table className={clsx('w-full', 'table-fixed', 'text-xs', 'text-slate-100', 'sm:text-sm')}>
           <thead>
-            <tr className={clsx('bg-slate-900/80', 'text-left', 'text-xs', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400')}>
-              <th className={clsx('px-6', 'py-3')}>Referred user</th>
-              <th className={clsx('px-6', 'py-3')}>Plan</th>
-              <th className={clsx('px-6', 'py-3')}>Signup date</th>
-              <th className={clsx('px-6', 'py-3')}>Status</th>
+            <tr className={clsx('bg-slate-900/80', 'text-left', 'text-[10px]', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-400', 'sm:text-xs')}>
+              <th className={clsx('px-4', 'py-3', 'sm:px-6')}>Referred user</th>
+              <th className={clsx('px-4', 'py-3', 'sm:px-6')}>Plan</th>
+              <th className={clsx('px-4', 'py-3', 'sm:px-6')}>Signup date</th>
+              <th className={clsx('px-4', 'py-3', 'sm:px-6')}>Status</th>
               {/* <th className={clsx('px-6', 'py-3')}>Reward</th> */}
               {/* <th className={clsx('px-6', 'py-3')}>Action</th> */}
             </tr>
           </thead>
-          <tbody className={clsx('divide-y', 'divide-slate-800', 'text-sm', 'text-slate-200')}>
+          <tbody className={clsx('divide-y', 'divide-slate-800', 'text-slate-200')}>
             {entries.length === 0 && !loading && (
               <tr>
                 <td
@@ -102,16 +102,18 @@ const ReferralHistoryTable = ({
                   key={entry._id}
                   className={clsx('transition', 'hover:bg-slate-900/60')}
                 >
-                  <td className={clsx('px-6', 'py-4')}>
+                  <td className={clsx('px-4', 'py-4', 'sm:px-6')}>
                     <div className={clsx('font-semibold', 'text-slate-100')}>
                       {displayName}
                     </div>
-                    <div className={clsx('text-xs', 'text-slate-400')}>{displayEmail}</div>
+                    <div className={clsx('text-xs', 'break-all', 'whitespace-normal', 'text-slate-400')}>
+                      {displayEmail}
+                    </div>
                   </td>
-                  <td className={clsx('px-6', 'py-4', 'text-sm', 'capitalize', 'text-slate-300')}>
+                  <td className={clsx('px-4', 'py-4', 'break-words', 'whitespace-normal', 'capitalize', 'text-slate-300', 'sm:px-6')}>
                     {planLabel || "—"}
                   </td>
-                  <td className={clsx('px-6', 'py-4', 'text-sm', 'text-slate-300')}>
+                  <td className={clsx('px-4', 'py-4', 'text-slate-300', 'sm:px-6')}>
                     {formattedSignup}
                   </td>
                   {/* <td className={clsx('px-6', 'py-4')}>{renderStatusBadge(entry)}</td> */}

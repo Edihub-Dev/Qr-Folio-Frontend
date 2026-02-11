@@ -10,12 +10,15 @@ import {
   ShieldAlert,
   XCircle,
 } from "lucide-react";
+import clsx from "clsx";
 import {
   adminListReferrals,
   adminGetReferralStats,
   adminUpdateReferral,
   adminExportReferrals,
 } from "../../services/referralService";
+import { useAuth } from "../../context/AuthContext";
+import { ROLES, normalizeRole } from "../../config/permissions";
 
 const STATUS_OPTIONS = [
   { label: "All", value: "" },
@@ -32,6 +35,7 @@ const FRAUD_BADGE = {
 };
 
 const AdminReferralsPage = () => {
+  const { user } = useAuth();
   const [referrals, setReferrals] = useState([]);
   const [stats, setStats] = useState(null);
   const [filters, setFilters] = useState({
@@ -66,6 +70,11 @@ const AdminReferralsPage = () => {
       setStatsLoading(false);
     }
   };
+
+  const canShowActions = useMemo(
+    () => normalizeRole(user?.role) === ROLES.ADMIN,
+    [user?.role]
+  );
 
   const loadReferrals = async (page = pagination.page) => {
     try {
@@ -189,7 +198,7 @@ const AdminReferralsPage = () => {
       <span
         className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${cls}`}
       >
-        <Icon className="h-3.5 w-3.5" />
+        <Icon className={clsx('h-3.5', 'w-3.5')} />
         {referral.fraudStatus}
       </span>
     );
@@ -197,78 +206,80 @@ const AdminReferralsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className={clsx('flex', 'flex-col', 'gap-4', 'sm:flex-row', 'sm:items-center', 'sm:justify-between')}>
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">
+          <h2 className={clsx('text-2xl', 'font-semibold', 'text-slate-900')}>
             Referral oversight
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className={clsx('text-sm', 'text-slate-500')}>
             Monitor referrals flagged by fraud rules, review payouts, and keep
             an audit trail of approvals.
           </p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={handleExport}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-          >
-            <Download className="h-4 w-4" /> Export CSV
-          </button>
+        <div className={clsx('flex', 'flex-wrap', 'gap-3')}>
+          {canShowActions && (
+            <button
+              type="button"
+              onClick={handleExport}
+              className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-2xl', 'border', 'border-slate-200', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-slate-600', 'transition', 'hover:bg-slate-50')}
+            >
+              <Download className={clsx('h-4', 'w-4')} /> Export CSV
+            </button>
+          )}
           <button
             type="button"
             onClick={() => loadReferrals(pagination.page)}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-2xl', 'border', 'border-slate-200', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-slate-600', 'transition', 'hover:bg-slate-50')}
           >
-            <RefreshCcw className="h-4 w-4" /> Refresh
+            <RefreshCcw className={clsx('h-4', 'w-4')} /> Refresh
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-3xl border border-slate-100 bg-white p-5">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+      <div className={clsx('grid', 'grid-cols-1', 'md:grid-cols-3', 'gap-4')}>
+        <div className={clsx('rounded-3xl', 'border', 'border-slate-100', 'bg-white', 'p-5')}>
+          <p className={clsx('text-xs', 'uppercase', 'tracking-[0.3em]', 'text-slate-400')}>
             Total referrals
           </p>
-          <p className="mt-2 text-3xl font-semibold text-slate-900">
+          <p className={clsx('mt-2', 'text-3xl', 'font-semibold', 'text-slate-900')}>
             {stats?.totalReferrals ?? "—"}
           </p>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className={clsx('mt-1', 'text-xs', 'text-slate-500')}>
             Outstanding rewards ₹
             {Number(stats?.outstandingRewards || 0).toLocaleString("en-IN")}
           </p>
         </div>
-        <div className="rounded-3xl border border-slate-100 bg-white p-5">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+        <div className={clsx('rounded-3xl', 'border', 'border-slate-100', 'bg-white', 'p-5')}>
+          <p className={clsx('text-xs', 'uppercase', 'tracking-[0.3em]', 'text-slate-400')}>
             Total reward amount
           </p>
-          <p className="mt-2 text-3xl font-semibold text-slate-900">
+          <p className={clsx('mt-2', 'text-3xl', 'font-semibold', 'text-slate-900')}>
             ₹{Number(stats?.totalRewardAmount || 0).toLocaleString("en-IN")}
           </p>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className={clsx('mt-1', 'text-xs', 'text-slate-500')}>
             Sum of approved and pending payouts
           </p>
         </div>
-        <div className="rounded-3xl border border-slate-100 bg-white p-5">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+        <div className={clsx('rounded-3xl', 'border', 'border-slate-100', 'bg-white', 'p-5')}>
+          <p className={clsx('text-xs', 'uppercase', 'tracking-[0.3em]', 'text-slate-400')}>
             Fraud signals
           </p>
           {statsLoading ? (
-            <Loader2 className="mt-2 h-6 w-6 animate-spin text-slate-400" />
+            <Loader2 className={clsx('mt-2', 'h-6', 'w-6', 'animate-spin', 'text-slate-400')} />
           ) : (
-            <div className="mt-3 space-y-2 text-sm">
+            <div className={clsx('mt-3', 'space-y-2', 'text-sm')}>
               {fraudSummary.length === 0 && (
                 <p className="text-slate-500">No data.</p>
               )}
               {fraudSummary.map((entry) => (
                 <div
                   key={entry.status}
-                  className="flex items-center justify-between"
+                  className={clsx('flex', 'items-center', 'justify-between')}
                 >
-                  <span className="capitalize text-slate-600">
+                  <span className={clsx('capitalize', 'text-slate-600')}>
                     {entry.status}
                   </span>
-                  <span className="font-semibold text-slate-900">
+                  <span className={clsx('font-semibold', 'text-slate-900')}>
                     {entry.count} • ₹
                     {Number(entry.reward || 0).toLocaleString("en-IN")}
                   </span>
@@ -279,16 +290,16 @@ const AdminReferralsPage = () => {
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-100 bg-white p-5 space-y-4">
-        <div className="flex items-center gap-3 text-slate-600">
-          <Filter className="h-4 w-4" />
-          <span className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+      <div className={clsx('rounded-3xl', 'border', 'border-slate-100', 'bg-white', 'p-5', 'space-y-4')}>
+        <div className={clsx('flex', 'items-center', 'gap-3', 'text-slate-600')}>
+          <Filter className={clsx('h-4', 'w-4')} />
+          <span className={clsx('text-sm', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-500')}>
             Filters
           </span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+        <div className={clsx('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-5', 'gap-4')}>
+          <label className={clsx('flex', 'flex-col', 'gap-2', 'text-sm')}>
+            <span className={clsx('text-xs', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-500')}>
               Status
             </span>
             <select
@@ -296,7 +307,7 @@ const AdminReferralsPage = () => {
               onChange={(event) =>
                 handleFilterChange("status", event.target.value)
               }
-              className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+              className={clsx('rounded-2xl', 'border', 'border-slate-200', 'px-4', 'py-2.5', 'text-sm', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-200')}
             >
               {STATUS_OPTIONS.map((option) => (
                 <option key={option.value || "all"} value={option.value}>
@@ -305,8 +316,8 @@ const AdminReferralsPage = () => {
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+          <label className={clsx('flex', 'flex-col', 'gap-2', 'text-sm')}>
+            <span className={clsx('text-xs', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-500')}>
               Referrer code
             </span>
             <input
@@ -319,11 +330,11 @@ const AdminReferralsPage = () => {
                 )
               }
               placeholder="e.g. ABC123"
-              className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 uppercase"
+              className={clsx('rounded-2xl', 'border', 'border-slate-200', 'px-4', 'py-2.5', 'text-sm', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-200', 'uppercase')}
             />
           </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+          <label className={clsx('flex', 'flex-col', 'gap-2', 'text-sm')}>
+            <span className={clsx('text-xs', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-500')}>
               Referred email
             </span>
             <input
@@ -333,11 +344,11 @@ const AdminReferralsPage = () => {
                 handleFilterChange("referredEmail", event.target.value)
               }
               placeholder="user@example.com"
-              className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+              className={clsx('rounded-2xl', 'border', 'border-slate-200', 'px-4', 'py-2.5', 'text-sm', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-200')}
             />
           </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+          <label className={clsx('flex', 'flex-col', 'gap-2', 'text-sm')}>
+            <span className={clsx('text-xs', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-500')}>
               Search (name/email/code)
             </span>
             <input
@@ -347,11 +358,11 @@ const AdminReferralsPage = () => {
                 handleFilterChange("search", event.target.value)
               }
               placeholder="name, email, or code"
-              className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+              className={clsx('rounded-2xl', 'border', 'border-slate-200', 'px-4', 'py-2.5', 'text-sm', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-200')}
             />
           </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+          <label className={clsx('flex', 'flex-col', 'gap-2', 'text-sm')}>
+            <span className={clsx('text-xs', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-500')}>
               From date
             </span>
             <input
@@ -360,64 +371,66 @@ const AdminReferralsPage = () => {
               onChange={(event) =>
                 handleFilterChange("from", event.target.value)
               }
-              className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+              className={clsx('rounded-2xl', 'border', 'border-slate-200', 'px-4', 'py-2.5', 'text-sm', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-200')}
             />
           </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+          <label className={clsx('flex', 'flex-col', 'gap-2', 'text-sm')}>
+            <span className={clsx('text-xs', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-500')}>
               To date
             </span>
             <input
               type="date"
               value={filters.to}
               onChange={(event) => handleFilterChange("to", event.target.value)}
-              className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+              className={clsx('rounded-2xl', 'border', 'border-slate-200', 'px-4', 'py-2.5', 'text-sm', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-200')}
             />
           </label>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className={clsx('flex', 'flex-wrap', 'gap-3')}>
           <button
             type="button"
             onClick={applyFilters}
-            className="inline-flex items-center gap-2 rounded-2xl bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary-700"
+            className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-2xl', 'bg-primary-600', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-white', 'shadow', 'hover:bg-primary-700')}
           >
             Apply filters
           </button>
           <button
             type="button"
             onClick={resetFilters}
-            className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+            className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-2xl', 'border', 'border-slate-200', 'px-4', 'py-2', 'text-sm', 'font-medium', 'text-slate-600', 'hover:bg-slate-50')}
           >
             Reset
           </button>
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-100 bg-white">
+      <div className={clsx('rounded-3xl', 'border', 'border-slate-100', 'bg-white')}>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
-              <tr className="bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                <th className="px-6 py-3 text-left">Sr. No.</th>
-                <th className="px-6 py-3 text-left">Referrer</th>
-                <th className="px-6 py-3 text-left">Referred user</th>
-                <th className="px-6 py-3 text-left">Plan</th>
-                <th className="px-6 py-3 text-left">Status</th>
-                <th className="px-6 py-3 text-left">Fraud</th>
-                <th className="px-6 py-3 text-left">Risk score</th>
-                <th className="px-6 py-3 text-left">Reward (₹)</th>
-                <th className="px-6 py-3 text-left">Created</th>
-                <th className="px-6 py-3 text-left">Actions</th>
+              <tr className={clsx('bg-slate-50', 'text-xs', 'font-semibold', 'uppercase', 'tracking-wider', 'text-slate-500')}>
+                <th className={clsx('px-6', 'py-3', 'text-left')}>Sr. No.</th>
+                <th className={clsx('px-6', 'py-3', 'text-left')}>Referrer</th>
+                <th className={clsx('px-6', 'py-3', 'text-left')}>Referred user</th>
+                <th className={clsx('px-6', 'py-3', 'text-left')}>Plan</th>
+                <th className={clsx('px-6', 'py-3', 'text-left')}>Status</th>
+                <th className={clsx('px-6', 'py-3', 'text-left')}>Fraud</th>
+                <th className={clsx('px-6', 'py-3', 'text-left')}>Risk score</th>
+                <th className={clsx('px-6', 'py-3', 'text-left')}>Reward (₹)</th>
+                <th className={clsx('px-6', 'py-3', 'text-left')}>Created</th>
+                {canShowActions && (
+                  <th className={clsx('px-6', 'py-3', 'text-left')}>Actions</th>
+                )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+            <tbody className={clsx('divide-y', 'divide-slate-100', 'text-sm', 'text-slate-700')}>
               {loading && (
                 <tr>
                   <td
                     colSpan={9}
-                    className="px-6 py-8 text-center text-slate-400"
+                    className={clsx('px-6', 'py-8', 'text-center', 'text-slate-400')}
                   >
-                    <Loader2 className="h-5 w-5 animate-spin inline-block" />{" "}
+                    <Loader2 className={clsx('h-5', 'w-5', 'animate-spin', 'inline-block')} />{" "}
                     Loading referrals…
                   </td>
                 </tr>
@@ -426,7 +439,7 @@ const AdminReferralsPage = () => {
                 <tr>
                   <td
                     colSpan={9}
-                    className="px-6 py-8 text-center text-slate-500"
+                    className={clsx('px-6', 'py-8', 'text-center', 'text-slate-500')}
                   >
                     No referrals found for the selected filters.
                   </td>
@@ -474,123 +487,125 @@ const AdminReferralsPage = () => {
 
                 return (
                   <tr key={referral._id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 text-sm text-slate-700">
+                    <td className={clsx('px-6', 'py-4', 'text-sm', 'text-slate-700')}>
                       {serialNo}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900">
+                    <td className={clsx('px-6', 'py-4')}>
+                      <div className={clsx('font-semibold', 'text-slate-900')}>
                         {referrerName}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className={clsx('text-xs', 'text-slate-500')}>
                         Code: {referrerCode}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-slate-900">
+                    <td className={clsx('px-6', 'py-4')}>
+                      <div className={clsx('font-medium', 'text-slate-900')}>
                         {referredName}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className={clsx('text-xs', 'text-slate-500')}>
                         {referredEmail}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className={clsx('text-xs', 'text-slate-500')}>
                         Code: {referredCode}
                       </div>
 
                       {referral.reason && (
-                        <div className="text-xs text-rose-500 flex items-center gap-1 mt-1">
-                          <ShieldAlert className="h-3.5 w-3.5" />
+                        <div className={clsx('text-xs', 'text-rose-500', 'flex', 'items-center', 'gap-1', 'mt-1')}>
+                          <ShieldAlert className={clsx('h-3.5', 'w-3.5')} />
                           {referral.reason}
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
+                    <td className={clsx('px-6', 'py-4', 'text-sm', 'text-slate-600')}>
                       <div className="capitalize">{planLabel}</div>
                       {signupLabel && (
-                        <div className="text-xs text-slate-500">
+                        <div className={clsx('text-xs', 'text-slate-500')}>
                           Signed up: {signupLabel}
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm capitalize">
+                    <td className={clsx('px-6', 'py-4', 'text-sm', 'capitalize')}>
                       {referral.status}
                     </td>
-                    <td className="px-6 py-4">{renderFraudBadge(referral)}</td>
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900">
+                    <td className={clsx('px-6', 'py-4')}>{renderFraudBadge(referral)}</td>
+                    <td className={clsx('px-6', 'py-4')}>
+                      <div className={clsx('font-semibold', 'text-slate-900')}>
                         {referral.riskScore ?? 0}
                       </div>
                       {signals.length > 0 && (
-                        <div className="mt-1 text-xs text-slate-500 space-y-1">
+                        <div className={clsx('mt-1', 'text-xs', 'text-slate-500', 'space-y-1')}>
                           {signals.map((signal) => (
                             <div
                               key={signal}
-                              className="flex items-center gap-1"
+                              className={clsx('flex', 'items-center', 'gap-1')}
                             >
-                              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                              <AlertTriangle className={clsx('h-3.5', 'w-3.5', 'text-amber-500')} />
                               <span>{signal}</span>
                             </div>
                           ))}
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-900">
+                    <td className={clsx('px-6', 'py-4', 'font-semibold', 'text-slate-900')}>
                       ₹
                       {Number(referral.rewardAmount || 0).toLocaleString(
                         "en-IN"
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-500">
+                    <td className={clsx('px-6', 'py-4', 'text-sm', 'text-slate-500')}>
                       {formattedDate}
                     </td>
-                    <td className="px-6 py-4 space-y-2">
-                      <button
-                        type="button"
-                        disabled={updatingId === referral._id}
-                        onClick={() =>
-                          updateReferral(referral._id, { status: "rewarded" })
-                        }
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-50"
-                      >
-                        <CheckCircle2 className="h-4 w-4" /> Approve reward
-                      </button>
-                      <button
-                        type="button"
-                        disabled={updatingId === referral._id}
-                        onClick={() =>
-                          updateReferral(referral._id, { status: "completed" })
-                        }
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
-                      >
-                        Mark completed
-                      </button>
-                      <button
-                        type="button"
-                        disabled={updatingId === referral._id}
-                        onClick={() => {
-                          const reason = window.prompt(
-                            "Reason for rejection",
-                            referral.reason || "Suspicious activity"
-                          );
-                          if (reason) {
-                            updateReferral(referral._id, {
-                              status: "rejected",
-                              reason,
-                              fraudStatus: "rejected",
-                            });
+                    {canShowActions && (
+                      <td className={clsx('px-6', 'py-4', 'space-y-2')}>
+                        <button
+                          type="button"
+                          disabled={updatingId === referral._id}
+                          onClick={() =>
+                            updateReferral(referral._id, { status: "rewarded" })
                           }
-                        }}
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white shadow hover:bg-rose-700 disabled:opacity-50"
-                      >
-                        <XCircle className="h-4 w-4" /> Reject
-                      </button>
-                    </td>
+                          className={clsx('w-full', 'inline-flex', 'items-center', 'justify-center', 'gap-2', 'rounded-2xl', 'bg-emerald-600', 'px-3', 'py-2', 'text-xs', 'font-semibold', 'text-white', 'shadow', 'hover:bg-emerald-700', 'disabled:opacity-50')}
+                        >
+                          <CheckCircle2 className={clsx('h-4', 'w-4')} /> Approve reward
+                        </button>
+                        <button
+                          type="button"
+                          disabled={updatingId === referral._id}
+                          onClick={() =>
+                            updateReferral(referral._id, { status: "completed" })
+                          }
+                          className={clsx('w-full', 'inline-flex', 'items-center', 'justify-center', 'gap-2', 'rounded-2xl', 'border', 'border-slate-200', 'px-3', 'py-2', 'text-xs', 'font-semibold', 'text-slate-600', 'hover:bg-slate-50', 'disabled:opacity-50')}
+                        >
+                          Mark completed
+                        </button>
+                        <button
+                          type="button"
+                          disabled={updatingId === referral._id}
+                          onClick={() => {
+                            const reason = window.prompt(
+                              "Reason for rejection",
+                              referral.reason || "Suspicious activity"
+                            );
+                            if (reason) {
+                              updateReferral(referral._id, {
+                                status: "rejected",
+                                reason,
+                                fraudStatus: "rejected",
+                              });
+                            }
+                          }}
+                          className={clsx('w-full', 'inline-flex', 'items-center', 'justify-center', 'gap-2', 'rounded-2xl', 'bg-rose-600', 'px-3', 'py-2', 'text-xs', 'font-semibold', 'text-white', 'shadow', 'hover:bg-rose-700', 'disabled:opacity-50')}
+                        >
+                          <XCircle className={clsx('h-4', 'w-4')} /> Reject
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        <div className="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+        <div className={clsx('flex', 'flex-col', 'gap-3', 'border-t', 'border-slate-100', 'px-6', 'py-4', 'text-sm', 'text-slate-600', 'sm:flex-row', 'sm:items-center', 'sm:justify-between')}>
           <div>
             Showing {(pagination.page - 1) * pagination.limit + 1}-
             {Math.min(
@@ -599,21 +614,21 @@ const AdminReferralsPage = () => {
             )}{" "}
             of {pagination.totalItems || 0}
           </div>
-          <div className="flex items-center gap-2">
+          <div className={clsx('flex', 'items-center', 'gap-2')}>
             <button
               type="button"
-              className="rounded-2xl border border-slate-200 px-3 py-1 disabled:opacity-50"
+              className={clsx('rounded-2xl', 'border', 'border-slate-200', 'px-3', 'py-1', 'disabled:opacity-50')}
               onClick={() => loadReferrals(Math.max(pagination.page - 1, 1))}
               disabled={pagination.page <= 1 || loading}
             >
               Prev
             </button>
-            <span className="text-xs text-slate-500">
+            <span className={clsx('text-xs', 'text-slate-500')}>
               Page {pagination.page} of {pagination.totalPages}
             </span>
             <button
               type="button"
-              className="rounded-2xl border border-slate-200 px-3 py-1 disabled:opacity-50"
+              className={clsx('rounded-2xl', 'border', 'border-slate-200', 'px-3', 'py-1', 'disabled:opacity-50')}
               onClick={() =>
                 loadReferrals(
                   Math.min(pagination.page + 1, pagination.totalPages)

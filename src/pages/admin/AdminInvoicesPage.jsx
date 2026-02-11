@@ -9,6 +9,8 @@ import {
   downloadInvoicesCsv,
   downloadInvoicePdf,
 } from "../../services/adminApi";
+import { useAuth } from "../../context/AuthContext";
+import { ROLES, normalizeRole } from "../../config/permissions";
 
 const GATEWAY_OPTIONS = [
   { value: "phonepe", label: "PhonePe" },
@@ -91,6 +93,7 @@ const InvoiceStats = ({ stats = {} }) => {
 };
 
 const AdminInvoicesPage = () => {
+  const { user } = useAuth();
   const [params, setParams] = useState({
     page: 1,
     limit: 10,
@@ -293,6 +296,11 @@ const AdminInvoicesPage = () => {
     [setError]
   );
 
+  const canShowDownload = useMemo(
+    () => normalizeRole(user?.role) === ROLES.ADMIN,
+    [user?.role]
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -315,24 +323,28 @@ const AdminInvoicesPage = () => {
             <RefreshCw className="h-4 w-4" />
             Refresh
           </button>
-          <button
-            type="button"
-            onClick={() => handleCsvDownload(true)}
-            disabled={csvLoading}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300"
-          >
-            <Download className="h-4 w-4" />
-            {csvLoading ? "Downloading..." : "Download filtered"}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleCsvDownload(false)}
-            disabled={csvLoading}
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            <Download className="h-4 w-4" />
-            {csvLoading ? "Preparing..." : "Download all"}
-          </button>
+          {canShowDownload && (
+            <>
+              <button
+                type="button"
+                onClick={() => handleCsvDownload(true)}
+                disabled={csvLoading}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-primary-300"
+              >
+                <Download className="h-4 w-4" />
+                {csvLoading ? "Downloading..." : "Download filtered"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCsvDownload(false)}
+                disabled={csvLoading}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <Download className="h-4 w-4" />
+                {csvLoading ? "Preparing..." : "Download all"}
+              </button>
+            </>
+          )}
         </div>
       </div>
 

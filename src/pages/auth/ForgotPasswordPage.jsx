@@ -3,18 +3,22 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { firebaseAuth } from "../../firebase";
 import api from "../../api";
 import PageSEO from "../../components/seo/PageSEO";
+import clsx from "clsx";
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [resendCountdown, setResendCountdown] = useState(0);
   const [resending, setResending] = useState(false);
+  const [phoneSession, setPhoneSession] = useState(null);
   const [passwords, setPasswords] = useState({
     newPassword: "",
     confirmPassword: "",
@@ -24,21 +28,50 @@ const ForgotPasswordPage = () => {
     confirmPassword: false,
   });
 
+  const isEmail = (value) => /^\S+@\S+\.\S+$/.test(String(value || "").trim());
+  const phoneDigits = (value) => String(value || "").replace(/\D/g, "").slice(-10);
+  const toE164 = (digits) => `+91${digits}`;
+
+  const ensureRecaptcha = async () => {
+    const container = document.getElementById("recaptcha-container-forgot");
+    if (!container) throw new Error("reCAPTCHA container not found");
+    container.innerHTML = "";
+    const child = document.createElement("div");
+    container.appendChild(child);
+    const verifier = new RecaptchaVerifier(firebaseAuth, child, { size: "invisible" });
+    await verifier.render();
+    return verifier;
+  };
+
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setErrors({});
-    if (!email.trim()) {
-      setErrors({ email: "Email is required" });
+    const raw = identifier.trim();
+    if (!raw) {
+      setErrors({ identifier: "Email or mobile number is required" });
       return;
     }
     setLoading(true);
     try {
-      const res = await api.post("/auth/forgot-password", { email });
-      if (res.data?.success || res.status === 200) {
+      if (isEmail(raw)) {
+        const res = await api.post("/auth/forgot-password", { email: raw });
+        if (res.data?.success || res.status === 200) {
+          setStep(2);
+          setResendCountdown(60);
+        } else {
+          setErrors({ submit: res.data?.message || "Failed to send OTP" });
+        }
+      } else {
+        const digits = phoneDigits(raw);
+        if (digits.length !== 10) {
+          setErrors({ identifier: "Enter a valid 10-digit mobile number" });
+          return;
+        }
+        const verifier = await ensureRecaptcha();
+        const confirmation = await signInWithPhoneNumber(firebaseAuth, toE164(digits), verifier);
+        setPhoneSession(confirmation);
         setStep(2);
         setResendCountdown(60);
-      } else {
-        setErrors({ submit: res.data?.message || "Failed to send OTP" });
       }
     } catch (err) {
       setErrors({ submit: err.response?.data?.message || err.message });
@@ -68,11 +101,20 @@ const ForgotPasswordPage = () => {
     setResending(true);
     setErrors({});
     try {
-      const res = await api.post("/auth/forgot-password", { email });
-      if (res.data?.success || res.status === 200) {
-        setResendCountdown(60);
+      const raw = identifier.trim();
+      if (isEmail(raw)) {
+        const res = await api.post("/auth/forgot-password", { email: raw });
+        if (res.data?.success || res.status === 200) {
+          setResendCountdown(60);
+        } else {
+          setErrors({ submit: res.data?.message || "Failed to resend OTP" });
+        }
       } else {
-        setErrors({ submit: res.data?.message || "Failed to resend OTP" });
+        const digits = phoneDigits(raw);
+        const verifier = await ensureRecaptcha();
+        const confirmation = await signInWithPhoneNumber(firebaseAuth, toE164(digits), verifier);
+        setPhoneSession(confirmation);
+        setResendCountdown(60);
       }
     } catch (err) {
       setErrors({ submit: err.response?.data?.message || err.message });
@@ -91,14 +133,31 @@ const ForgotPasswordPage = () => {
     }
     setLoading(true);
     try {
-      const res = await api.post("/auth/verify-reset-otp", {
-        email,
-        otp: otpString,
-      });
-      if (res.data?.success) {
-        setStep(3);
+      const raw = identifier.trim();
+      if (isEmail(raw)) {
+        const res = await api.post("/auth/verify-reset-otp", {
+          email: raw,
+          otp: otpString,
+        });
+        if (res.data?.success) {
+          setStep(3);
+        } else {
+          setErrors({ otp: res.data?.message || "Invalid OTP" });
+        }
       } else {
-        setErrors({ otp: res.data?.message || "Invalid OTP" });
+        if (!phoneSession) {
+          setErrors({ submit: "OTP session expired. Please resend OTP." });
+          return;
+        }
+        const result = await phoneSession.confirm(otpString);
+        const token = await result.user.getIdToken(true);
+        navigate("/reset-password", {
+          replace: true,
+          state: {
+            identifier: phoneDigits(raw),
+            firebaseIdToken: token,
+          },
+        });
       }
     } catch (err) {
       setErrors({ otp: err.response?.data?.message || err.message });
@@ -111,8 +170,8 @@ const ForgotPasswordPage = () => {
     e.preventDefault();
     setErrors({});
     const { newPassword, confirmPassword } = passwords;
-    if (!newPassword || newPassword.length < 6) {
-      setErrors({ newPassword: "Password must be at least 6 characters long" });
+    if (!newPassword || newPassword.length < 8) {
+      setErrors({ newPassword: "Password must be at least 8 characters long" });
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -122,7 +181,7 @@ const ForgotPasswordPage = () => {
     setLoading(true);
     try {
       const res = await api.post("/auth/reset-password", {
-        email,
+        identifier: identifier.trim(),
         otp: otp.trim(),
         newPassword,
       });
@@ -152,49 +211,49 @@ const ForgotPasswordPage = () => {
         canonicalPath="/forgot-password"
       />
       <motion.div
-        className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white flex items-center py-10 px-4 sm:px-6 lg:px-8"
+        className={clsx('min-h-screen', 'overflow-x-hidden', 'bg-gradient-to-br', 'from-slate-950', 'via-slate-900', 'to-slate-950', 'text-white', 'flex', 'items-center', 'py-10', 'px-4', 'sm:px-6', 'lg:px-8')}
         initial={{ opacity: 0, y: 32 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <div className="relative w-full max-w-md mx-auto">
-          <div className="pointer-events-none absolute -z-10 inset-0">
-            <div className="absolute -top-24 -right-16 h-52 w-52 rounded-full bg-primary-500/25 blur-3xl" />
-            <div className="absolute bottom-0 -left-20 h-52 w-52 rounded-full bg-emerald-500/20 blur-3xl" />
+        <div className={clsx('relative', 'w-full', 'max-w-md', 'mx-auto')}>
+          <div className={clsx('pointer-events-none', 'absolute', '-z-10', 'inset-0')}>
+            <div className={clsx('absolute', '-top-24', '-right-16', 'h-52', 'w-52', 'rounded-full', 'bg-primary-500/25', 'blur-3xl')} />
+            <div className={clsx('absolute', 'bottom-0', '-left-20', 'h-52', 'w-52', 'rounded-full', 'bg-emerald-500/20', 'blur-3xl')} />
           </div>
 
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="flex items-center space-x-2 text-slate-300 hover:text-white mb-6 transition-colors"
+            className={clsx('flex', 'items-center', 'space-x-2', 'text-slate-300', 'hover:text-white', 'mb-6', 'transition-colors')}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className={clsx('w-4', 'h-4')} />
             <span>Back to home</span>
           </button>
 
-          <div className="text-center mb-4">
-            <div className="flex items-center justify-center space-x-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/40">
-                <QrCode className="w-7 h-7 text-white" />
+          <div className={clsx('text-center', 'mb-4')}>
+            <div className={clsx('flex', 'items-center', 'justify-center', 'space-x-3', 'mb-3')}>
+              <div className={clsx('w-12', 'h-12', 'bg-gradient-to-br', 'from-primary-500', 'to-primary-600', 'rounded-xl', 'flex', 'items-center', 'justify-center', 'shadow-lg', 'shadow-primary-500/40')}>
+                <QrCode className={clsx('w-7', 'h-7', 'text-white')} />
               </div>
-              <span className="text-2xl font-bold text-white">QR Folio</span>
+              <span className={clsx('text-2xl', 'font-bold', 'text-white')}>QR Folio</span>
             </div>
-            <p className="text-sm text-slate-300">
+            <p className={clsx('text-sm', 'text-slate-300')}>
               {step === 1
-                ? "Enter your email to receive a reset code."
+                ? "Enter your email or mobile number to receive a reset code."
                 : step === 2
-                ? "Enter the 6-digit code we sent to your email."
+                ? "Enter the 6-digit code we sent you."
                 : "Set a new password for your account."}
             </p>
           </div>
 
           <motion.div
-            className="mt-1 rounded-2xl border border-white/10 bg-slate-900/60 p-6 sm:p-8 shadow-xl shadow-slate-950/40 backdrop-blur"
+            className={clsx('mt-1', 'rounded-2xl', 'border', 'border-white/10', 'bg-slate-900/60', 'p-6', 'sm:p-8', 'shadow-xl', 'shadow-slate-950/40', 'backdrop-blur')}
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
           >
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
+            <h2 className={clsx('text-2xl', 'sm:text-3xl', 'font-bold', 'text-white', 'mb-3')}>
               {step === 1
                 ? "Forgot Password"
                 : step === 2
@@ -203,8 +262,8 @@ const ForgotPasswordPage = () => {
             </h2>
 
             {errors.submit && (
-              <div className="mb-4 p-4 rounded-xl border border-red-500/40 bg-red-500/10">
-                <p className="text-red-300 text-sm">{errors.submit}</p>
+              <div className={clsx('mb-4', 'p-4', 'rounded-xl', 'border', 'border-red-500/40', 'bg-red-500/10')}>
+                <p className={clsx('text-red-300', 'text-sm')}>{errors.submit}</p>
               </div>
             )}
 
@@ -212,26 +271,28 @@ const ForgotPasswordPage = () => {
               <form onSubmit={handleSendOtp} className="space-y-5">
                 <div>
                   <input
-                    type="email"
-                    name="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email"
+                    type="text"
+                    name="identifier"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="Email or mobile number"
                     className={`w-full px-4 py-3.5 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
-                      errors.email
+                      errors.identifier
                         ? "border-red-500/60 bg-red-500/10"
                         : "border-slate-700"
                     }`}
                   />
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+                  {errors.identifier && (
+                    <p className={clsx('mt-1', 'text-sm', 'text-red-400')}>{errors.identifier}</p>
                   )}
                 </div>
+
+                <div id="recaptcha-container-forgot" />
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-primary-500 text-white py-3.5 px-6 rounded-xl font-semibold shadow-lg shadow-primary-500/40 hover:bg-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={clsx('w-full', 'bg-primary-500', 'text-white', 'py-3.5', 'px-6', 'rounded-xl', 'font-semibold', 'shadow-lg', 'shadow-primary-500/40', 'hover:bg-primary-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'transition-all', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                 >
                   {loading ? "Sending OTP..." : "Send OTP"}
                 </button>
@@ -241,7 +302,7 @@ const ForgotPasswordPage = () => {
             {step === 2 && (
               <form onSubmit={handleVerifyOtp} className="space-y-5">
                 <div>
-                  <label className="block text-xs uppercase tracking-wide text-slate-400 mb-2 text-center">
+                  <label className={clsx('block', 'text-xs', 'uppercase', 'tracking-wide', 'text-slate-400', 'mb-2', 'text-center')}>
                     Enter the 6-digit code
                   </label>
                   <input
@@ -258,7 +319,7 @@ const ForgotPasswordPage = () => {
                     }`}
                   />
                   {errors.otp && (
-                    <p className="mt-2 text-center text-sm text-red-400">
+                    <p className={clsx('mt-2', 'text-center', 'text-sm', 'text-red-400')}>
                       {errors.otp}
                     </p>
                   )}
@@ -267,7 +328,7 @@ const ForgotPasswordPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-primary-500 text-white py-3.5 px-6 rounded-xl font-semibold shadow-lg shadow-primary-500/40 hover:bg-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={clsx('w-full', 'bg-primary-500', 'text-white', 'py-3.5', 'px-6', 'rounded-xl', 'font-semibold', 'shadow-lg', 'shadow-primary-500/40', 'hover:bg-primary-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'transition-all', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                 >
                   {loading ? "Verifying..." : "Verify OTP"}
                 </button>
@@ -276,7 +337,7 @@ const ForgotPasswordPage = () => {
                   type="button"
                   onClick={handleResendOtp}
                   disabled={loading || resending || resendCountdown > 0}
-                  className="w-full border border-white/10 text-slate-200 py-3.5 px-6 rounded-xl font-semibold hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={clsx('w-full', 'border', 'border-white/10', 'text-slate-200', 'py-3.5', 'px-6', 'rounded-xl', 'font-semibold', 'hover:bg-white/5', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'transition-all', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                 >
                   {resending
                     ? "Resending OTP..."
@@ -311,7 +372,7 @@ const ForgotPasswordPage = () => {
                   <button
                     type="button"
                     onClick={() => togglePasswordVisibility("newPassword")}
-                    className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-200"
+                    className={clsx('absolute', 'inset-y-0', 'right-3', 'flex', 'items-center', 'text-slate-400', 'hover:text-slate-200')}
                     aria-label={
                       showPasswordFields.newPassword
                         ? "Hide new password"
@@ -319,14 +380,14 @@ const ForgotPasswordPage = () => {
                     }
                   >
                     {showPasswordFields.newPassword ? (
-                      <EyeOff className="w-5 h-5" />
+                      <EyeOff className={clsx('w-5', 'h-5')} />
                     ) : (
-                      <Eye className="w-5 h-5" />
+                      <Eye className={clsx('w-5', 'h-5')} />
                     )}
                   </button>
                 </div>
                 {errors.newPassword && (
-                  <p className="text-sm text-red-400">{errors.newPassword}</p>
+                  <p className={clsx('text-sm', 'text-red-400')}>{errors.newPassword}</p>
                 )}
 
                 <div className="relative">
@@ -353,7 +414,7 @@ const ForgotPasswordPage = () => {
                   <button
                     type="button"
                     onClick={() => togglePasswordVisibility("confirmPassword")}
-                    className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-200"
+                    className={clsx('absolute', 'inset-y-0', 'right-3', 'flex', 'items-center', 'text-slate-400', 'hover:text-slate-200')}
                     aria-label={
                       showPasswordFields.confirmPassword
                         ? "Hide confirm password"
@@ -361,14 +422,14 @@ const ForgotPasswordPage = () => {
                     }
                   >
                     {showPasswordFields.confirmPassword ? (
-                      <EyeOff className="w-5 h-5" />
+                      <EyeOff className={clsx('w-5', 'h-5')} />
                     ) : (
-                      <Eye className="w-5 h-5" />
+                      <Eye className={clsx('w-5', 'h-5')} />
                     )}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-sm text-red-400">
+                  <p className={clsx('text-sm', 'text-red-400')}>
                     {errors.confirmPassword}
                   </p>
                 )}
@@ -376,7 +437,7 @@ const ForgotPasswordPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-primary-500 text-white py-3.5 px-6 rounded-xl font-semibold shadow-lg shadow-primary-500/40 hover:bg-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={clsx('w-full', 'bg-primary-500', 'text-white', 'py-3.5', 'px-6', 'rounded-xl', 'font-semibold', 'shadow-lg', 'shadow-primary-500/40', 'hover:bg-primary-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'transition-all', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                 >
                   {loading ? "Resetting..." : "Reset Password"}
                 </button>

@@ -129,7 +129,7 @@ const Sidebar = ({
   return (
     <>
       {/* MOBILE TOGGLE */}
-      {isMobile && (
+      {isMobile && isCollapsed && (
         <button
           onClick={() => setIsCollapsed(false)}
           className="fixed top-4 left-4 z-50 rounded-xl bg-slate-900 p-2 lg:hidden"
@@ -169,8 +169,12 @@ const Sidebar = ({
           <div className="relative border-b border-white/10 p-6">
             {!isCollapsed && (
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-600">
-                  <QrCode className="h-6 w-6 text-white" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-x">
+                  <img
+                    src="/assets/QrLogo.webp"
+                    alt="QR Folio"
+                    className="h-10 w-10 object-contain"
+                  />
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-white">QR Folio</h1>

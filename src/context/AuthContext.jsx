@@ -304,6 +304,94 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const mobileOtpLogin = async ({ phone, firebaseIdToken }) => {
+    try {
+      const digits = String(phone || "").replace(/\D/g, "").slice(-10);
+      if (!digits) {
+        return { success: false, error: "Phone is required" };
+      }
+      if (!firebaseIdToken) {
+        return { success: false, error: "Phone verification is required" };
+      }
+
+      const res = await api.post("/auth/mobile-otp-login", {
+        phone: digits,
+        firebaseIdToken,
+      });
+
+      if (res.data?.success) {
+        const {
+          token,
+          user: u,
+          requiresRenewal,
+          planExpired,
+          planStatus,
+          requiresPayment: resRequiresPayment,
+        } = res.data;
+
+        if (token) {
+          localStorage.setItem("token", token);
+          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        }
+
+        const normalized = normalizeUser(u || {}, {
+          requiresRenewal,
+          planStatus,
+          planExpired,
+        });
+
+        setUser(normalized);
+        localStorage.setItem("qr_folio_user", JSON.stringify(normalized));
+
+        const requiresPayment =
+          typeof resRequiresPayment === "boolean"
+            ? resRequiresPayment
+            : !hasPaymentFlag(normalized);
+
+        return { success: true, requiresPayment, user: normalized };
+      }
+
+      return { success: false, error: res.data?.message || "Login failed" };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message,
+      };
+    }
+  };
+
+  const updatePhone = async ({ newPhone, firebaseIdToken }) => {
+    try {
+      const digits = String(newPhone || "").replace(/\D/g, "").slice(-10);
+      if (!digits) {
+        return { success: false, error: "New phone is required" };
+      }
+      if (!firebaseIdToken) {
+        return { success: false, error: "Phone verification is required" };
+      }
+
+      const res = await api.post("/auth/update-phone", {
+        newPhone: digits,
+        firebaseIdToken,
+      });
+
+      if (res.data?.success) {
+        const updatedUser = {
+          ...(user || {}),
+          phone: res.data?.user?.phone || digits,
+          phoneVerified: Boolean(res.data?.user?.phoneVerified),
+        };
+        setUser(updatedUser);
+        localStorage.setItem("qr_folio_user", JSON.stringify(updatedUser));
+        return { success: true };
+      }
+
+      return { success: false, error: res.data?.message || "Failed to update phone" };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  };
+
   const submitSignupAfterPhoneVerification = async (firebaseIdToken) => {
     try {
       const effectiveSignupData = signupData || signupDataRef.current;
@@ -658,7 +746,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (identifier, password) => {
     try {
       try {
         localStorage.removeItem("token");
@@ -670,10 +758,10 @@ export const AuthProvider = ({ children }) => {
         // ignore storage errors
       }
 
-      const normalizedEmail = email ? email.trim().toLowerCase() : "";
+      const trimmedIdentifier = identifier ? identifier.toString().trim() : "";
 
       const res = await api.post("/auth/login", {
-        email: normalizedEmail,
+        identifier: trimmedIdentifier,
         password,
       });
 
@@ -695,7 +783,7 @@ export const AuthProvider = ({ children }) => {
         const normalized = normalizeUser(
           {
             ...u,
-            email: u?.email || normalizedEmail,
+            email: u?.email || "",
           },
           {
             requiresRenewal,
@@ -1104,7 +1192,9 @@ export const AuthProvider = ({ children }) => {
         createChainpayPayment,
         verifyPayment,
         login,
+        mobileOtpLogin,
         logout,
+        updatePhone,
         updateProfile,
         refreshUser,
         editProfile,

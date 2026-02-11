@@ -171,6 +171,9 @@ const AdminLayout = () => {
         if (item.to === "/admin") {
           return normalizeRole(user?.role) === ROLES.ADMIN;
         }
+        if (item.to === "/admin/reward-unlock") {
+          return normalizeRole(user?.role) === ROLES.ADMIN;
+        }
         if (!item.permission) return true;
         return can(item.permission);
       });
@@ -184,7 +187,7 @@ const AdminLayout = () => {
       to={to}
       end={exact}
       className={({ isActive }) =>
-        `group flex w-full items-center justify-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all lg:px-4 lg:justify-start ${
+        `group flex w-full items-center justify-start gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all lg:px-4 lg:justify-start ${
           isActive
             ? "bg-primary-50 text-primary-700"
             : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -207,7 +210,7 @@ const AdminLayout = () => {
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className={clsx('flex', 'items-center', 'justify-center', 'gap-3', 'px-2', 'pb-5', 'lg:justify-start')}>
+          <div className={clsx('flex', 'items-center', 'justify-start', 'gap-3', 'px-2', 'pb-5', 'lg:justify-start')}>
             <div className={clsx('flex', 'h-11', 'w-11', 'items-center', 'justify-center', 'rounded-2xl', 'bg-primary-600', 'text-white')}>
               <ShieldCheck className={clsx('h-5', 'w-5')} />
             </div>

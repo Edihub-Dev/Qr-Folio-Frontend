@@ -2,9 +2,12 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Save, Upload } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { firebaseAuth } from "../../firebase";
+import clsx from "clsx";
 
 const EditProfile = () => {
-  const { user, editProfile, uploadPhoto, refreshUser, removeProfilePhoto } =
+  const { user, editProfile, uploadPhoto, refreshUser, removeProfilePhoto, updatePhone } =
     useAuth();
   const navigate = useNavigate();
 
@@ -30,6 +33,13 @@ const EditProfile = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploadError, setUploadError] = useState("");
+
+  const [phoneEditMode, setPhoneEditMode] = useState(false);
+  const [newPhone, setNewPhone] = useState("");
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [phoneSession, setPhoneSession] = useState(null);
+  const [phoneLoading, setPhoneLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -97,7 +107,7 @@ const EditProfile = () => {
       if (avatarFile) {
         await uploadPhoto({ file: avatarFile });
       }
-      const { name, email, ...payload } = {
+      const { name, email, phone, ...payload } = {
         ...formData,
       };
 
@@ -114,6 +124,69 @@ const EditProfile = () => {
       alert(err.message || "Something went wrong while saving");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const ensureRecaptcha = async () => {
+    const container = document.getElementById("recaptcha-container-change-phone");
+    if (!container) throw new Error("reCAPTCHA container not found");
+    container.innerHTML = "";
+    const child = document.createElement("div");
+    container.appendChild(child);
+    const verifier = new RecaptchaVerifier(firebaseAuth, child, { size: "invisible" });
+    await verifier.render();
+    return verifier;
+  };
+
+  const handleSendPhoneOtp = async () => {
+    setPhoneError("");
+    const digits = String(newPhone || "").replace(/\D/g, "").slice(-10);
+    if (digits.length !== 10) {
+      setPhoneError("Enter a valid 10-digit mobile number");
+      return;
+    }
+    setPhoneLoading(true);
+    try {
+      const verifier = await ensureRecaptcha();
+      const confirmation = await signInWithPhoneNumber(firebaseAuth, `+91${digits}`, verifier);
+      setPhoneSession(confirmation);
+    } catch (err) {
+      setPhoneError(err.message || "Failed to send OTP");
+    } finally {
+      setPhoneLoading(false);
+    }
+  };
+
+  const handleVerifyPhoneOtpAndUpdate = async () => {
+    setPhoneError("");
+    if (!phoneSession) {
+      setPhoneError("Please request an OTP first");
+      return;
+    }
+    const otpValue = phoneOtp.trim();
+    if (otpValue.length !== 6) {
+      setPhoneError("Enter the 6-digit OTP");
+      return;
+    }
+    setPhoneLoading(true);
+    try {
+      const result = await phoneSession.confirm(otpValue);
+      const token = await result.user.getIdToken(true);
+      const digits = String(newPhone || "").replace(/\D/g, "").slice(-10);
+      const res = await updatePhone({ newPhone: digits, firebaseIdToken: token });
+      if (!res.success) {
+        setPhoneError(res.error || "Failed to update phone");
+        return;
+      }
+      await refreshUser();
+      setPhoneEditMode(false);
+      setNewPhone("");
+      setPhoneOtp("");
+      setPhoneSession(null);
+    } catch (err) {
+      setPhoneError(err.message || "Invalid OTP");
+    } finally {
+      setPhoneLoading(false);
     }
   };
 
@@ -164,36 +237,36 @@ const EditProfile = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className={clsx('max-w-4xl', 'mx-auto')}>
       {(saved || uploadError) && (
-        <div className="fixed top-4 right-4 z-50 space-y-2">
+        <div className={clsx('fixed', 'top-4', 'right-4', 'z-50', 'space-y-2')}>
           {uploadError && (
-            <div className="px-4 py-3 rounded-lg shadow-md bg-red-600 text-white text-sm">
+            <div className={clsx('px-4', 'py-3', 'rounded-lg', 'shadow-md', 'bg-red-600', 'text-white', 'text-sm')}>
               {uploadError}
             </div>
           )}
           {saved && (
-            <div className="px-4 py-3 rounded-lg shadow-md bg-green-600 text-white text-sm">
+            <div className={clsx('px-4', 'py-3', 'rounded-lg', 'shadow-md', 'bg-green-600', 'text-white', 'text-sm')}>
               Profile updated successfully
             </div>
           )}
         </div>
       )}
-      <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 shadow-xl shadow-slate-950/50 backdrop-blur">
-        <div className="flex items-center justify-between mb-6">
+      <div className={clsx('rounded-2xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8', 'shadow-xl', 'shadow-slate-950/50', 'backdrop-blur')}>
+        <div className={clsx('flex', 'items-center', 'justify-between', 'mb-6')}>
           <div>
-            <h1 className="text-2xl font-bold text-white">Edit Profile</h1>
-            <p className="text-sm text-slate-300">
+            <h1 className={clsx('text-2xl', 'font-bold', 'text-white')}>Edit Profile</h1>
+            <p className={clsx('text-sm', 'text-slate-300')}>
               Update your personal and professional information
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex items-center space-x-6">
+          <div className={clsx('flex', 'items-center', 'space-x-6')}>
             <div className="relative">
-              <div className="relative w-24 h-24">
-                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-800">
+              <div className={clsx('relative', 'w-24', 'h-24')}>
+                <div className={clsx('absolute', 'inset-0', 'flex', 'items-center', 'justify-center', 'rounded-full', 'bg-slate-800')}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="48"
@@ -214,15 +287,15 @@ const EditProfile = () => {
                   <img
                     src={safeAvatar}
                     alt="Profile"
-                    className="relative z-10 h-full w-full rounded-full border-4 border-slate-900 object-cover"
+                    className={clsx('relative', 'z-10', 'h-full', 'w-full', 'rounded-full', 'border-4', 'border-slate-900', 'object-cover')}
                   />
                 ) : null}
               </div>
               <label
-                className="absolute -bottom-2 -right-2 z-20 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary-500 shadow-md transition-colors hover:bg-primary-400"
+                className={clsx('absolute', '-bottom-2', '-right-2', 'z-20', 'flex', 'h-8', 'w-8', 'cursor-pointer', 'items-center', 'justify-center', 'rounded-full', 'bg-primary-500', 'shadow-md', 'transition-colors', 'hover:bg-primary-400')}
                 title="Change profile photo"
               >
-                <Upload className="w-4 h-4 text-white" />
+                <Upload className={clsx('w-4', 'h-4', 'text-white')} />
                 <input
                   type="file"
                   accept="image/*"
@@ -236,13 +309,13 @@ const EditProfile = () => {
                 <button
                   type="button"
                   onClick={handleRemoveAvatar}
-                  className=" text-xs text-red-400 hover:text-red-300"
+                  className={clsx('text-xs', 'text-red-400', 'hover:text-red-300')}
                 >
                   Remove profile photo
                 </button>
               ) : null}
-              <h3 className="font-medium text-slate-100">Profile Photo</h3>
-              <p className="text-sm text-slate-400">
+              <h3 className={clsx('font-medium', 'text-slate-100')}>Profile Photo</h3>
+              <p className={clsx('text-sm', 'text-slate-400')}>
                 Upload a professional photo (max 5MB) to personalize your
                 profile.
               </p>
@@ -250,44 +323,44 @@ const EditProfile = () => {
           </div>
 
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-slate-100">
+            <h3 className={clsx('mb-4', 'text-lg', 'font-semibold', 'text-slate-100')}>
               Personal Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={clsx('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-6')}>
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Full Name
                 </label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
-                  className="w-full cursor-not-allowed rounded-lg border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-400"
+                  className={clsx('w-full', 'cursor-not-allowed', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/80', 'px-4', 'py-3', 'text-slate-400')}
                   disabled
                 />
-                <p className="mt-1 text-xs text-slate-400">
+                <p className={clsx('mt-1', 'text-xs', 'text-slate-400')}>
                   Your name cannot be changed.
                 </p>
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Email Address
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
-                  className="w-full cursor-not-allowed rounded-lg border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-400"
+                  className={clsx('w-full', 'cursor-not-allowed', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/80', 'px-4', 'py-3', 'text-slate-400')}
                   disabled
                 />
-                <p className="mt-1 text-xs text-slate-400">
+                <p className={clsx('mt-1', 'text-xs', 'text-slate-400')}>
                   Your email cannot be changed.
                 </p>
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Phone Number
                 </label>
                 <input
@@ -295,12 +368,87 @@ const EditProfile = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  disabled
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                 />
               </div>
 
+              <div className={clsx('rounded-xl', 'border', 'border-slate-800', 'bg-slate-900/40', 'p-4')}>
+                <div className={clsx('flex', 'items-center', 'justify-between', 'gap-4')}>
+                  <div>
+                    <p className={clsx('text-sm', 'font-semibold', 'text-slate-100')}>Change phone number</p>
+                    <p className={clsx('text-xs', 'text-slate-400')}>Requires OTP verification</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhoneEditMode((prev) => !prev);
+                      setPhoneError("");
+                      setPhoneSession(null);
+                      setPhoneOtp("");
+                      setNewPhone("");
+                    }}
+                    className={clsx('rounded-lg', 'border', 'border-white/10', 'px-3', 'py-2', 'text-sm', 'font-semibold', 'text-slate-200', 'hover:bg-white/5')}
+                  >
+                    {phoneEditMode ? "Cancel" : "Change"}
+                  </button>
+                </div>
+
+                {phoneEditMode && (
+                  <div className={clsx('mt-4', 'space-y-3')}>
+                    {phoneError && (
+                      <div className={clsx('rounded-lg', 'border', 'border-red-500/40', 'bg-red-500/10', 'px-3', 'py-2')}>
+                        <p className={clsx('text-sm', 'text-red-300')}>{phoneError}</p>
+                      </div>
+                    )}
+
+                    <input
+                      type="tel"
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      placeholder="New mobile number"
+                      inputMode="numeric"
+                      className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
+                    />
+
+                    <div id="recaptcha-container-change-phone" />
+
+                    {!phoneSession ? (
+                      <button
+                        type="button"
+                        onClick={handleSendPhoneOtp}
+                        disabled={phoneLoading}
+                        className={clsx('w-full', 'rounded-lg', 'bg-primary-500', 'px-4', 'py-3', 'text-sm', 'font-semibold', 'text-white', 'shadow-lg', 'shadow-primary-500/30', 'hover:bg-primary-400', 'disabled:opacity-50')}
+                      >
+                        {phoneLoading ? "Sending OTP..." : "Send OTP"}
+                      </button>
+                    ) : (
+                      <>
+                        <input
+                          type="text"
+                          value={phoneOtp}
+                          onChange={(e) => setPhoneOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          placeholder="Enter 6-digit OTP"
+                          inputMode="numeric"
+                          maxLength={6}
+                          className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleVerifyPhoneOtpAndUpdate}
+                          disabled={phoneLoading}
+                          className={clsx('w-full', 'rounded-lg', 'bg-primary-500', 'px-4', 'py-3', 'text-sm', 'font-semibold', 'text-white', 'shadow-lg', 'shadow-primary-500/30', 'hover:bg-primary-400', 'disabled:opacity-50')}
+                        >
+                          {phoneLoading ? "Verifying..." : "Verify & Update"}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Blood Group
                 </label>
                 <input
@@ -308,13 +456,13 @@ const EditProfile = () => {
                   name="bloodGroup"
                   value={formData.bloodGroup}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                   placeholder="e.g., O+, A-, B+"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Date of Birth
                 </label>
                 <input
@@ -322,12 +470,12 @@ const EditProfile = () => {
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Address
                 </label>
                 <input
@@ -335,12 +483,12 @@ const EditProfile = () => {
                   name="address"
                   value={formData.address}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Professional Description
                 </label>
                 <textarea
@@ -348,7 +496,7 @@ const EditProfile = () => {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                   placeholder="Tell others about your professional background and expertise..."
                 />
               </div>
@@ -356,12 +504,12 @@ const EditProfile = () => {
           </div>
 
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-slate-100">
+            <h3 className={clsx('mb-4', 'text-lg', 'font-semibold', 'text-slate-100')}>
               Social Links
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={clsx('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-6')}>
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   LinkedIn Profile
                 </label>
                 <input
@@ -369,13 +517,13 @@ const EditProfile = () => {
                   name="linkedin"
                   value={formData.linkedin}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                   placeholder="https://linkedin.com/in/yourprofile"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Twitter Profile
                 </label>
                 <input
@@ -383,13 +531,13 @@ const EditProfile = () => {
                   name="twitter"
                   value={formData.twitter}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                   placeholder="https://twitter.com/yourhandle"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Personal Website
                 </label>
                 <input
@@ -397,13 +545,13 @@ const EditProfile = () => {
                   name="website"
                   value={formData.website}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                   placeholder="https://yourwebsite.com"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   GitHub Profile
                 </label>
                 <input
@@ -411,13 +559,13 @@ const EditProfile = () => {
                   name="github"
                   value={formData.github}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                   placeholder="https://github.com/username"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Instagram Profile
                 </label>
                 <input
@@ -425,13 +573,13 @@ const EditProfile = () => {
                   name="instagram"
                   value={formData.instagram}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                   placeholder="https://instagram.com/username"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   Facebook Profile
                 </label>
                 <input
@@ -439,13 +587,13 @@ const EditProfile = () => {
                   name="facebook"
                   value={formData.facebook}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                   placeholder="https://facebook.com/username"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-200">
+                <label className={clsx('mb-2', 'block', 'text-sm', 'font-medium', 'text-slate-200')}>
                   WhatsApp Link
                 </label>
                 <input
@@ -453,14 +601,14 @@ const EditProfile = () => {
                   name="whatsapp"
                   value={formData.whatsapp}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-3 text-slate-50 placeholder-slate-500 transition-colors focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
+                  className={clsx('w-full', 'rounded-lg', 'border', 'border-slate-700', 'bg-slate-900/60', 'px-4', 'py-3', 'text-slate-50', 'placeholder-slate-500', 'transition-colors', 'focus:border-primary-500', 'focus:ring-2', 'focus:ring-primary-500')}
                   placeholder="https://wa.me/<phone-number>"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-4 border-t border-slate-800 pt-6">
+          <div className={clsx('flex', 'justify-end', 'space-x-4', 'border-t', 'border-slate-800', 'pt-6')}>
             <button
               type="button"
               onClick={(e) => {
@@ -468,7 +616,7 @@ const EditProfile = () => {
                 e.stopPropagation();
                 window.location.href = "/dashboard";
               }}
-              className="rounded-lg border border-slate-700 px-6 py-3 text-slate-200 transition-colors hover:bg-slate-800/80"
+              className={clsx('rounded-lg', 'border', 'border-slate-700', 'px-6', 'py-3', 'text-slate-200', 'transition-colors', 'hover:bg-slate-800/80')}
             >
               Cancel
             </button>
@@ -481,7 +629,7 @@ const EditProfile = () => {
                   : "bg-primary-500 text-white hover:bg-primary-400"
               }`}
             >
-              <Save className="w-4 h-4" />
+              <Save className={clsx('w-4', 'h-4')} />
               <span>{saving ? "Saving..." : "Save Changes"}</span>
             </button>
           </div>

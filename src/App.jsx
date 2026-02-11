@@ -15,6 +15,8 @@ import SignupPage from "./pages/auth/SignupPage";
 import PaymentPage from "./pages/payment/PaymentPage";
 import VerifyOTPPage from "./pages/auth/VerifyOTPPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import clsx from "clsx";
 const DashboardLayout = lazy(() => import("./pages/dashboard/DashboardLayout"));
 const PublicProfilePage = lazy(() => import("./pages/public/PublicProfilePage"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
@@ -105,8 +107,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className={clsx('min-h-screen', 'flex', 'items-center', 'justify-center', 'bg-gray-50')}>
+        <div className={clsx('animate-spin', 'rounded-full', 'h-12', 'w-12', 'border-b-2', 'border-primary-600')}></div>
       </div>
     );
   }
@@ -148,8 +150,8 @@ const PublicRoute = ({ children, authPage = false }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className={clsx('min-h-screen', 'flex', 'items-center', 'justify-center', 'bg-gray-50')}>
+        <div className={clsx('animate-spin', 'rounded-full', 'h-12', 'w-12', 'border-b-2', 'border-primary-600')}></div>
       </div>
     );
   }
@@ -184,8 +186,8 @@ const SetupRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className={clsx('min-h-screen', 'flex', 'items-center', 'justify-center', 'bg-gray-50')}>
+        <div className={clsx('animate-spin', 'rounded-full', 'h-12', 'w-12', 'border-b-2', 'border-primary-600')}></div>
       </div>
     );
   }
@@ -220,11 +222,11 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50 font-sans">
+        <div className={clsx('min-h-screen', 'bg-gray-50', 'font-sans')}>
           <Suspense
             fallback={
-              <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary-600" />
+              <div className={clsx('min-h-screen', 'flex', 'items-center', 'justify-center', 'bg-gray-50')}>
+                <div className={clsx('h-12', 'w-12', 'animate-spin', 'rounded-full', 'border-b-2', 'border-primary-600')} />
               </div>
             }
           >
@@ -255,6 +257,14 @@ function App() {
                   element={
                     <PublicRoute>
                       <ForgotPasswordPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/reset-password"
+                  element={
+                    <PublicRoute>
+                      <ResetPasswordPage />
                     </PublicRoute>
                   }
                 />
