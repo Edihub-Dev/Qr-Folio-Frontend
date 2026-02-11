@@ -331,9 +331,13 @@ const LandingPage = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/40">
+                <div className="w-10 h-10 bg-gradient-to-br rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/40">
                   <a href="/">
-                    <QrCode className="w-6 h-6 text-white" />
+                    <img
+                      src="/assets/QrLogo.webp"
+                      alt="QR Folio"
+                      className="h-10 w-10 object-contain"
+                    />
                   </a>
                 </div>
                 <span className="text-xl font-semibold tracking-tight text-white">
