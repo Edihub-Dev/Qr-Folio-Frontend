@@ -7,8 +7,6 @@ import React, {
 } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import { firebaseAuth } from "../../firebase";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api";
@@ -23,19 +21,9 @@ import clsx from "clsx";
 const SignupPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signup, submitSignupAfterPhoneVerification, verifyOTP, resendOTP } =
-    useAuth();
+  const { signup, submitSignup, verifyOTP, resendOTP } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const [phoneOtpStep, setPhoneOtpStep] = useState("idle");
-  const [phoneOtpValue, setPhoneOtpValue] = useState("");
-  const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
-  const [phoneOtpError, setPhoneOtpError] = useState("");
-  const [cooldownSeconds, setCooldownSeconds] = useState(0);
-  const [lockedPhoneDigits, setLockedPhoneDigits] = useState(null);
-  const [verifiedPhoneDigits, setVerifiedPhoneDigits] = useState(null);
-  const [verifiedFirebaseIdToken, setVerifiedFirebaseIdToken] = useState(null);
 
   const [emailOtpStep, setEmailOtpStep] = useState("idle");
   const [emailOtpValue, setEmailOtpValue] = useState("");
@@ -44,9 +32,6 @@ const SignupPage = () => {
   const [emailOtpResending, setEmailOtpResending] = useState(false);
   const [emailOtpCountdown, setEmailOtpCountdown] = useState(0);
   const [emailOtpRequiresPayment, setEmailOtpRequiresPayment] = useState(null);
-
-  const confirmationResultRef = useRef(null);
-  const recaptchaRef = useRef(null);
   const sendOtpInFlightRef = useRef(false);
 
   const referralSource = useMemo(() => {
@@ -105,20 +90,15 @@ const SignupPage = () => {
           phone: formData.phone,
           couponCode: formData.couponCode,
           agreeToTerms: Boolean(formData.agreeToTerms),
-          phoneOtpStep,
           emailOtpStep,
-          isPhoneVerified: Boolean(verifiedPhoneDigits),
-          verifiedPhoneDigits: verifiedPhoneDigits,
           emailOtpRequiresPayment: emailOtpRequiresPayment,
         };
 
         const computedStep =
           stepOverride ??
           (emailOtpStep === "verify" || emailOtpStep === "verified"
-            ? 3
-            : phoneOtpStep === "verify" || verifiedPhoneDigits
-              ? 2
-              : 1);
+            ? 2
+            : 1);
 
         localStorage.setItem(SIGNUP_DRAFT_STORAGE_KEY, JSON.stringify(draft));
         localStorage.setItem(SIGNUP_STEP_STORAGE_KEY, String(computedStep));
@@ -134,8 +114,6 @@ const SignupPage = () => {
       formData.email,
       formData.name,
       formData.phone,
-      phoneOtpStep,
-      verifiedPhoneDigits,
     ]
   );
 
@@ -166,22 +144,6 @@ const SignupPage = () => {
             : prev.agreeToTerms,
       }));
 
-      // Do not restore in-progress OTP screens after refresh because the
-      // Firebase confirmation session is held in-memory.
-      // Only restore verified state.
-      if (parsed?.isPhoneVerified && parsed?.verifiedPhoneDigits) {
-        setVerifiedPhoneDigits(parsed.verifiedPhoneDigits);
-        setPhoneOtpStep("verified");
-      } else {
-        setVerifiedPhoneDigits(null);
-        setPhoneOtpStep("idle");
-        setLockedPhoneDigits(null);
-        setPhoneOtpValue("");
-        setPhoneOtpError("");
-        setCooldownSeconds(0);
-        confirmationResultRef.current = null;
-      }
-
       if (parsed?.emailOtpStep === "verified") {
         setEmailOtpStep("verified");
       } else {
@@ -200,152 +162,6 @@ const SignupPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const toE164 = useCallback((phoneDigits) => {
-    const digits = String(phoneDigits || "").replace(/\D/g, "");
-    if (!digits) return "";
-    if (digits.length === 10) {
-      return `+91${digits}`;
-    }
-    if (String(phoneDigits).trim().startsWith("+")) {
-      return String(phoneDigits).trim();
-    }
-    return `+${digits}`;
-  }, []);
-
-  const ensureRecaptcha = useCallback(async () => {
-    if (recaptchaRef.current) {
-      try {
-        recaptchaRef.current.clear();
-      } catch {
-        // ignore
-      }
-      recaptchaRef.current = null;
-    }
-
-    const container = document.getElementById("recaptcha-container-signup");
-    if (!container) {
-      throw new Error("reCAPTCHA container not found");
-    }
-
-    container.innerHTML = "";
-    const child = document.createElement("div");
-    container.appendChild(child);
-
-    const verifier = new RecaptchaVerifier(firebaseAuth, child, {
-      size: "invisible",
-    });
-
-    recaptchaRef.current = verifier;
-    await verifier.render();
-    return verifier;
-  }, []);
-
-  const sendPhoneOtp = useCallback(async (phoneDigitsOverride) => {
-    if (sendOtpInFlightRef.current) return;
-    if (cooldownSeconds > 0) return;
-
-    const digitsToUse = phoneDigitsOverride || lockedPhoneDigits;
-    const e164 = toE164(digitsToUse);
-    if (!e164) {
-      setPhoneOtpError("Missing phone number");
-      return;
-    }
-
-    sendOtpInFlightRef.current = true;
-    setPhoneOtpLoading(true);
-    setPhoneOtpError("");
-
-    try {
-      const appVerifier = await ensureRecaptcha();
-      const confirmation = await signInWithPhoneNumber(
-        firebaseAuth,
-        e164,
-        appVerifier
-      );
-      confirmationResultRef.current = confirmation;
-      setPhoneOtpStep("verify");
-      setCooldownSeconds(60);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("sendOtp failed", err);
-      const code = err?.code || "";
-      if (code === "auth/captcha-check-failed") {
-        setPhoneOtpError(
-          "reCAPTCHA verification failed. Please wait a few seconds and try Resend OTP."
-        );
-      } else if (code === "auth/unauthorized-domain") {
-        setPhoneOtpError(
-          "Unauthorized domain for Firebase Phone Auth. Add this domain to Firebase Auth > Settings > Authorized domains."
-        );
-      } else if (code === "auth/too-many-requests") {
-        setPhoneOtpError("Too many OTP requests. Please wait and try again.");
-        setCooldownSeconds(300);
-      } else if (code === "auth/internal-error") {
-        setPhoneOtpError(
-          "Firebase rejected the OTP request. Open DevTools > Network > sendVerificationCode > Response to see the exact reason (often TOO_MANY_ATTEMPTS_TRY_LATER)."
-        );
-        setCooldownSeconds(600);
-      } else {
-        const msg = err?.message || "Failed to send OTP";
-        setPhoneOtpError(code ? `${code}: ${msg}` : msg);
-      }
-
-      if (recaptchaRef.current) {
-        try {
-          recaptchaRef.current.clear();
-        } catch {
-          // ignore
-        }
-        recaptchaRef.current = null;
-      }
-    } finally {
-      setPhoneOtpLoading(false);
-      sendOtpInFlightRef.current = false;
-    }
-  }, [cooldownSeconds, ensureRecaptcha, lockedPhoneDigits, toE164]);
-
-  const verifyPhoneOtp = useCallback(
-    async (e) => {
-      e.preventDefault();
-
-      const code = phoneOtpValue.replace(/\D/g, "").slice(0, 6);
-      if (code.length < 6) {
-        setPhoneOtpError("Enter the 6-digit OTP");
-        return;
-      }
-
-      if (!confirmationResultRef.current) {
-        setPhoneOtpError("OTP session expired. Please request a new OTP.");
-        return;
-      }
-
-      setPhoneOtpLoading(true);
-      setPhoneOtpError("");
-
-      try {
-        const result = await confirmationResultRef.current.confirm(code);
-        const idToken = await result.user.getIdToken(true);
-
-        setVerifiedFirebaseIdToken(idToken);
-        setVerifiedPhoneDigits(lockedPhoneDigits);
-        setPhoneOtpStep("verified");
-        setPhoneOtpValue("");
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("verifyOtp failed", err);
-        const code = err?.code || "";
-        const msg = err?.message || "Failed to verify OTP";
-        setPhoneOtpError(code ? `${code}: ${msg}` : msg);
-      } finally {
-        setPhoneOtpLoading(false);
-      }
-    },
-    [
-      phoneOtpValue,
-      lockedPhoneDigits,
-    ]
-  );
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -353,24 +169,6 @@ const SignupPage = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
-    if (name === "phone") {
-      setVerifiedFirebaseIdToken(null);
-      setVerifiedPhoneDigits(null);
-      setPhoneOtpStep("idle");
-      setPhoneOtpValue("");
-      setPhoneOtpError("");
-      setCooldownSeconds(0);
-      setLockedPhoneDigits(null);
-      confirmationResultRef.current = null;
-      if (recaptchaRef.current) {
-        try {
-          recaptchaRef.current.clear();
-        } catch {
-          // ignore
-        }
-        recaptchaRef.current = null;
-      }
-    }
     if (name === "email") {
       setEmailOtpStep("idle");
       setEmailOtpValue("");
@@ -390,27 +188,6 @@ const SignupPage = () => {
   useEffect(() => {
     persistSignupDraft();
   }, [persistSignupDraft]);
-
-  useEffect(() => {
-    if (cooldownSeconds <= 0) return;
-    const t = setInterval(() => {
-      setCooldownSeconds((s) => (s > 0 ? s - 1 : 0));
-    }, 1000);
-    return () => clearInterval(t);
-  }, [cooldownSeconds]);
-
-  useEffect(() => {
-    return () => {
-      if (recaptchaRef.current) {
-        try {
-          recaptchaRef.current.clear();
-        } catch {
-          // ignore
-        }
-        recaptchaRef.current = null;
-      }
-    };
-  }, []);
 
   const togglePasswordVisibility = (field) => {
     setShowPasswordFields((prev) => ({
@@ -557,57 +334,8 @@ const SignupPage = () => {
     }
   };
 
-  const handleSendOtpClick = async () => {
-    if (phoneOtpLoading) return;
-
-    const phoneDigits = (formData.phone || "").replace(/\D/g, "");
-    if (!phoneDigits) {
-      setErrors((prev) => ({ ...prev, phone: "Mobile number is required" }));
-      toast.error("Please enter a valid mobile number");
-      return;
-    }
-    if (phoneDigits.length !== 10 || !/^[6-9]\d{9}$/.test(phoneDigits)) {
-      setErrors((prev) => ({
-        ...prev,
-        phone: "Please enter a valid 10-digit mobile number",
-      }));
-      toast.error("Please enter a valid mobile number");
-      return;
-    }
-
-    const availability = await checkAvailability({
-      email: formData.email,
-      phoneDigits,
-    });
-    if (!availability.success) {
-      const msg = availability.message || "Already registered";
-      const normalized = msg.toLowerCase();
-      setErrors((prev) => ({
-        ...prev,
-        ...(normalized.includes("mobile") || normalized.includes("phone") ? { phone: msg } : {}),
-        ...(normalized.includes("email") || normalized.includes("user") ? { email: msg } : {}),
-      }));
-      toast.error(msg);
-      return;
-    }
-
-    setVerifiedFirebaseIdToken(null);
-    setVerifiedPhoneDigits(null);
-    setLockedPhoneDigits(phoneDigits);
-    setPhoneOtpStep("verify");
-    setPhoneOtpValue("");
-    setPhoneOtpError("");
-    confirmationResultRef.current = null;
-
-    await sendPhoneOtp(phoneDigits);
-  };
-
   const handleSendEmailOtpClick = async () => {
     if (emailOtpLoading || emailOtpResending) return;
-    if (!verifiedFirebaseIdToken || !verifiedPhoneDigits) {
-      toast.error("Please verify your phone number first");
-      return;
-    }
 
     const signupErrors = validateForm();
     if (Object.keys(signupErrors).length > 0) {
@@ -640,9 +368,7 @@ const SignupPage = () => {
     try {
       const { name, email, phone, password, confirmPassword, couponCode } =
         formData;
-      const verifiedDigits = String(verifiedPhoneDigits || "").replace(/\D/g, "");
-      const fallbackDigits = String(phone || "").replace(/\D/g, "");
-      const rawDigits = verifiedDigits || fallbackDigits;
+      const rawDigits = String(phone || "").replace(/\D/g, "");
       const phoneDigits = rawDigits
         ? rawDigits.length > 10
           ? rawDigits.slice(-10)
@@ -663,9 +389,7 @@ const SignupPage = () => {
         return;
       }
 
-      const submitResult = await submitSignupAfterPhoneVerification(
-        verifiedFirebaseIdToken
-      );
+      const submitResult = await submitSignup();
       if (!submitResult.success) {
         throw new Error(submitResult.error || "Failed to send email OTP");
       }
@@ -730,11 +454,6 @@ const SignupPage = () => {
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      return;
-    }
-
-    if (!verifiedPhoneDigits) {
-      toast.error("Please verify your phone number");
       return;
     }
 
@@ -934,8 +653,6 @@ const SignupPage = () => {
                   </div>
                 )}
 
-                <div id="recaptcha-container-signup" />
-
                 <form onSubmit={handleSubmit} className="space-y-3.5">
                     <input
                       type="text"
@@ -1044,99 +761,10 @@ const SignupPage = () => {
                             : "border-slate-700"
                         }`}
                       />
-
-                      {verifiedFirebaseIdToken && verifiedPhoneDigits ? (
-                        <button
-                          type="button"
-                          disabled
-                          className={clsx('px-4', 'py-3', 'rounded-xl', 'border', 'border-emerald-400/40', 'bg-emerald-500/10', 'text-emerald-200', 'font-semibold')}
-                        >
-                          Verified
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleSendOtpClick}
-                          disabled={phoneOtpLoading || cooldownSeconds > 0}
-                          className={clsx('px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
-                        >
-                          {cooldownSeconds > 0
-                            ? `Resend (${cooldownSeconds}s)`
-                            : phoneOtpStep === "verify"
-                              ? "Resend OTP"
-                              : "Send OTP"}
-                        </button>
-                      )}
                     </div>
                     {errors.phone && (
                       <p className={clsx('text-sm', 'text-red-400')}>{errors.phone}</p>
                     )}
-
-                    {verifiedFirebaseIdToken && verifiedPhoneDigits ? (
-                      <div className={clsx('rounded-xl', 'border', 'border-emerald-400/40', 'bg-emerald-500/10', 'px-4', 'py-3')}>
-                        <p className={clsx('text-sm', 'text-emerald-200')}>
-                          Phone number verified.
-                        </p>
-                      </div>
-                    ) : phoneOtpStep === "verify" ? (
-                      <div className={clsx('space-y-3', 'rounded-xl', 'border', 'border-white/10', 'bg-white/5', 'px-4', 'py-4')}>
-                        <p className={clsx('text-sm', 'text-slate-200')}>
-                          Enter OTP sent to +91{lockedPhoneDigits}
-                        </p>
-
-                        {phoneOtpError ? (
-                          <p className={clsx('text-sm', 'text-red-300')}>
-                            {phoneOtpError}
-                          </p>
-                        ) : null}
-
-                        <div className={clsx('flex', 'w-full', 'gap-3')}>
-                          <input
-                            type="text"
-                            value={phoneOtpValue}
-                            onChange={(e) => setPhoneOtpValue(e.target.value)}
-                            inputMode="numeric"
-                            autoComplete="one-time-code"
-                            placeholder="6-digit OTP"
-                            className={clsx('min-w-0', 'flex-1', 'px-4', 'py-3', 'rounded-xl', 'border', 'bg-slate-900/60', 'text-slate-50', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:border-transparent', 'transition-all', 'border-slate-700')}
-                            maxLength={6}
-                          />
-
-                          <button
-                            type="button"
-                            onClick={(e) => verifyPhoneOtp(e)}
-                            disabled={phoneOtpLoading}
-                            className={clsx('px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
-                          >
-                            {phoneOtpLoading ? "Verifying..." : "Verify"}
-                          </button>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPhoneOtpStep("idle");
-                            setLockedPhoneDigits(null);
-                            setPhoneOtpValue("");
-                            setPhoneOtpError("");
-                            setCooldownSeconds(0);
-                            confirmationResultRef.current = null;
-                            if (recaptchaRef.current) {
-                              try {
-                                recaptchaRef.current.clear();
-                              } catch {
-                                // ignore
-                              }
-                              recaptchaRef.current = null;
-                            }
-                          }}
-                          disabled={phoneOtpLoading}
-                          className={clsx('text-slate-300', 'hover:text-white', 'text-sm', 'text-left')}
-                        >
-                          Change phone number
-                        </button>
-                      </div>
-                    ) : null}
 
                     
 
@@ -1170,8 +798,7 @@ const SignupPage = () => {
                           disabled={
                             emailOtpLoading ||
                             emailOtpResending ||
-                            emailOtpCountdown > 0 ||
-                            !verifiedFirebaseIdToken
+                            emailOtpCountdown > 0
                           }
                           className={clsx('px-4', 'py-3', 'rounded-xl', 'bg-primary-500', 'text-white', 'font-semibold', 'hover:bg-primary-400', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                         >
@@ -1294,7 +921,7 @@ const SignupPage = () => {
 
                     <button
                       type="submit"
-                      disabled={loading || !verifiedPhoneDigits || emailOtpStep !== "verified"}
+                      disabled={loading || emailOtpStep !== "verified"}
                       className={clsx('w-full', 'bg-primary-500', 'text-white', 'py-3.5', 'px-6', 'rounded-xl', 'font-semibold', 'shadow-lg', 'shadow-primary-500/40', 'hover:bg-primary-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary-500', 'focus:ring-offset-0', 'transition-all', 'disabled:opacity-50', 'disabled:cursor-not-allowed')}
                     >
                       {loading ? "Registering..." : "Register"}

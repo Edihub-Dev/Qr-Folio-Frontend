@@ -329,8 +329,8 @@ const LoginPage = () => {
                   <p className="text-slate-300">Welcome back to QR Folio</p>
                 </div>
 
-                <div className={clsx('mb-6', 'grid', 'grid-cols-2', 'gap-2', 'rounded-xl', 'border', 'border-white/10', 'bg-white/5', 'p-1')}>
-                  <button
+                {/* <div className={clsx('mb-6', 'grid', 'grid-cols-2', 'gap-2', 'rounded-xl', 'border', 'border-white/10', 'bg-white/5', 'p-1')}> */}
+                  {/* <button
                     type="button"
                     onClick={() => {
                       setActiveTab("password");
@@ -343,8 +343,8 @@ const LoginPage = () => {
                     }`}
                   >
                     Password Login
-                  </button>
-                  <button
+                  </button> */}
+                  {/* <button
                     type="button"
                     onClick={() => {
                       setActiveTab("otp");
@@ -357,8 +357,8 @@ const LoginPage = () => {
                     }`}
                   >
                     Phone OTP
-                  </button>
-                </div>
+                  </button> */}
+                {/* </div> */}
 
                 {isBlocked && (
                   <div className={clsx('mb-6', 'p-4', 'rounded-xl', 'border', 'border-amber-500/40', 'bg-amber-500/10')}>

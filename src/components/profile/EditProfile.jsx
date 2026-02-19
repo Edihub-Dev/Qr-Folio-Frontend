@@ -11,6 +11,8 @@ const EditProfile = () => {
     useAuth();
   const navigate = useNavigate();
 
+  const phoneChangeDisabled = true;
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -377,24 +379,36 @@ const EditProfile = () => {
                 <div className={clsx('flex', 'items-center', 'justify-between', 'gap-4')}>
                   <div>
                     <p className={clsx('text-sm', 'font-semibold', 'text-slate-100')}>Change phone number</p>
-                    <p className={clsx('text-xs', 'text-slate-400')}>Requires OTP verification</p>
+                    <p className={clsx('text-xs', 'text-slate-400')}>Temporarily disabled</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
+                      if (phoneChangeDisabled) {
+                        return;
+                      }
                       setPhoneEditMode((prev) => !prev);
                       setPhoneError("");
                       setPhoneSession(null);
                       setPhoneOtp("");
                       setNewPhone("");
                     }}
+                    disabled={phoneChangeDisabled}
                     className={clsx('rounded-lg', 'border', 'border-white/10', 'px-3', 'py-2', 'text-sm', 'font-semibold', 'text-slate-200', 'hover:bg-white/5')}
                   >
                     {phoneEditMode ? "Cancel" : "Change"}
                   </button>
                 </div>
 
-                {phoneEditMode && (
+                {phoneChangeDisabled ? (
+                  <div className={clsx('mt-3', 'rounded-lg', 'border', 'border-amber-400/30', 'bg-amber-500/10', 'px-3', 'py-2')}>
+                    <p className={clsx('text-sm', 'text-amber-200')}>
+                      Phone number change is temporarily disabled. Please contact support if you need to update your number.
+                    </p>
+                  </div>
+                ) : null}
+
+                {!phoneChangeDisabled && phoneEditMode && (
                   <div className={clsx('mt-4', 'space-y-3')}>
                     {phoneError && (
                       <div className={clsx('rounded-lg', 'border', 'border-red-500/40', 'bg-red-500/10', 'px-3', 'py-2')}>

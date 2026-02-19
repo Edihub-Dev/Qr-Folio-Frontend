@@ -3,8 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { QrCode, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import { firebaseAuth } from "../../firebase";
 import api from "../../api";
 import PageSEO from "../../components/seo/PageSEO";
 import clsx from "clsx";
@@ -18,7 +16,6 @@ const ForgotPasswordPage = () => {
   const [otp, setOtp] = useState("");
   const [resendCountdown, setResendCountdown] = useState(0);
   const [resending, setResending] = useState(false);
-  const [phoneSession, setPhoneSession] = useState(null);
   const [passwords, setPasswords] = useState({
     newPassword: "",
     confirmPassword: "",
@@ -29,49 +26,27 @@ const ForgotPasswordPage = () => {
   });
 
   const isEmail = (value) => /^\S+@\S+\.\S+$/.test(String(value || "").trim());
-  const phoneDigits = (value) => String(value || "").replace(/\D/g, "").slice(-10);
-  const toE164 = (digits) => `+91${digits}`;
-
-  const ensureRecaptcha = async () => {
-    const container = document.getElementById("recaptcha-container-forgot");
-    if (!container) throw new Error("reCAPTCHA container not found");
-    container.innerHTML = "";
-    const child = document.createElement("div");
-    container.appendChild(child);
-    const verifier = new RecaptchaVerifier(firebaseAuth, child, { size: "invisible" });
-    await verifier.render();
-    return verifier;
-  };
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setErrors({});
     const raw = identifier.trim();
     if (!raw) {
-      setErrors({ identifier: "Email or mobile number is required" });
+      setErrors({ identifier: "Email is required" });
+      return;
+    }
+    if (!isEmail(raw)) {
+      setErrors({ identifier: "Email is invalid" });
       return;
     }
     setLoading(true);
     try {
-      if (isEmail(raw)) {
-        const res = await api.post("/auth/forgot-password", { email: raw });
-        if (res.data?.success || res.status === 200) {
-          setStep(2);
-          setResendCountdown(60);
-        } else {
-          setErrors({ submit: res.data?.message || "Failed to send OTP" });
-        }
-      } else {
-        const digits = phoneDigits(raw);
-        if (digits.length !== 10) {
-          setErrors({ identifier: "Enter a valid 10-digit mobile number" });
-          return;
-        }
-        const verifier = await ensureRecaptcha();
-        const confirmation = await signInWithPhoneNumber(firebaseAuth, toE164(digits), verifier);
-        setPhoneSession(confirmation);
+      const res = await api.post("/auth/forgot-password", { email: raw });
+      if (res.data?.success || res.status === 200) {
         setStep(2);
         setResendCountdown(60);
+      } else {
+        setErrors({ submit: res.data?.message || "Failed to send OTP" });
       }
     } catch (err) {
       setErrors({ submit: err.response?.data?.message || err.message });
@@ -102,19 +77,11 @@ const ForgotPasswordPage = () => {
     setErrors({});
     try {
       const raw = identifier.trim();
-      if (isEmail(raw)) {
-        const res = await api.post("/auth/forgot-password", { email: raw });
-        if (res.data?.success || res.status === 200) {
-          setResendCountdown(60);
-        } else {
-          setErrors({ submit: res.data?.message || "Failed to resend OTP" });
-        }
-      } else {
-        const digits = phoneDigits(raw);
-        const verifier = await ensureRecaptcha();
-        const confirmation = await signInWithPhoneNumber(firebaseAuth, toE164(digits), verifier);
-        setPhoneSession(confirmation);
+      const res = await api.post("/auth/forgot-password", { email: raw });
+      if (res.data?.success || res.status === 200) {
         setResendCountdown(60);
+      } else {
+        setErrors({ submit: res.data?.message || "Failed to resend OTP" });
       }
     } catch (err) {
       setErrors({ submit: err.response?.data?.message || err.message });
@@ -134,30 +101,14 @@ const ForgotPasswordPage = () => {
     setLoading(true);
     try {
       const raw = identifier.trim();
-      if (isEmail(raw)) {
-        const res = await api.post("/auth/verify-reset-otp", {
-          email: raw,
-          otp: otpString,
-        });
-        if (res.data?.success) {
-          setStep(3);
-        } else {
-          setErrors({ otp: res.data?.message || "Invalid OTP" });
-        }
+      const res = await api.post("/auth/verify-reset-otp", {
+        email: raw,
+        otp: otpString,
+      });
+      if (res.data?.success) {
+        setStep(3);
       } else {
-        if (!phoneSession) {
-          setErrors({ submit: "OTP session expired. Please resend OTP." });
-          return;
-        }
-        const result = await phoneSession.confirm(otpString);
-        const token = await result.user.getIdToken(true);
-        navigate("/reset-password", {
-          replace: true,
-          state: {
-            identifier: phoneDigits(raw),
-            firebaseIdToken: token,
-          },
-        });
+        setErrors({ otp: res.data?.message || "Invalid OTP" });
       }
     } catch (err) {
       setErrors({ otp: err.response?.data?.message || err.message });
@@ -181,7 +132,7 @@ const ForgotPasswordPage = () => {
     setLoading(true);
     try {
       const res = await api.post("/auth/reset-password", {
-        identifier: identifier.trim(),
+        email: identifier.trim(),
         otp: otp.trim(),
         newPassword,
       });
@@ -240,7 +191,7 @@ const ForgotPasswordPage = () => {
             </div>
             <p className={clsx('text-sm', 'text-slate-300')}>
               {step === 1
-                ? "Enter your email or mobile number to receive a reset code."
+                ? "Enter your email to receive a reset code."
                 : step === 2
                 ? "Enter the 6-digit code we sent you."
                 : "Set a new password for your account."}
@@ -275,7 +226,7 @@ const ForgotPasswordPage = () => {
                     name="identifier"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="Email or mobile number"
+                    placeholder="Email"
                     className={`w-full px-4 py-3.5 rounded-xl border bg-slate-900/60 text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all ${
                       errors.identifier
                         ? "border-red-500/60 bg-red-500/10"
@@ -286,8 +237,6 @@ const ForgotPasswordPage = () => {
                     <p className={clsx('mt-1', 'text-sm', 'text-red-400')}>{errors.identifier}</p>
                   )}
                 </div>
-
-                <div id="recaptcha-container-forgot" />
 
                 <button
                   type="submit"

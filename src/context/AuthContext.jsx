@@ -304,6 +304,45 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const submitSignup = async () => {
+    try {
+      const effectiveSignupData = signupData || signupDataRef.current;
+      if (!effectiveSignupData) {
+        return { success: false, error: "Missing signup data" };
+      }
+
+      const normalizePhoneForApi = (value) => {
+        const digits = String(value || "").replace(/\D/g, "");
+        if (!digits) return null;
+        return digits.length > 10 ? digits.slice(-10) : digits;
+      };
+
+      const payload = {
+        name: effectiveSignupData.name,
+        email: effectiveSignupData.email,
+        phone: normalizePhoneForApi(effectiveSignupData.phone),
+        password: effectiveSignupData.password,
+        confirmPassword: effectiveSignupData.confirmPassword,
+        couponCode: effectiveSignupData.couponCode,
+      };
+
+      if (effectiveSignupData.referralCode) {
+        payload.referralCode = effectiveSignupData.referralCode;
+      }
+
+      const res = await api.post("/auth/signup", payload);
+      if (res.data?.success) {
+        return { success: true, data: res.data };
+      }
+      return { success: false, error: res.data?.message || "Signup failed" };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message,
+      };
+    }
+  };
+
   const mobileOtpLogin = async ({ phone, firebaseIdToken }) => {
     try {
       const digits = String(phone || "").replace(/\D/g, "").slice(-10);
@@ -389,85 +428,6 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: res.data?.message || "Failed to update phone" };
     } catch (err) {
       return { success: false, error: err.response?.data?.message || err.message };
-    }
-  };
-
-  const submitSignupAfterPhoneVerification = async (firebaseIdToken) => {
-    try {
-      const effectiveSignupData = signupData || signupDataRef.current;
-      if (!effectiveSignupData) {
-        return { success: false, error: "Missing signup data" };
-      }
-
-      const normalizePhoneForApi = (value) => {
-        const digits = String(value || "").replace(/\D/g, "");
-        if (!digits) return null;
-        return digits.length > 10 ? digits.slice(-10) : digits;
-      };
-
-      const payload = {
-        name: effectiveSignupData.name,
-        email: effectiveSignupData.email,
-        phone: normalizePhoneForApi(effectiveSignupData.phone),
-        password: effectiveSignupData.password,
-        confirmPassword: effectiveSignupData.confirmPassword,
-        couponCode: effectiveSignupData.couponCode,
-        firebaseIdToken,
-      };
-
-      if (effectiveSignupData.referralCode) {
-        payload.referralCode = effectiveSignupData.referralCode;
-      }
-
-      const res = await api.post("/auth/signup", payload);
-      if (res.data?.success) {
-        return { success: true, data: res.data };
-      }
-      return { success: false, error: res.data?.message || "Signup failed" };
-    } catch (err) {
-      return {
-        success: false,
-        error: err.response?.data?.message || err.message,
-      };
-    }
-  };
-
-  const removeProfilePhoto = async () => {
-    try {
-      const res = await api.delete("/user/profile-photo");
-      if (res.data?.success) {
-        const normalized = normalizeUser(
-          res.data.user || { profilePhoto: null, profilePhotoStorageKey: null }
-        );
-        setUser(normalized);
-        localStorage.setItem("qr_folio_user", JSON.stringify(normalized));
-        return { success: true };
-      }
-
-      return {
-        success: false,
-        error: res.data?.message || "Failed to remove photo",
-      };
-    } catch (err) {
-      return {
-        success: false,
-        error: err.response?.data?.message || err.message,
-      };
-    }
-  };
-
-  const resendOTP = async () => {
-    try {
-      const effectiveSignupData = signupData || signupDataRef.current;
-      if (!effectiveSignupData?.email)
-        return { success: false, error: "No email to resend OTP" };
-      await api.post("/auth/resend-otp", { email: effectiveSignupData.email });
-      return { success: true };
-    } catch (err) {
-      return {
-        success: false,
-        error: err.response?.data?.message || err.message,
-      };
     }
   };
 
@@ -573,6 +533,22 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         error: errorMessage,
+      };
+    }
+  };
+
+  const resendOTP = async () => {
+    try {
+      const effectiveSignupData = signupData || signupDataRef.current;
+      if (!effectiveSignupData?.email) {
+        return { success: false, error: "No email to resend OTP" };
+      }
+      await api.post("/auth/resend-otp", { email: effectiveSignupData.email });
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message,
       };
     }
   };
@@ -1084,6 +1060,30 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const removeProfilePhoto = async () => {
+    try {
+      const res = await api.delete("/user/profile-photo");
+      if (res.data?.success) {
+        const normalized = normalizeUser(
+          res.data.user || { profilePhoto: null, profilePhotoStorageKey: null }
+        );
+        setUser(normalized);
+        localStorage.setItem("qr_folio_user", JSON.stringify(normalized));
+        return { success: true };
+      }
+
+      return {
+        success: false,
+        error: res.data?.message || "Failed to remove photo",
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message,
+      };
+    }
+  };
+
   // In AuthContext.jsx, inside the AuthProvider component
 
   const fetchGallery = useCallback(async () => {
@@ -1185,9 +1185,9 @@ export const AuthProvider = ({ children }) => {
         can,
         signupData,
         signup,
-        submitSignupAfterPhoneVerification,
-        resendOTP,
+        submitSignup,
         verifyOTP,
+        resendOTP,
         createPaymentOrder,
         createChainpayPayment,
         verifyPayment,

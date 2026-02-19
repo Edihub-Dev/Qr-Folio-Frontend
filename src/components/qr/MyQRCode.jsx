@@ -76,7 +76,12 @@ const MyQRCode = () => {
   //   }, 1800);
   // };
 
-  const apiBase = useMemo(() => import.meta.env.VITE_API_URL?.replace(/\/$/, ""), []);
+  const apiBase = useMemo(
+    () =>
+      import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
+      "http://api.qrfolio.net",
+    []
+  );
   const hasFetchedConfig = useRef(false);
 
   useEffect(() => {
