@@ -181,7 +181,29 @@ const AdminUserRewardsPage = () => {
           );
         },
       },
-      { key: "rewardCode", label: "Reward", sortable: true },
+      {
+        key: "rewardCode",
+        label: "Reward",
+        sortable: true,
+        render: (value, row) => (
+          <div className={clsx('flex', 'flex-col')}>
+            <span className={clsx('text-sm', 'font-medium', 'text-gray-800')}>
+              {value || "—"}
+            </span>
+            {row?.rewardTitle && (
+              <span className={clsx('text-xs', 'text-gray-500')}>
+                {row.rewardTitle}
+              </span>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: "referralCount",
+        label: "Referrals",
+        sortable: false,
+        render: (value) => (value !== undefined && value !== null ? value : 0),
+      },
       {
         key: "status",
         label: "Status",
@@ -389,6 +411,30 @@ const AdminUserRewardsPage = () => {
               <div>
                 <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Reward</p>
                 <p className="text-gray-900">{selectedReward.rewardCode || "—"}</p>
+                {selectedReward.rewardTitle && (
+                  <p className={clsx('text-xs', 'text-gray-500')}>
+                    {selectedReward.rewardTitle}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className={clsx('grid', 'gap-3', 'sm:grid-cols-2')}>
+              <div>
+                <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Referral count</p>
+                <p className="text-gray-900">
+                  {selectedReward.referralCount !== undefined && selectedReward.referralCount !== null
+                    ? selectedReward.referralCount
+                    : 0}
+                </p>
+              </div>
+              <div>
+                <p className={clsx('text-xs', 'font-medium', 'text-gray-500')}>Required for reward</p>
+                <p className="text-gray-900">
+                  {selectedReward.referralRequired !== undefined && selectedReward.referralRequired !== null
+                    ? selectedReward.referralRequired
+                    : "—"}
+                </p>
               </div>
             </div>
 
