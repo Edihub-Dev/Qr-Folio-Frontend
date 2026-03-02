@@ -412,18 +412,15 @@ const LandingPage = () => {
                     <span>Get Started Free</span>
                     <ArrowRight className="w-5 h-5" />
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const el = document.getElementById("features");
-                      if (el) {
-                        el.scrollIntoView({ behavior: "smooth" });
-                      }
-                    }}
+                  <a
+                    href="https://expo.dev/accounts/dineshk125/projects/qrfolio-mobile/builds/662b25a4-a05f-4777-8e47-6237ee4de427"
+                    target="_blank"
+                    rel="noreferrer"
+                    download
                     className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm sm:text-base font-medium text-slate-100 backdrop-blur transition hover:bg-white/10"
                   >
-                    Explore Features
-                  </button>
+                    Download APK
+                  </a>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-slate-300/80">
