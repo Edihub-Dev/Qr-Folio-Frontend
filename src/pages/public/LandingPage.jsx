@@ -413,7 +413,7 @@ const LandingPage = () => {
                     <ArrowRight className="w-5 h-5" />
                   </button>
                   <a
-                    href="https://expo.dev/accounts/dineshk125/projects/qrfolio-mobile/builds/662b25a4-a05f-4777-8e47-6237ee4de427"
+                    href="https://edihub-bucket9999.s3.ap-south-1.amazonaws.com/apk/qrfolio.apk"
                     target="_blank"
                     rel="noreferrer"
                     download
