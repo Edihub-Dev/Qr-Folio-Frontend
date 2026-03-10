@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import api from "../../api";
 import PageSEO from "../../components/seo/PageSEO";
 import { buildAbsoluteUrl } from "../../utils/seoConfig";
+import clsx from 'clsx'
 import {
   QrCode,
   Users,
@@ -325,36 +326,36 @@ const LandingPage = () => {
         ogType="website"
         structuredData={[organizationSchema, serviceSchema, faqSchema]}
       />
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className={clsx('min-h-screen', 'bg-slate-950', 'text-white')}>
         {/* Promo modal removed as per latest requirements */}
-        <nav className="fixed inset-x-0 top-0 z-50 border-b border-slate-800/70 bg-slate-950/80 backdrop-blur">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/40">
+        <nav className={clsx('fixed', 'inset-x-0', 'top-0', 'z-50', 'border-b', 'border-slate-800/70', 'bg-slate-950/80', 'backdrop-blur')}>
+          <div className={clsx('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+            <div className={clsx('flex', 'justify-between', 'items-center', 'h-16')}>
+              <div className={clsx('flex', 'items-center', 'space-x-3')}>
+                <div className={clsx('w-10', 'h-10', 'bg-gradient-to-br', 'rounded-xl', 'flex', 'items-center', 'justify-center', 'shadow-lg', 'shadow-primary-500/40')}>
                   <a href="/">
                     <img
                       src="/assets/QrLogo.webp"
                       alt="QR Folio"
-                      className="h-10 w-10 object-contain"
+                      className={clsx('h-10', 'w-10', 'object-contain')}
                     />
                   </a>
                 </div>
-                <span className="text-xl font-semibold tracking-tight text-white">
+                <span className={clsx('text-xl', 'font-semibold', 'tracking-tight', 'text-white')}>
                   <a href="/">QR Folio</a>
                 </span>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className={clsx('flex', 'items-center', 'space-x-4')}>
                 <button
                   onClick={() => navigate("/login")}
-                  className="text-sm font-medium text-slate-200 hover:text-white px-4 py-2 rounded-lg transition-colors"
+                  className={clsx('text-sm', 'font-medium', 'text-slate-200', 'hover:text-white', 'px-4', 'py-2', 'rounded-lg', 'transition-colors')}
                 >
                   Login
                 </button>
                 <button
                   onClick={() => navigate("/signup")}
-                  className="bg-primary-500/90 text-white text-sm font-semibold px-6 py-2 rounded-lg shadow-md shadow-primary-500/40 hover:bg-primary-400 transition-colors"
+                  className={clsx('bg-primary-500/90', 'text-white', 'text-sm', 'font-semibold', 'px-6', 'py-2', 'rounded-lg', 'shadow-md', 'shadow-primary-500/40', 'hover:bg-primary-400', 'transition-colors')}
                 >
                   Get Started
                 </button>
@@ -365,75 +366,75 @@ const LandingPage = () => {
 
         {/* Hero Section */}
         <motion.section
-          className="relative overflow-hidden pt-24 pb-20 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white"
+          className={clsx('relative', 'overflow-hidden', 'pt-24', 'pb-20', 'bg-gradient-to-br', 'from-slate-950', 'via-slate-900', 'to-slate-950', 'text-white')}
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary-500/30 blur-3xl" />
-            <div className="absolute bottom-0 left-10 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
-            <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+          <div className={clsx('pointer-events-none', 'absolute', 'inset-0')}>
+            <div className={clsx('absolute', '-top-40', '-right-40', 'h-80', 'w-80', 'rounded-full', 'bg-primary-500/30', 'blur-3xl')} />
+            <div className={clsx('absolute', 'bottom-0', 'left-10', 'h-64', 'w-64', 'rounded-full', 'bg-emerald-500/20', 'blur-3xl')} />
+            <div className={clsx('absolute', 'inset-x-0', 'bottom-0', 'h-px', 'bg-gradient-to-r', 'from-transparent', 'via-white/40', 'to-transparent')} />
           </div>
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className={clsx('relative', 'max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+            <div className={clsx('grid', 'lg:grid-cols-2', 'gap-12', 'items-center')}>
               <motion.div
                 className="space-y-8"
                 initial={{ opacity: 0, x: -40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
               >
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs sm:text-sm text-slate-100 shadow-sm backdrop-blur">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <div className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-full', 'border', 'border-white/10', 'bg-white/5', 'px-3', 'py-1', 'text-xs', 'sm:text-sm', 'text-slate-100', 'shadow-sm', 'backdrop-blur')}>
+                  <span className={clsx('h-1.5', 'w-1.5', 'rounded-full', 'bg-emerald-400', 'animate-pulse')} />
                   <span>
                     Smarter, contactless networking for modern professionals
                   </span>
                 </div>
 
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-normal">
+                <h1 className={clsx('text-4xl', 'sm:text-5xl', 'lg:text-6xl', 'font-semibold', 'tracking-tight', 'leading-normal')}>
                   Your identity,
-                  <span className="block pb-2 bg-gradient-to-r from-primary-300 via-emerald-300 to-sky-300 bg-clip-text text-transparent">
+                  <span className={clsx('block', 'pb-2', 'bg-gradient-to-r', 'from-primary-300', 'via-emerald-300', 'to-sky-300', 'bg-clip-text', 'text-transparent')}>
                     one QR away.
                   </span>
                 </h1>
-                <p className="text-base sm:text-lg text-slate-200/80 max-w-xl">
+                <p className={clsx('text-base', 'sm:text-lg', 'text-slate-200/80', 'max-w-xl')}>
                   Create a beautiful, always up-to-date digital business card.
                   Share it instantly with a single scan and never reprint paper
                   cards again.
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className={clsx('flex', 'flex-col', 'sm:flex-row', 'gap-4')}>
                   <button
                     onClick={() => navigate("/signup")}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-500 px-8 py-3 text-sm sm:text-base font-semibold text-white shadow-lg shadow-primary-500/40 transition hover:-translate-y-0.5 hover:bg-primary-400 hover:shadow-xl"
+                    className={clsx('inline-flex', 'items-center', 'justify-center', 'gap-2', 'rounded-xl', 'bg-primary-500', 'px-8', 'py-3', 'text-sm', 'sm:text-base', 'font-semibold', 'text-white', 'shadow-lg', 'shadow-primary-500/40', 'transition', 'hover:-translate-y-0.5', 'hover:bg-primary-400', 'hover:shadow-xl')}
                     type="button"
                   >
                     <span>Get Started Free</span>
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className={clsx('w-5', 'h-5')} />
                   </button>
                   <a
                     href="https://edihub-bucket9999.s3.ap-south-1.amazonaws.com/apk/qrfolio.apk"
                     target="_blank"
                     rel="noreferrer"
                     download
-                    className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-6 py-3 text-sm sm:text-base font-medium text-slate-100 backdrop-blur transition hover:bg-white/10"
+                    className={clsx('inline-flex', 'items-center', 'justify-center', 'rounded-xl', 'border', 'border-white/20', 'bg-white/5', 'px-6', 'py-3', 'text-sm', 'sm:text-base', 'font-medium', 'text-slate-100', 'backdrop-blur', 'transition', 'hover:bg-white/10')}
                   >
                     Download APK
                   </a>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-slate-300/80">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-400" />
+                <div className={clsx('flex', 'flex-wrap', 'items-center', 'gap-4', 'text-xs', 'sm:text-sm', 'text-slate-300/80')}>
+                  <div className={clsx('flex', 'items-center', 'gap-2')}>
+                    <CheckCircle className={clsx('h-4', 'w-4', 'text-emerald-400')} />
                     <span>No app required</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-emerald-400" />
+                  <div className={clsx('flex', 'items-center', 'gap-2')}>
+                    <Shield className={clsx('h-4', 'w-4', 'text-emerald-400')} />
                     <span>Secure by design</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-emerald-400" />
+                  <div className={clsx('flex', 'items-center', 'gap-2')}>
+                    <Zap className={clsx('h-4', 'w-4', 'text-emerald-400')} />
                     <span>Live in minutes</span>
                   </div>
                 </div>
@@ -445,29 +446,29 @@ const LandingPage = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
               >
-                <div className="relative rounded-3xl bg-white/5 p-4 sm:p-6 lg:p-8 shadow-2xl shadow-primary-500/30 ring-1 ring-white/10 backdrop-blur">
-                  <div className="absolute inset-x-16 -top-12 h-24 rounded-full bg-gradient-to-r from-primary-500/30 via-emerald-400/30 to-sky-400/30 blur-3xl" />
-                  <div className="relative rounded-2xl border border-white/10 bg-slate-950/40 p-4 sm:p-5">
+                <div className={clsx('relative', 'rounded-3xl', 'bg-white/5', 'p-4', 'sm:p-6', 'lg:p-8', 'shadow-2xl', 'shadow-primary-500/30', 'ring-1', 'ring-white/10', 'backdrop-blur')}>
+                  <div className={clsx('absolute', 'inset-x-16', '-top-12', 'h-24', 'rounded-full', 'bg-gradient-to-r', 'from-primary-500/30', 'via-emerald-400/30', 'to-sky-400/30', 'blur-3xl')} />
+                  <div className={clsx('relative', 'rounded-2xl', 'border', 'border-white/10', 'bg-slate-950/40', 'p-4', 'sm:p-5')}>
                     <img
                       src="/assets/landingpage.png"
                       alt="QR Folio Landing Page"
-                      className="w-full rounded-xl border border-white/5 shadow-lg"
+                      className={clsx('w-full', 'rounded-xl', 'border', 'border-white/5', 'shadow-lg')}
                     />
                   </div>
                 </div>
 
                 <motion.div
-                  className="pointer-events-none absolute -bottom-6 left-4 inline-flex items-center gap-3 rounded-2xl bg-slate-900/80 px-4 py-3 text-xs sm:text-sm text-slate-100 shadow-lg shadow-slate-950/40 ring-1 ring-white/10 backdrop-blur"
+                  className={clsx('pointer-events-none', 'absolute', '-bottom-6', 'left-4', 'inline-flex', 'items-center', 'gap-3', 'rounded-2xl', 'bg-slate-900/80', 'px-4', 'py-3', 'text-xs', 'sm:text-sm', 'text-slate-100', 'shadow-lg', 'shadow-slate-950/40', 'ring-1', 'ring-white/10', 'backdrop-blur')}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6, duration: 0.4, ease: "easeOut" }}
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500/90">
-                    <QrCode className="w-4 h-4 text-white" />
+                  <div className={clsx('flex', 'h-8', 'w-8', 'items-center', 'justify-center', 'rounded-full', 'bg-primary-500/90')}>
+                    <QrCode className={clsx('w-4', 'h-4', 'text-white')} />
                   </div>
                   <div>
                     <p className="font-medium">Tap or scan to connect</p>
-                    <p className="text-xs text-slate-300">
+                    <p className={clsx('text-xs', 'text-slate-300')}>
                       Share your profile in under 2 seconds.
                     </p>
                   </div>
@@ -479,30 +480,30 @@ const LandingPage = () => {
 
         <motion.section
           id="about"
-          className="py-20 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+          className={clsx('py-20', 'bg-gradient-to-b', 'from-slate-950', 'via-slate-900', 'to-slate-950')}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="about-image rounded-3xl border border-white/10 bg-slate-900/60 p-4 shadow-xl shadow-primary-500/20 backdrop-blur">
+          <div className={clsx('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+            <div className={clsx('grid', 'lg:grid-cols-2', 'gap-12', 'items-center')}>
+              <div className={clsx('about-image', 'rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/60', 'p-4', 'shadow-xl', 'shadow-primary-500/20', 'backdrop-blur')}>
                 <img
                   src="/assets/aboutVideo.png"
                   alt="About QR Folio"
-                  className="rounded-2xl w-full h-full object-cover"
+                  className={clsx('rounded-2xl', 'w-full', 'h-full', 'object-cover')}
                 />
               </div>
-              <div className="about-text space-y-4 rounded-3xl border border-white/10 bg-slate-900/60 p-6 sm:p-8 shadow-xl shadow-primary-500/20 backdrop-blur">
-                <h2 className="text-4xl font-bold text-white mb-2">About Us</h2>
-                <p className="text-lg sm:text-xl text-slate-200 mb-2">
+              <div className={clsx('about-text', 'space-y-4', 'rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/60', 'p-6', 'sm:p-8', 'shadow-xl', 'shadow-primary-500/20', 'backdrop-blur')}>
+                <h2 className={clsx('text-4xl', 'font-bold', 'text-white', 'mb-2')}>About Us</h2>
+                <p className={clsx('text-lg', 'sm:text-xl', 'text-slate-200', 'mb-2')}>
                   At QR Folio, we believe your identity should be simple,
                   secure, and dynamic. We've helped thousands of individuals and
                   businesses instantly share verified identities, reducing the
                   need for paper forms and business cards.
                 </p>
-                <p className="text-lg sm:text-xl text-slate-300">
+                <p className={clsx('text-lg', 'sm:text-xl', 'text-slate-300')}>
                   Our mission is to create a seamless, cutting-edge, and
                   verifiable digital identity that's portable and accessible to
                   everyone.
@@ -515,30 +516,30 @@ const LandingPage = () => {
         {/* Features Section */}
         <motion.section
           id="features"
-          className="relative py-20 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+          className={clsx('relative', 'py-20', 'bg-gradient-to-b', 'from-slate-950', 'via-slate-900', 'to-slate-950')}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary-500/40 to-transparent" />
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-white mb-4">
+          <div className={clsx('pointer-events-none', 'absolute', 'inset-x-0', 'top-0', 'h-px', 'bg-gradient-to-r', 'from-transparent', 'via-primary-500/40', 'to-transparent')} />
+          <div className={clsx('relative', 'max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+            <div className={clsx('text-center', 'mb-16')}>
+              <h2 className={clsx('text-4xl', 'font-bold', 'text-white', 'mb-4')}>
                 Everything You Need for Digital Networking
               </h2>
-              <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+              <p className={clsx('text-xl', 'text-slate-300', 'max-w-3xl', 'mx-auto')}>
                 Powerful features designed to make professional networking
                 seamless and effective.
               </p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className={clsx('grid', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-8')}>
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
                   <motion.div
                     key={feature.title}
-                    className="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-8 shadow-lg shadow-primary-500/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary-500/60 hover:shadow-xl"
+                    className={clsx('group', 'relative', 'overflow-hidden', 'rounded-2xl', 'border', 'border-white/10', 'bg-slate-900/60', 'p-8', 'shadow-lg', 'shadow-primary-500/20', 'transition-all', 'duration-300', 'hover:-translate-y-1', 'hover:border-primary-500/60', 'hover:shadow-xl')}
                     initial={{ opacity: 0, y: 24 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.2 }}
@@ -548,12 +549,12 @@ const LandingPage = () => {
                       ease: "easeOut",
                     }}
                   >
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary-500/0 via-primary-500/0 to-primary-500/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <div className={clsx('pointer-events-none', 'absolute', 'inset-0', 'bg-gradient-to-br', 'from-primary-500/0', 'via-primary-500/0', 'to-primary-500/10', 'opacity-0', 'transition-opacity', 'duration-300', 'group-hover:opacity-100')} />
                     <div className="relative">
-                      <div className="w-12 h-12 bg-primary-500/10 rounded-xl flex items-center justify-center mb-4 shadow-sm shadow-primary-500/30">
-                        <Icon className="w-6 h-6 text-primary-300" />
+                      <div className={clsx('w-12', 'h-12', 'bg-primary-500/10', 'rounded-xl', 'flex', 'items-center', 'justify-center', 'mb-4', 'shadow-sm', 'shadow-primary-500/30')}>
+                        <Icon className={clsx('w-6', 'h-6', 'text-primary-300')} />
                       </div>
-                      <h3 className="text-xl font-semibold text-white mb-2">
+                      <h3 className={clsx('text-xl', 'font-semibold', 'text-white', 'mb-2')}>
                         {feature.title}
                       </h3>
                       <p className="text-slate-300">{feature.description}</p>
@@ -567,15 +568,15 @@ const LandingPage = () => {
 
         <motion.section
           id="features-grid"
-          className="relative w-[90%] max-w-[75rem] mx-auto py-20"
+          className={clsx('relative', 'w-[90%]', 'max-w-[75rem]', 'mx-auto', 'py-20')}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-8 auto-rows-auto mr-12 ml-12 mb-[clamp(2rem,5vw,2.5rem)] mt-[clamp(2rem,5vw,2.5rem)]">
+          <div className={clsx('grid', 'grid-cols-[repeat(auto-fit,minmax(16rem,1fr))]', 'gap-8', 'auto-rows-auto', 'mr-12', 'ml-12', 'mb-[clamp(2rem,5vw,2.5rem)]', 'mt-[clamp(2rem,5vw,2.5rem)]')}>
             <motion.div
-              className="bg-slate-900/80 text-white flex flex-col justify-center row-span-2 text-center p-[clamp(1rem,8vw,2rem)] rounded-3xl border border-white/10 shadow-xl shadow-primary-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+              className={clsx('bg-slate-900/80', 'text-white', 'flex', 'flex-col', 'justify-center', 'row-span-2', 'text-center', 'p-[clamp(1rem,8vw,2rem)]', 'rounded-3xl', 'border', 'border-white/10', 'shadow-xl', 'shadow-primary-500/30', 'transition-all', 'duration-300', 'hover:-translate-y-1', 'hover:shadow-2xl')}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -591,24 +592,24 @@ const LandingPage = () => {
                   marginBottom: "1.5rem",
                 }}
               />
-              <h2 className="text-[clamp(1.5rem,4vw,2rem)] mb-[0.75rem]">
+              <h2 className={clsx('text-[clamp(1.5rem,4vw,2rem)]', 'mb-[0.75rem]')}>
                 Secure & Private
               </h2>
-              <p className="mb-[1rem] text-slate-300 text-[clamp(0.875rem,2vw,1rem)] m-0">
+              <p className={clsx('mb-[1rem]', 'text-slate-300', 'text-[clamp(0.875rem,2vw,1rem)]', 'm-0')}>
                 All data is encrypted; you decide what to share.
               </p>
               <button
                 onClick={() => navigate("/PrivacyPolicy")}
-                className="bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2"
+                className={clsx('bg-primary-600', 'text-white', 'px-8', 'py-4', 'rounded-xl', 'font-semibold', 'hover:bg-primary-700', 'transition-colors', 'flex', 'items-center', 'justify-center', 'space-x-2')}
                 type="button"
               >
                 <span>View Policies</span>
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className={clsx('w-5', 'h-5')} />
               </button>
             </motion.div>
 
             <motion.div
-              className="bg-slate-900/70 rounded-2xl p-4 px-8 shadow-lg shadow-slate-950/40 border border-white/10 transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-xl"
+              className={clsx('bg-slate-900/70', 'rounded-2xl', 'p-4', 'px-8', 'shadow-lg', 'shadow-slate-950/40', 'border', 'border-white/10', 'transition-all', 'duration-300', 'text-left', 'hover:-translate-y-1', 'hover:shadow-xl')}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -618,25 +619,25 @@ const LandingPage = () => {
               <img
                 src="/assets/customizable.png"
                 alt="Customizable Profiles"
-                className="w-[clamp(2.5rem,6vw,3rem)] h-[clamp(2.5rem,6vw,3rem)] mb-4"
+                className={clsx('w-[clamp(2.5rem,6vw,3rem)]', 'h-[clamp(2.5rem,6vw,3rem)]', 'mb-4')}
                 style={{
                   filter:
                     "invert(33%) sepia(98%) saturate(3266%) hue-rotate(197deg) brightness(102%) contrast(101%)",
                 }}
               />
 
-              <h3 className="text-[clamp(1rem,2.5vw,1.25rem)] mb-[0.5rem] text-white">
+              <h3 className={clsx('text-[clamp(1rem,2.5vw,1.25rem)]', 'mb-[0.5rem]', 'text-white')}>
                 Customizable Profiles
               </h3>
 
-              <p className="text-slate-300 text-[clamp(0.875rem,2vw,1rem)] m-0">
+              <p className={clsx('text-slate-300', 'text-[clamp(0.875rem,2vw,1rem)]', 'm-0')}>
                 Add or update details anytime — portfolio, documents, links, and
                 more.
               </p>
             </motion.div>
 
             <motion.div
-              className="bg-slate-900/70 rounded-2xl p-4 px-8 shadow-lg shadow-slate-950/40 border border-white/10 transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-xl"
+              className={clsx('bg-slate-900/70', 'rounded-2xl', 'p-4', 'px-8', 'shadow-lg', 'shadow-slate-950/40', 'border', 'border-white/10', 'transition-all', 'duration-300', 'text-left', 'hover:-translate-y-1', 'hover:shadow-xl')}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -646,19 +647,19 @@ const LandingPage = () => {
               <img
                 src="/assets/identity.png"
                 alt="Instant Identity Sharing"
-                className="w-[clamp(2.5rem,6vw,3rem)] h-[clamp(2.5rem,6vw,3rem)] mb-4"
+                className={clsx('w-[clamp(2.5rem,6vw,3rem)]', 'h-[clamp(2.5rem,6vw,3rem)]', 'mb-4')}
               />
-              <h3 className="text-[clamp(1rem,2.5vw,1.25rem)] mb-[0.5rem] text-white">
+              <h3 className={clsx('text-[clamp(1rem,2.5vw,1.25rem)]', 'mb-[0.5rem]', 'text-white')}>
                 Instant Identity Sharing
               </h3>
-              <p className="text-slate-300 text-[clamp(0.875rem,2vw,1rem)] m-0">
+              <p className={clsx('text-slate-300', 'text-[clamp(0.875rem,2vw,1rem)]', 'm-0')}>
                 Say goodbye to paper IDs — share your profile with a single
                 scan.
               </p>
             </motion.div>
 
             <motion.div
-              className="bg-slate-900/70 rounded-2xl p-4 px-8 shadow-lg shadow-slate-950/40 border border-white/10 transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-xl"
+              className={clsx('bg-slate-900/70', 'rounded-2xl', 'p-4', 'px-8', 'shadow-lg', 'shadow-slate-950/40', 'border', 'border-white/10', 'transition-all', 'duration-300', 'text-left', 'hover:-translate-y-1', 'hover:shadow-xl')}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -668,18 +669,18 @@ const LandingPage = () => {
               <img
                 src="/assets/scan.png"
                 alt="Instant Scan & Load"
-                className="w-[clamp(2.5rem,6vw,3rem)] h-[clamp(2.5rem,6vw,3rem)] mb-4"
+                className={clsx('w-[clamp(2.5rem,6vw,3rem)]', 'h-[clamp(2.5rem,6vw,3rem)]', 'mb-4')}
               />
-              <h3 className="text-[clamp(1rem,2.5vw,1.25rem)] mb-[0.5rem] text-white">
+              <h3 className={clsx('text-[clamp(1rem,2.5vw,1.25rem)]', 'mb-[0.5rem]', 'text-white')}>
                 Instant Scan & Load
               </h3>
-              <p className="text-slate-300 text-[clamp(0.875rem,2vw,1rem)] m-0">
+              <p className={clsx('text-slate-300', 'text-[clamp(0.875rem,2vw,1rem)]', 'm-0')}>
                 Profiles load in under 2 seconds — even on slow networks.
               </p>
             </motion.div>
 
             <motion.div
-              className="bg-slate-900/70 rounded-2xl p-4 px-8 shadow-lg shadow-slate-950/40 border border-white/10 transition-all duration-300 text-left hover:-translate-y-1 hover:shadow-xl"
+              className={clsx('bg-slate-900/70', 'rounded-2xl', 'p-4', 'px-8', 'shadow-lg', 'shadow-slate-950/40', 'border', 'border-white/10', 'transition-all', 'duration-300', 'text-left', 'hover:-translate-y-1', 'hover:shadow-xl')}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
@@ -689,12 +690,12 @@ const LandingPage = () => {
               <img
                 src="/assets/multi-device.png"
                 alt="Multi-Device Support"
-                className="w-[clamp(2.5rem,6vw,3rem)] h-[clamp(2.5rem,6vw,3rem)] mb-4"
+                className={clsx('w-[clamp(2.5rem,6vw,3rem)]', 'h-[clamp(2.5rem,6vw,3rem)]', 'mb-4')}
               />
-              <h3 className="text-[clamp(1rem,2.5vw,1.25rem)] mb-[0.5rem] text-white">
+              <h3 className={clsx('text-[clamp(1rem,2.5vw,1.25rem)]', 'mb-[0.5rem]', 'text-white')}>
                 Multi-Device Support
               </h3>
-              <p className="text-slate-300 text-[clamp(0.875rem,2vw,1rem)] m-0">
+              <p className={clsx('text-slate-300', 'text-[clamp(0.875rem,2vw,1rem)]', 'm-0')}>
                 Seamlessly works across smartphones, tablets, and desktops.
               </p>
             </motion.div>
@@ -703,20 +704,20 @@ const LandingPage = () => {
 
         <motion.section
           id="use-cases"
-          className="py-20 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+          className={clsx('py-20', 'bg-gradient-to-b', 'from-slate-950', 'via-slate-900', 'to-slate-950')}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-white mb-4">Use Cases</h2>
-              <p className="text-xl text-slate-300">
+          <div className={clsx('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+            <div className={clsx('text-center', 'mb-16')}>
+              <h2 className={clsx('text-4xl', 'font-bold', 'text-white', 'mb-4')}>Use Cases</h2>
+              <p className={clsx('text-xl', 'text-slate-300')}>
                 Explore how QR Folio fits into your world.
               </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className={clsx('grid', 'md:grid-cols-3', 'gap-8')}>
               {useCases.map((useCase) => (
                 <motion.div
                   key={useCase.id}
@@ -733,13 +734,13 @@ const LandingPage = () => {
                   transition={{ duration: 0.4, ease: "easeOut" }}
                   whileHover={{ y: -4 }}
                 >
-                  <div className="text-4xl mb-4 text-center">
+                  <div className={clsx('text-4xl', 'mb-4', 'text-center')}>
                     {useCase.icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2 text-center">
+                  <h3 className={clsx('text-xl', 'font-semibold', 'text-white', 'mb-2', 'text-center')}>
                     {useCase.title}
                   </h3>
-                  <p className="text-slate-300 text-center">{useCase.desc}</p>
+                  <p className={clsx('text-slate-300', 'text-center')}>{useCase.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -749,23 +750,23 @@ const LandingPage = () => {
         {/* Pricing Section */}
         <motion.section
           id="pricing"
-          className="py-20 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+          className={clsx('py-20', 'bg-gradient-to-b', 'from-slate-950', 'via-slate-900', 'to-slate-950')}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-white mb-4">
+          <div className={clsx('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+            <div className={clsx('text-center', 'mb-16')}>
+              <h2 className={clsx('text-4xl', 'font-bold', 'text-white', 'mb-4')}>
                 Choose Your Plan
               </h2>
-              <p className="text-xl text-slate-300">
+              <p className={clsx('text-xl', 'text-slate-300')}>
                 Start and scale as you grow
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className={clsx('grid', 'md:grid-cols-3', 'gap-8')}>
               {pricingPlans.map((plan, index) => (
                 <motion.div
                   key={plan.name}
@@ -785,33 +786,33 @@ const LandingPage = () => {
                   whileHover={{ y: -6 }}
                 >
                   {plan.highlighted && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <div className="bg-primary-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                    <div className={clsx('absolute', '-top-4', 'left-1/2', 'transform', '-translate-x-1/2')}>
+                      <div className={clsx('bg-primary-500', 'text-white', 'px-4', 'py-1', 'rounded-full', 'text-sm', 'font-medium')}>
                         Most Popular
                       </div>
                     </div>
                   )}
 
-                  <div className="text-center mb-8">
-                    <h3 className="text-2xl font-bold text-white mb-2">
+                  <div className={clsx('text-center', 'mb-8')}>
+                    <h3 className={clsx('text-2xl', 'font-bold', 'text-white', 'mb-2')}>
                       {plan.name}
                     </h3>
-                    <p className="text-slate-300 mb-4">{plan.description}</p>
-                    <div className="flex items-baseline justify-center">
-                      <span className="text-5xl font-bold text-white">
+                    <p className={clsx('text-slate-300', 'mb-4')}>{plan.description}</p>
+                    <div className={clsx('flex', 'items-baseline', 'justify-center')}>
+                      <span className={clsx('text-5xl', 'font-bold', 'text-white')}>
                         ₹{plan.price}/
                       </span>
-                      <span className="text-slate-300 ml-2">{plan.period}</span>
+                      <span className={clsx('text-slate-300', 'ml-2')}>{plan.period}</span>
                     </div>
                   </div>
 
-                  <ul className="space-y-4 mb-8">
+                  <ul className={clsx('space-y-4', 'mb-8')}>
                     {plan.features.map((feature, featureIndex) => (
                       <li
                         key={featureIndex}
-                        className="flex items-center space-x-3"
+                        className={clsx('flex', 'items-center', 'space-x-3')}
                       >
-                        <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                        <CheckCircle className={clsx('w-5', 'h-5', 'text-emerald-400', 'flex-shrink-0')} />
                         <span className="text-slate-200">{feature}</span>
                       </li>
                     ))}
@@ -841,27 +842,27 @@ const LandingPage = () => {
 
         {/* Testimonials Section */}
         <motion.section
-          className="py-20 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+          className={clsx('py-20', 'bg-gradient-to-b', 'from-slate-950', 'via-slate-900', 'to-slate-950')}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-white mb-4">
+          <div className={clsx('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+            <div className={clsx('text-center', 'mb-16')}>
+              <h2 className={clsx('text-4xl', 'font-bold', 'text-white', 'mb-4')}>
                 Loved by Professionals
               </h2>
-              <p className="text-xl text-slate-300">
+              <p className={clsx('text-xl', 'text-slate-300')}>
                 Join thousands of professionals who trust QR Folio
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className={clsx('grid', 'md:grid-cols-3', 'gap-8')}>
               {testimonials.map((testimonial, index) => (
                 <motion.div
                   key={testimonial.name}
-                  className="bg-slate-900/60 rounded-2xl p-8 border border-white/10 shadow-lg shadow-slate-950/40 backdrop-blur"
+                  className={clsx('bg-slate-900/60', 'rounded-2xl', 'p-8', 'border', 'border-white/10', 'shadow-lg', 'shadow-slate-950/40', 'backdrop-blur')}
                   initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.2 }}
@@ -872,28 +873,28 @@ const LandingPage = () => {
                   }}
                   whileHover={{ y: -4 }}
                 >
-                  <div className="flex items-center mb-1">
+                  <div className={clsx('flex', 'items-center', 'mb-1')}>
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className="w-5 h-5 text-yellow-400 fill-current"
+                        className={clsx('w-5', 'h-5', 'text-yellow-400', 'fill-current')}
                       />
                     ))}
                   </div>
-                  <p className="text-slate-200 mb-6 italic">
+                  <p className={clsx('text-slate-200', 'mb-6', 'italic')}>
                     "{testimonial.content}"
                   </p>
-                  <div className="flex items-center space-x-4">
+                  <div className={clsx('flex', 'items-center', 'space-x-4')}>
                     <img
                       src={testimonial.avatar}
                       alt={testimonial.name}
-                      className="w-12 h-12 rounded-full object-cover"
+                      className={clsx('w-12', 'h-12', 'rounded-full', 'object-cover')}
                     />
                     <div>
-                      <div className="font-semibold text-white">
+                      <div className={clsx('font-semibold', 'text-white')}>
                         {testimonial.name}
                       </div>
-                      <div className="text-sm text-slate-300">
+                      <div className={clsx('text-sm', 'text-slate-300')}>
                         {testimonial.role}, {testimonial.company}
                       </div>
                     </div>
@@ -906,55 +907,55 @@ const LandingPage = () => {
 
         {/* CTA Section */}
         <motion.section
-          className="py-20 bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500"
+          className={clsx('py-20', 'bg-gradient-to-r', 'from-primary-600', 'via-primary-500', 'to-emerald-500')}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-            <h2 className="text-4xl font-bold text-white mb-4">
+          <div className={clsx('max-w-4xl', 'mx-auto', 'text-center', 'px-4', 'sm:px-6', 'lg:px-8')}>
+            <h2 className={clsx('text-4xl', 'font-bold', 'text-white', 'mb-4')}>
               Ready to Transform Your Networking?
             </h2>
-            <p className="text-xl text-primary-100 mb-8">
+            <p className={clsx('text-xl', 'text-primary-100', 'mb-8')}>
               Join thousands of professionals who are already using QR Folio to
               build their network.
             </p>
             <button
               type="button"
               onClick={() => navigate("/signup")}
-              className="bg-white text-primary-600 px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2"
+              className={clsx('bg-white', 'text-primary-600', 'px-8', 'py-4', 'rounded-xl', 'font-semibold', 'hover:bg-gray-100', 'transition-colors', 'inline-flex', 'items-center', 'space-x-2')}
             >
               <span>Get Started</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className={clsx('w-5', 'h-5')} />
             </button>
           </div>
         </motion.section>
 
         {/* Footer */}
-        <footer className="bg-slate-950 text-white py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <footer className={clsx('bg-slate-950', 'text-white', 'py-16')}>
+          <div className={clsx('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
             {/* Contact Info Section */}
-            <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div className={clsx('grid', 'md:grid-cols-3', 'gap-8', 'mb-12')}>
               {/* Phone */}
               <div className="text-center">
                 <a
                   href="tel:+919460117199"
-                  className="flex flex-col items-center"
+                  className={clsx('flex', 'flex-col', 'items-center')}
                 >
-                  <div className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Phone className="w-8 h-8 text-white" />
+                  <div className={clsx('w-16', 'h-16', 'bg-primary-600', 'rounded-full', 'flex', 'items-center', 'justify-center', 'mx-auto', 'mb-4')}>
+                    <Phone className={clsx('w-8', 'h-8', 'text-white')} />
                   </div>
-                  <p className="text-gray-300 hover:text-white transition">
+                  <p className={clsx('text-gray-300', 'hover:text-white', 'transition')}>
                     +91 9460117199
                   </p>
                 </a>
 
                 <a
                   href="tel:+916399105369"
-                  className="flex flex-col items-center"
+                  className={clsx('flex', 'flex-col', 'items-center')}
                 >
-                  <p className="text-gray-300 hover:text-white transition">
+                  <p className={clsx('text-gray-300', 'hover:text-white', 'transition')}>
                     +91 6399105369
                   </p>
                 </a>
@@ -964,12 +965,12 @@ const LandingPage = () => {
               <div className="text-center">
                 <a
                   href="mailto:tech.qrfolio@gmail.com"
-                  className="flex flex-col items-center"
+                  className={clsx('flex', 'flex-col', 'items-center')}
                 >
-                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Mail className="w-8 h-8 text-white" />
+                  <div className={clsx('w-16', 'h-16', 'bg-blue-600', 'rounded-full', 'flex', 'items-center', 'justify-center', 'mx-auto', 'mb-4')}>
+                    <Mail className={clsx('w-8', 'h-8', 'text-white')} />
                   </div>
-                  <p className="text-gray-300 hover:text-white transition">
+                  <p className={clsx('text-gray-300', 'hover:text-white', 'transition')}>
                     tech.qrfolio@gmail.com
                   </p>
                 </a>
@@ -981,12 +982,12 @@ const LandingPage = () => {
                   href="https://www.google.com/maps/place/St.+John+the+Baptist+Church/@26.9038738,75.6276941,13z/data=!4m20!1m13!4m12!1m4!2m2!1d75.7781814!2d26.8980582!4e1!1m6!1m2!1s0x396c4b239c92cea3:0xc0715d7be4b75ae2!2sSt.+John+the+Baptist+Church,+WP33%2BPC4,+Lalarpura,+Jaipur,+Rajasthan+302021!2m2!1d75.7039065!2d26.9038768!3m5!1s0x396c4b239c92cea3:0xc0715d7be4b75ae2!8m2!3d26.9038803!4d75.7038843!16s%2Fg%2F11t2fd77gc?entry=ttu&g_ep=EgoyMDI1MDkzMC4wIKXMDSoASAFQAw%3D%3D"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center"
+                  className={clsx('flex', 'flex-col', 'items-center')}
                 >
-                  <div className="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MapPin className="w-8 h-8 text-white" />
+                  <div className={clsx('w-16', 'h-16', 'bg-primary-600', 'rounded-full', 'flex', 'items-center', 'justify-center', 'mx-auto', 'mb-4')}>
+                    <MapPin className={clsx('w-8', 'h-8', 'text-white')} />
                   </div>
-                  <p className="text-gray-300 hover:text-white transition">
+                  <p className={clsx('text-gray-300', 'hover:text-white', 'transition')}>
                     Vaishali Nagar, Jaipur, Rajasthan, 302021, India
                   </p>
                 </a>
@@ -994,14 +995,14 @@ const LandingPage = () => {
             </div>
 
             {/* Links Section */}
-            <div className="grid md:grid-cols-4 gap-8 mb-12">
+            <div className={clsx('grid', 'md:grid-cols-4', 'gap-8', 'mb-12')}>
               <div>
-                <h4 className="font-semibold mb-4 text-white">About</h4>
-                <ul className="space-y-3 text-gray-400">
+                <h4 className={clsx('font-semibold', 'mb-4', 'text-white')}>About</h4>
+                <ul className={clsx('space-y-3', 'text-gray-400')}>
                   <li>
                     <a
                       href="#about"
-                      className="hover:text-white transition-colors"
+                      className={clsx('hover:text-white', 'transition-colors')}
                     >
                       Our Story
                     </a>
@@ -1009,7 +1010,7 @@ const LandingPage = () => {
                   <li>
                     <a
                       href="#features"
-                      className="hover:text-white transition-colors"
+                      className={clsx('hover:text-white', 'transition-colors')}
                     >
                       Features
                     </a>
@@ -1018,12 +1019,12 @@ const LandingPage = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-4 text-white">Company</h4>
-                <ul className="space-y-3 text-gray-400">
+                <h4 className={clsx('font-semibold', 'mb-4', 'text-white')}>Company</h4>
+                <ul className={clsx('space-y-3', 'text-gray-400')}>
                   <li>
                     <a
                       href="#pricing"
-                      className="hover:text-white transition-colors"
+                      className={clsx('hover:text-white', 'transition-colors')}
                     >
                       Pricing
                     </a>
@@ -1031,7 +1032,7 @@ const LandingPage = () => {
                   <li>
                     <a
                       href="#use-cases"
-                      className="hover:text-white transition-colors"
+                      className={clsx('hover:text-white', 'transition-colors')}
                     >
                       Use Cases
                     </a>
@@ -1040,12 +1041,12 @@ const LandingPage = () => {
               </div>
 
               <div>
-                <h4 className="font-semibold mb-4 text-white">Resources</h4>
-                <ul className="space-y-3 text-gray-400">
+                <h4 className={clsx('font-semibold', 'mb-4', 'text-white')}>Resources</h4>
+                <ul className={clsx('space-y-3', 'text-gray-400')}>
                   <li>
                     <a
                       href="/terms"
-                      className="hover:text-white transition-colors"
+                      className={clsx('hover:text-white', 'transition-colors')}
                     >
                       Terms & Conditions
                     </a>
@@ -1053,7 +1054,7 @@ const LandingPage = () => {
                   <li>
                     <a
                       href="/PrivacyPolicy"
-                      className="hover:text-white transition-colors"
+                      className={clsx('hover:text-white', 'transition-colors')}
                     >
                       Privacy Policy
                     </a>
@@ -1061,7 +1062,7 @@ const LandingPage = () => {
                   <li>
                     <a
                       href="/RefundPolicy"
-                      className="hover:text-white transition-colors"
+                      className={clsx('hover:text-white', 'transition-colors')}
                     >
                       Refund Policy
                     </a>
@@ -1071,27 +1072,27 @@ const LandingPage = () => {
 
               {/* Subscribe Section */}
               <div>
-                <h4 className="font-semibold mb-4 text-white">Subscribe</h4>
+                <h4 className={clsx('font-semibold', 'mb-4', 'text-white')}>Subscribe</h4>
                 <div className="space-y-3">
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-0">
+                  <div className={clsx('flex', 'flex-col', 'sm:flex-row', 'gap-3', 'sm:gap-0')}>
                     <input
                       type="email"
                       placeholder="Enter email address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="flex-1 px-4 py-2 bg-gray-800 text-white border border-gray-700 rounded-lg sm:rounded-l-lg sm:rounded-r-none focus:outline-none focus:border-blue-500"
+                      className={clsx('flex-1', 'px-4', 'py-2', 'bg-gray-800', 'text-white', 'border', 'border-gray-700', 'rounded-lg', 'sm:rounded-l-lg', 'sm:rounded-r-none', 'focus:outline-none', 'focus:border-blue-500')}
                     />
                     <button
                       onClick={handleSubscribe}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg sm:rounded-r-lg sm:rounded-l-none hover:bg-blue-700 transition-colors"
+                      className={clsx('px-6', 'py-2', 'bg-blue-600', 'text-white', 'rounded-lg', 'sm:rounded-r-lg', 'sm:rounded-l-none', 'hover:bg-blue-700', 'transition-colors')}
                     >
                       Subscribe
                     </button>
                   </div>
                   {message && (
-                    <p className="text-green-400 text-sm">{message}</p>
+                    <p className={clsx('text-green-400', 'text-sm')}>{message}</p>
                   )}
-                  <p className="text-gray-400 text-sm">
+                  <p className={clsx('text-gray-400', 'text-sm')}>
                     Get digital marketing updates in your mailbox
                   </p>
                 </div>
@@ -1099,8 +1100,8 @@ const LandingPage = () => {
             </div>
 
             {/* Bottom Section */}
-            <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-              <div className="text-gray-400 text-sm mb-4 md:mb-0">
+            <div className={clsx('border-t', 'border-gray-800', 'pt-8', 'flex', 'flex-col', 'md:flex-row', 'justify-between', 'items-center')}>
+              <div className={clsx('text-gray-400', 'text-sm', 'mb-4', 'md:mb-0')}>
                 <p>Copyright ©2025 All rights reserved | QR Folio</p>
                 <p
                   className="text-gray-400"
@@ -1111,24 +1112,24 @@ const LandingPage = () => {
                   Owned by Edihub
                 </p>
               </div>
-              <div className="flex space-x-4">
+              <div className={clsx('flex', 'space-x-4')}>
                 <a
                   href="https://x.com/qrfolio?t=49XZqhZy-vmd9u_cQ8NPVA&s=09"
-                  className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
+                  className={clsx('w-10', 'h-10', 'bg-gray-800', 'rounded-full', 'flex', 'items-center', 'justify-center', 'hover:bg-gray-700', 'transition-colors')}
                 >
-                  <Twitter className="w-5 h-5 text-gray-400" />
+                  <Twitter className={clsx('w-5', 'h-5', 'text-gray-400')} />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
+                  className={clsx('w-10', 'h-10', 'bg-gray-800', 'rounded-full', 'flex', 'items-center', 'justify-center', 'hover:bg-gray-700', 'transition-colors')}
                 >
-                  <Facebook className="w-5 h-5 text-gray-400" />
+                  <Facebook className={clsx('w-5', 'h-5', 'text-gray-400')} />
                 </a>
                 <a
                   href="https://www.instagram.com/_qrfolio?igsh=MWlsNjdxcWt3d2dsNw=="
-                  className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700 transition-colors"
+                  className={clsx('w-10', 'h-10', 'bg-gray-800', 'rounded-full', 'flex', 'items-center', 'justify-center', 'hover:bg-gray-700', 'transition-colors')}
                 >
-                  <Instagram className="w-5 h-5 text-gray-400" />
+                  <Instagram className={clsx('w-5', 'h-5', 'text-gray-400')} />
                 </a>
               </div>
             </div>

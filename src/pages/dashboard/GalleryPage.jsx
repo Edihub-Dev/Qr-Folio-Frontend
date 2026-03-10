@@ -84,7 +84,7 @@ const GalleryPage = () => {
   const hasReachedVideoLimit = !unlimitedVideos && remainingVideoSlots <= 0;
   const planLabel = PLAN_LABELS[plan] || PLAN_LABELS.basic;
   const imageLimitDescription = unlimitedImages
-    ? "Upload unlimited images/documents (max 5 MB each)"
+    ? "Upload images/documents (max 5 MB each)"
     : `Upload up to ${maxImages} images/documents (max 5 MB each)`;
   const videoLimitDescription = unlimitedVideos
     ? "unlimited video links"
@@ -389,7 +389,7 @@ const GalleryPage = () => {
       const { file, errors } = rejection;
       errors.forEach((err) => {
         if (err.code === "file-too-large") {
-          toast.error(`${file.name}: File exceeds 5 MB limit.`);
+          toast.error(`${file.name}: File exceeds 15 MB limit.`);
         } else {
           toast.error(`${file.name}: ${err.message}`);
         }
@@ -647,7 +647,7 @@ const GalleryPage = () => {
                   : "Choose a file or drag & drop it here"}
               </p>
               <p className={clsx('text-sm', 'text-slate-400')}>
-                Images, PDF, DOC, DOCX formats, up to 5 MB
+                Images, PDF, DOC, DOCX formats, up to 15 MB
               </p>
             </div>
             <button

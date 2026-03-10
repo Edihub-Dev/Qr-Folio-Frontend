@@ -842,6 +842,13 @@ useEffect(() => {
     }
   };
 
+  const scrollToDocuments = () => {
+    const section = document.getElementById("documents-section");
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   const getEmbedUrl = (url) => {
     if (!url) return "";
 
@@ -1006,6 +1013,16 @@ useEffect(() => {
                           >
                             Visit website
                           </a>
+                        )}
+                        {documentItems.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={scrollToDocuments}
+                            className={clsx('mt-2', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'gap-2', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-4', 'py-2', 'text-xs', 'font-semibold', 'text-indigo-100', 'shadow-md', 'shadow-slate-950/70', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90')}
+                          >
+                            <FileText className={clsx('h-4', 'w-4')} />
+                            View Certificates / Documents
+                          </button>
                         )}
                       </>
                     )}
@@ -1279,7 +1296,7 @@ useEffect(() => {
   const previewDocs = documentItems.slice(0, docPreviewCount);
 
   return (
-    <div className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8')}>
+    <div id="documents-section" className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8')}>
       <h2 className={clsx('mb-4', 'text-xl', 'font-semibold', 'text-indigo-100')}>
         Certificates/Documents
       </h2>
