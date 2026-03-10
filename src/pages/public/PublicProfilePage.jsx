@@ -639,17 +639,40 @@ useEffect(() => {
   };
 
   const handleDownloadPDF = async () => {
-    if (!downloadRef.current) return;
+    const node = downloadRef.current;
+    if (!node) return;
 
     console.log("Preparing PDF...");
+
+    // Wait for images to load
+    const images = Array.from(node.querySelectorAll("img"));
+    await Promise.all(
+      images.map(
+        (img) =>
+          new Promise((resolve) => {
+            if (img.complete) return resolve();
+            const done = () => resolve();
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+            setTimeout(done, 1500);
+          })
+      )
+    );
 
     const { toPng } = await import("html-to-image");
     const { jsPDF } = await import("jspdf");
 
-    const pngData = await toPng(downloadRef.current, {
-      backgroundColor: "#0B1020", // same dark bg
+    const pngData = await toPng(node, {
+      backgroundColor: "#0B1020",
       pixelRatio: 3,
       cacheBust: true,
+      skipFonts: true, // Skip Google Fonts to avoid CORS errors
+      filter: (n) => {
+        if (n.tagName === "IMG") {
+          return n.complete && n.naturalWidth > 0;
+        }
+        return true;
+      },
     });
 
     const pdf = new jsPDF({
@@ -1021,7 +1044,7 @@ useEffect(() => {
                             className={clsx('mt-2', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'gap-2', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-4', 'py-2', 'text-xs', 'font-semibold', 'text-indigo-100', 'shadow-md', 'shadow-slate-950/70', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90')}
                           >
                             <FileText className={clsx('h-4', 'w-4')} />
-                            View Certificates / Documents
+                            View Certificates /  Documents
                           </button>
                         )}
                       </>
@@ -1251,7 +1274,7 @@ useEffect(() => {
 
               return (
     <div className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8')}>
-<h2 className="mb-4 text-xl font-semibold text-indigo-100">
+<h2 className={clsx('mb-4', 'text-xl', 'font-semibold', 'text-indigo-100')}>
   Photo Gallery
 </h2>
                   <div className={clsx('grid', 'grid-cols-2', 'md:grid-cols-3', 'gap-3')}>
