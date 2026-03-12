@@ -326,7 +326,7 @@ const LandingPage = () => {
         ogType="website"
         structuredData={[organizationSchema, serviceSchema, faqSchema]}
       />
-      <div className={clsx('min-h-screen', 'bg-slate-950', 'text-white')}>
+      <div className={clsx('min-h-screen', 'bg-slate-950', 'text-white', 'overflow-x-hidden')}>
         {/* Promo modal removed as per latest requirements */}
         <nav className={clsx('fixed', 'inset-x-0', 'top-0', 'z-50', 'border-b', 'border-slate-800/70', 'bg-slate-950/80', 'backdrop-blur')}>
           <div className={clsx('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>

@@ -972,7 +972,7 @@ useEffect(() => {
             </div>
           </div>
           <div className={clsx('mx-auto', 'flex', 'w-full', 'max-w-[1440px]', 'flex-col', 'gap-10', 'px-6', 'pb-20', 'pt-10', 'lg:flex-row', 'lg:gap-12', 'xl:px-14')}>
-            <aside className={clsx('w-full', 'max-w-[380px]', 'space-y-6', 'lg:sticky', 'lg:top-10', 'lg:self-start')}>
+            <aside className={clsx('mx-auto', 'w-full', 'max-w-[380px]', 'space-y-6', 'lg:mx-0', 'lg:sticky', 'lg:top-10', 'lg:self-start')}>
               <div
                 id="public-card-print"
                 ref={downloadRef}
