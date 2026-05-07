@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import toast from "react-hot-toast";
 import {
   LayoutDashboard,
   User,
@@ -215,7 +216,10 @@ const Sidebar = ({
                   key={item.id}
                   onClick={() => {
                     if (item.id === "admin") {
-                      const adminUrl = import.meta.env.VITE_ADMIN_URL || "http://localhost:5175";
+                      const isProd = import.meta.env.PROD;
+                      const defaultAdminUrl = isProd ? "https://qr-folio-admin.vercel.app" : "http://localhost:5175";
+                      const adminUrl = import.meta.env.VITE_ADMIN_URL || defaultAdminUrl;
+                      toast.success("Opening Admin Portal...");
                       window.open(adminUrl, "_blank");
                       return;
                     }
