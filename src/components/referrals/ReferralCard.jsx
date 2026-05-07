@@ -1,6 +1,5 @@
-import React, { useRef } from "react";
+import React, { useRef, useMemo } from "react";
 import { Copy, Share2, QrCode, Download } from "lucide-react";
-import QRCodeGenerator from "../qr/QRCodeGenerator";
 import toast from "react-hot-toast";
 
 const ReferralCard = ({
@@ -11,31 +10,52 @@ const ReferralCard = ({
   onShare,
   onCopy,
 }) => {
-  const qrCodeRef = useRef(null);
+  const qrCardRef = useRef(null);
+
+  const apiBase = useMemo(
+    () => import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:5000",
+    []
+  );
+  const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
 
   const handleDownloadQr = async () => {
-    if (!qrValue || !qrCodeRef.current) return;
+    const node = qrCardRef.current;
+    if (!node) return;
 
     try {
-      const canvas = qrCodeRef.current.getCanvas
-        ? qrCodeRef.current.getCanvas()
-        : null;
+      const { toPng } = await import("html-to-image");
 
-      if (!canvas) {
-        toast.error("QR not ready yet");
-        return;
-      }
+      // Wait for image to fully load
+      const images = Array.from(node.querySelectorAll("img"));
+      await Promise.all(
+        images.map(
+          (img) =>
+            new Promise((resolve) => {
+              if (img.complete) return resolve();
+              const done = () => resolve();
+              img.addEventListener("load", done, { once: true });
+              img.addEventListener("error", done, { once: true });
+              setTimeout(done, 1500);
+            })
+        )
+      );
 
-      const dataUrl = canvas.toDataURL("image/png");
+      const dataUrl = await toPng(node, {
+        backgroundColor: "transparent",
+        pixelRatio: 4, // Ultra-sharp 4x scale
+        cacheBust: true,
+      });
 
+      const safeName = (referralCode || "Referral").replace(/\s+/g, "_");
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = "qrfolio-referral-qr.png";
+      link.download = `${safeName}_Referral_Card.png`;
       link.click();
-      toast.success("Referral QR downloaded");
-    } catch (error) {
-      console.error("Failed to download referral QR", error);
-      toast.error("Unable to download QR");
+
+      toast.success("Referral Card downloaded successfully");
+    } catch (e) {
+      console.error("Referral QR download failed:", e);
+      toast.error("Unable to download Referral Card");
     }
   };
 
@@ -107,45 +127,60 @@ const ReferralCard = ({
             </button>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-3">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 shadow-sm">
-            {qrValue ? (
-              <QRCodeGenerator
-                ref={qrCodeRef}
-                value={qrValue}
-                size={60}
-                level="H"
-                color="#000000"
-                background="#FFFFFF"
-                logoSrc="/assets/QrLogo.webp"
-                logoSizeRatio={0.18}
-                className="overflow-hidden rounded-2xl"
-                pixelRatio={3}
-              />
-            ) : qrCodeDataUrl ? (
-              <img
-                src={qrCodeDataUrl}
-                alt="Referral QR"
-                className="h-40 w-40 object-contain"
-              />
-            ) : (
-              <div className="h-40 w-40 flex items-center justify-center text-slate-400">
-                <QrCode className="h-16 w-16" />
+        <div className="flex flex-col items-center gap-4">
+          {/* Outer shadow-only wrapper for gorgeous screen rendering */}
+          <div className="rounded-3xl shadow-[0_22px_50px_rgba(15,23,42,0.9)]">
+            {/* Inner container captured by html-to-image with NO shadow to prevent gray corner artifacts */}
+            <div
+              ref={qrCardRef}
+              className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-emerald-400 p-[1px] w-[240px]"
+            >
+              <div className="rounded-[26px] border border-slate-900 bg-slate-950/95 p-5 text-center">
+                <div className="flex justify-center">
+                  {qrValue ? (
+                    <img
+                      src={`${base}/qrcode/custom?text=${encodeURIComponent(qrValue)}`}
+                      alt="Referral QR"
+                      style={{ width: 150, height: 150, imageRendering: "pixelated" }}
+                      className="overflow-hidden rounded-2xl border border-slate-800"
+                      crossOrigin="anonymous"
+                      loading="eager"
+                    />
+                  ) : qrCodeDataUrl ? (
+                    <img
+                      src={qrCodeDataUrl}
+                      alt="Referral QR"
+                      className="h-36 w-36 object-contain rounded-2xl border border-slate-800"
+                      crossOrigin="anonymous"
+                      loading="eager"
+                    />
+                  ) : (
+                    <div className="h-36 w-36 flex items-center justify-center text-slate-400">
+                      <QrCode className="h-14 w-14" />
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 text-center">
+                  <p className="text-sm font-bold text-white tracking-wider">
+                    {referralCode || "—"}
+                  </p>
+                  <p className="mt-1 text-[10px] text-slate-400">
+                    Scan to join with referral code
+                  </p>
+                </div>
               </div>
-            )}
+            </div>
           </div>
+
           <button
             type="button"
             onClick={handleDownloadQr}
             disabled={!qrValue}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-4 py-2 text-xs font-medium text-slate-100 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-4 py-2 text-xs font-medium text-slate-100 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 shadow-lg shadow-slate-950/50"
           >
             <Download className="h-4 w-4" />
-            Download QR
+            Download Referral Card
           </button>
-          <span className="text-xs text-slate-400">
-            Scan to join with your referral code
-          </span>
         </div>
       </div>
     </div>

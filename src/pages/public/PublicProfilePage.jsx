@@ -37,6 +37,12 @@ const QRCodeGenerator = lazy(() => import("../../components/qr/QRCodeGenerator")
 const PublicProfilePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const apiBase = useMemo(
+    () =>
+      import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
+      "http://api.qrfolio.net",
+    []
+  );
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -48,6 +54,7 @@ const PublicProfilePage = () => {
   const [documentItems, setDocumentItems] = useState([]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const qrCodeRef = useRef(null);
+  const qrDownloadRef = useRef(null);
   const [copyToastMessage, setCopyToastMessage] = useState("");
   const [showCopyToast, setShowCopyToast] = useState(false);
   const copyToastTimeoutRef = useRef(null);
@@ -69,7 +76,7 @@ const PublicProfilePage = () => {
 
       let profileData = {
         ...data.user,
-        id: data.user.id || data.user._id || id,
+        id: data.user.authUserId || data.user.id || data.user._id || id,
       };
 
       setUser(profileData);
@@ -88,10 +95,13 @@ const PublicProfilePage = () => {
               );
             }
           } catch (photoErr) {
-            console.warn(
-              "Failed to fetch profile photo data URI:",
-              photoErr.message
-            );
+            // Only warn if it's NOT a 404 (404 means user just doesn't have a photo)
+            if (photoErr.response?.status !== 404) {
+              console.warn(
+                "Failed to fetch profile photo data URI:",
+                photoErr.message
+              );
+            }
           }
         })();
       }
@@ -182,18 +192,15 @@ const PublicProfilePage = () => {
 
   // Generate avatar with initials
   const getInitials = (name) => {
-    if (!name) return "";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+    if (!name || name === "—") return "??";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
   const avatar =
     user?.profilePhotoDataUri ||
-    `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='200' height='200' fill='%23e5e7eb'/><text x='50%' y='50%' font-family='Arial' font-size='80' text-anchor='middle' dy='.3em' fill='%236b7280'>${getInitials(
+    `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='200' height='200' fill='%23312e81'/><text x='50%' y='50%' font-family='Arial' font-weight='bold' font-size='80' text-anchor='middle' dy='.3em' fill='white'>${getInitials(
       user?.name
     )}</text></svg>`;
 
@@ -697,82 +704,44 @@ useEffect(() => {
     console.log("PDF downloaded");
   };
 
-  const handleDownloadQrCode = () => {
+  const handleDownloadQrCode = async () => {
+    const node = qrDownloadRef.current;
+    if (!node) {
+      showReferralToast("QR Code not ready yet");
+      return;
+    }
+
     try {
-      if (!qrCodeRef.current || !qrCodeRef.current.getCanvas) {
-        showReferralToast("QR code not ready yet");
-        return;
-      }
+      const { toPng } = await import("html-to-image");
 
-      const canvas = qrCodeRef.current.getCanvas();
-      if (!canvas) {
-        showReferralToast("QR code not ready yet");
-        return;
-      }
+      // Wait for image to fully load
+      const images = Array.from(node.querySelectorAll("img"));
+      await Promise.all(
+        images.map(
+          (img) =>
+            new Promise((resolve) => {
+              if (img.complete) return resolve();
+              const done = () => resolve();
+              img.addEventListener("load", done, { once: true });
+              img.addEventListener("error", done, { once: true });
+              setTimeout(done, 1500);
+            })
+        )
+      );
 
-      const baseSize = canvas.width; // QR canvas is square
-      const scale = 2; // make QR larger in the exported image
-      const qrSize = baseSize * scale;
-      const padding = Math.round(baseSize * 0.4);
+      const dataUrl = await toPng(node, {
+        backgroundColor: "#ffffff",
+        pixelRatio: 4, // Ultra-sharp 4x scale
+        cacheBust: true,
+      });
 
-      const rawName = (displayName || "").toString().trim();
-      const hasName = !!rawName;
-
-      const nameAreaHeight = hasName ? Math.round(qrSize * 0.2) : 0;
-
-      const exportWidth = qrSize + padding * 2;
-      const exportHeight = qrSize + nameAreaHeight + padding * 2.5; // tighter spacing
-
-      const exportCanvas = document.createElement("canvas");
-      exportCanvas.width = exportWidth;
-      exportCanvas.height = exportHeight;
-
-      const ctx = exportCanvas.getContext("2d");
-      if (!ctx) {
-        showReferralToast("Unable to prepare download");
-        return;
-      }
-
-      // White background
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(0, 0, exportWidth, exportHeight);
-
-      // Draw the user name at the top, centered horizontally
-      if (hasName) {
-        const fontFamily =
-          'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-        let fontSize = Math.round(qrSize * 0.18);
-        ctx.fillStyle = "#000000";
-        ctx.textBaseline = "middle";
-        ctx.textAlign = "center";
-        ctx.font = `bold ${fontSize}px ${fontFamily}`;
-
-        const textY = padding + nameAreaHeight / 2;
-        const maxWidth = exportWidth - padding * 2;
-
-        // Shrink font if the name would overflow the allocated area
-        const metrics = ctx.measureText(rawName);
-        if (metrics.width > maxWidth && maxWidth > 0) {
-          const ratio = maxWidth / metrics.width;
-          fontSize = Math.max(12, Math.floor(fontSize * ratio));
-          ctx.font = `bold ${fontSize}px ${fontFamily}`;
-        }
-
-        ctx.fillText(rawName, exportWidth / 2, textY, maxWidth);
-      }
-
-      // Draw larger QR centered below the name
-      const qrX = (exportWidth - qrSize) / 2;
-      const qrY = padding + nameAreaHeight + padding * 0.5;
-      ctx.drawImage(canvas, qrX, qrY, qrSize, qrSize);
-
-      const dataUrl = exportCanvas.toDataURL("image/png");
+      const safeName = (displayName || "User").replace(/\s+/g, "_");
       const link = document.createElement("a");
-      link.download = `${displayName.replace(/\s+/g, "_")}_QR_Code.png`;
       link.href = dataUrl;
+      link.download = `${safeName}_QR_Code.png`;
       link.click();
 
-      showReferralToast("QR code downloaded");
+      showReferralToast("QR code card downloaded successfully");
     } catch (error) {
       console.error("Failed to download QR code", error);
       showReferralToast("Unable to download QR code");
@@ -1082,23 +1051,13 @@ useEffect(() => {
                   <div className={clsx('relative', 'flex', 'flex-col', 'items-center', 'text-center')}>
                     <div className={clsx('rounded-3xl', 'bg-gradient-to-br', 'from-indigo-500', 'via-fuchsia-500', 'to-emerald-400', 'p-[1px]', 'shadow-[0_28px_50px_rgba(15,23,42,0.65)]')}>
                       <div className={clsx('flex', 'items-center', 'justify-center', 'rounded-[26px]', 'bg-slate-950/95', 'p-2.5')}>
-                        <Suspense
-                          fallback={
-                            <div className={clsx('h-[150px]', 'w-[150px]', 'rounded-2xl', 'bg-slate-800/80')} />
-                          }
-                        >
-                          <QRCodeGenerator
-                            ref={qrCodeRef}
-                            value={profileUrl}
-                            size={60}
-                            level="H"
-                            color="#000000"
-                            background="#FFFFFF"
-                            logoSrc="/assets/QrLogo.webp"
-                            logoSizeRatio={0.22}
-                            className={clsx('overflow-hidden', 'rounded-2xl')}
-                          />
-                        </Suspense>
+                        <img
+                          src={`${apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`}/qrcode/image/${user?.id || id}?v=${user?.updatedAt || 'stable'}`}
+                          alt="QR Code"
+                          style={{ width: 120, height: 120, imageRendering: "pixelated" }}
+                          className={clsx('overflow-hidden', 'rounded-2xl')}
+                          loading="lazy"
+                        />
                       </div>
                     </div>
                     <div className={clsx('mt-6', 'text-[0.65rem]', 'font-semibold', 'uppercase', 'tracking-[0.28em]', 'text-indigo-100/90')}>
@@ -1481,6 +1440,38 @@ useEffect(() => {
           qrValue={profileUrl}
           backgroundImage="/assets/card-bg.png"
         />
+      </div>
+      {/* HIDDEN WHITE QR CARD DOWNLOAD SOURCE */}
+      <div
+        style={{
+          position: "fixed",
+          left: "-9999px",
+          top: 0,
+          pointerEvents: "none",
+          opacity: 0,
+        }}
+      >
+        <div
+          ref={qrDownloadRef}
+          className="flex flex-col items-center rounded-[22px] bg-white p-4 pb-5"
+          style={{ width: "280px" }}
+        >
+          <div className="mt-4 text-center">
+            <p className="text-xl font-extrabold text-black">
+              {displayName || "—"}
+            </p>
+          </div>
+          <div className="flex items-center justify-center mt-4">
+            <img
+              src={`${apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`}/qrcode/image/${user?.id || id}?v=${user?.updatedAt || 'stable'}`}
+              alt="QR Code"
+              style={{ width: "180px", height: "180px", imageRendering: "pixelated" }}
+              className="overflow-hidden rounded-2xl border border-slate-100"
+              crossOrigin="anonymous"
+              loading="eager"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

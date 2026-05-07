@@ -1,19 +1,32 @@
 import React from "react";
 import { Mail, Phone, MapPin, QrCode } from "lucide-react";
-import QRCodeGenerator from "../qr/QRCodeGenerator";
 import clsx from "clsx";
 
 const DownloadProfileCard = React.forwardRef(
   ({ user, qrValue, backgroundImage }, ref) => {
+    const getInitials = (name) => {
+      if (!name || name === "—") return "??";
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0][0].toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    };
+
     const avatar =
       user?.profilePhotoDataUri ||
       user?.profilePhoto ||
-      "/assets/avatar-placeholder.png";
+      `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='200' height='200' fill='%23312e81'/><text x='50%' y='50%' font-family='Arial' font-weight='bold' font-size='80' text-anchor='middle' dy='.3em' fill='white'>${getInitials(
+        user?.name || user?.companyName
+      )}</text></svg>`;
 
     const handleImageError = (e) => {
-      // Fallback to placeholder if image fails to load
-      e.target.src = "/assets/avatar-placeholder.png";
+      // Fallback to initials if image fails to load
+      e.target.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='200' height='200' fill='%23312e81'/><text x='50%' y='50%' font-family='Arial' font-weight='bold' font-size='80' text-anchor='middle' dy='.3em' fill='white'>${getInitials(
+        user?.name || user?.companyName
+      )}</text></svg>`;
     };
+
+    const apiBase = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:5000";
+    const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
 
     return (
       <div
@@ -86,16 +99,13 @@ const DownloadProfileCard = React.forwardRef(
             <div className={clsx('rounded-[28px]', 'bg-gradient-to-br', 'from-fuchsia-500', 'via-indigo-500', 'to-cyan-400', 'p-[3px]', 'shadow-2xl')}>
               {/* White Card */}
               <div className={clsx('rounded-[24px]', 'bg-slate-900/90', 'backdrop-blur', 'p-4')}>
-                <QRCodeGenerator
-                  value={qrValue}
-                  size={50}
-                  level="H"
-                  background="#ffffff"
-                  color="#000000"
-                  logoSrc="/assets/QrLogo.webp"
-                  logoSizeRatio={0.2}
+                <img
+                  src={`${base}/qrcode/image/${user?.authUserId || user?.id || user?._id}?v=${user?.updatedAt || 'stable'}`}
+                  alt="QR Code"
+                  style={{ width: "160px", height: "160px", imageRendering: "pixelated" }}
                   className="rounded-xl"
-                  data-qr-code="true"
+                  crossOrigin="anonymous"
+                  loading="eager"
                 />
               </div>
             </div>

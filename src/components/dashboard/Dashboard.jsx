@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { Download, Edit3, Copy, Share2, Eye } from "lucide-react";
-import QRCodeGenerator from "../qr/QRCodeGenerator";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api";
 import { getReferralOverview } from "../../services/referralService";
@@ -172,25 +171,36 @@ const Dashboard = () => {
     navigate("/matrimonial-login");
   }, [matrimonyUrl, navigate, user, referralCode]);
 
+  const getInitials = (name) => {
+    if (!name || name === "—") return "??";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   const safeAvatar = useMemo(() => {
     if (authUser?.profilePhoto) return authUser.profilePhoto;
-    return `data:image/svg+xml;utf8,${encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'>
-        <path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'></path>
-        <circle cx='12' cy='7' r='4'></circle>
-      </svg>
-    `)}`;
+    return `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'><rect width='200' height='200' fill='%23312e81'/><text x='50%' y='50%' font-family='Arial' font-weight='bold' font-size='80' text-anchor='middle' dy='.3em' fill='white'>${getInitials(
+      authUser?.name
+    )}</text></svg>`;
   }, [authUser?.profilePhoto, authUser?.name]);
 
-  const [qrSize, setQrSize] = useState(80);
+  const [qrSize, setQrSize] = useState(180);
   const [copied, setCopied] = useState(false);
   const qrWrapperRef = useRef(null);
   const qrGeneratorRef = useRef(null);
   const qrCardRef = useRef(null);
 
   const resolvedQrSize = useMemo(
-    () => Math.min(Math.max(qrSize, 80), 110),
+    () => Math.min(Math.max(qrSize, 140), 240),
     [qrSize]
+  );
+
+  const apiBase = useMemo(
+    () =>
+      import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
+      "http://api.qrfolio.net",
+    []
   );
 
   const hasRefreshed = useRef(false);
@@ -213,7 +223,16 @@ const Dashboard = () => {
       return;
     }
     hasRefreshed.current = true;
-    refreshUser?.();
+
+    (async () => {
+      try {
+        await api.post("/qrcode/regenerate");
+        await refreshUser?.();
+      } catch (err) {
+        console.warn("Failed to auto-regenerate QR on load:", err);
+        await refreshUser?.();
+      }
+    })();
   }, [refreshUser]);
 
   const [nfcStatus, setNfcStatus] = useState({
@@ -626,30 +645,46 @@ const Dashboard = () => {
   };
 
   const handleSaveQR = async () => {
+    const node = qrDownloadRef.current;
+    if (!node) {
+      toast.error("QR Code not ready yet");
+      return;
+    }
+
     try {
-      if (!qrDownloadRef.current) {
-        toast.error("QR not ready");
-        return;
-      }
-
       const { toPng } = await import("html-to-image");
+      
+      // Wait for image to fully load
+      const images = Array.from(node.querySelectorAll("img"));
+      await Promise.all(
+        images.map(
+          (img) =>
+            new Promise((resolve) => {
+              if (img.complete) return resolve();
+              const done = () => resolve();
+              img.addEventListener("load", done, { once: true });
+              img.addEventListener("error", done, { once: true });
+              setTimeout(done, 1500);
+            })
+        )
+      );
 
-      const dataUrl = await toPng(qrDownloadRef.current, {
-        cacheBust: true,
+      const dataUrl = await toPng(node, {
         backgroundColor: "#ffffff",
-        pixelRatio: 6, // 🔥 HD quality
+        pixelRatio: 4, // Ultra-sharp 4x scale
+        cacheBust: true,
       });
 
       const safeName = (user.name || "User").replace(/\s+/g, "_");
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `${safeName}_QR_Code.png`;
+      link.download = `${safeName}_Dashboard_QR.png`;
       link.click();
 
-      toast.success("QR Code saved with name");
+      toast.success("QR Code card downloaded successfully");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to save QR");
+      toast.error("Failed to save QR card");
     }
   };
 
@@ -720,14 +755,12 @@ const Dashboard = () => {
           </div>
           <div className="hidden md:block">
             <div className="flex h-24 w-24 items-center justify-center rounded-full border border-white/25 bg-white/10 shadow-lg shadow-slate-950/40">
-              <QRCodeGenerator
-                value={profileUrl}
-                size={10}
-                level="M"
-                color="#000000"
-                background="#FFFFFF"
-                className="opacity-80"
-                pixelRatio={6}
+              <img
+                src={`${apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`}/qrcode/image/${user.id}?v=${authUser?.updatedAt || 'stable'}`}
+                alt="QR Code"
+                className="h-16 w-16 opacity-80 rounded-xl"
+                style={{ imageRendering: "pixelated" }}
+                loading="lazy"
               />
             </div>
           </div>
@@ -954,15 +987,12 @@ const Dashboard = () => {
                   </div>
 
                   <div className="flex items-center justify-center">
-                    <QRCodeGenerator
-                      ref={qrGeneratorRef}
-                      value={profileUrl}
-                      size={resolvedQrSize}
-                      level="H"
-                      color="#000000"
-                      background="#FFFFFF"
-                      logoSrc="/assets/QrLogo.webp" // 🔥 SVG preferred
-                      logoSizeRatio={0.22}
+                    <img
+                      src={`${apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`}/qrcode/image/${user.id}?v=${authUser?.updatedAt || Date.now()}`}
+                      alt="QR Code"
+                      style={{ width: resolvedQrSize, height: resolvedQrSize, imageRendering: "pixelated" }}
+                      className="overflow-hidden rounded-2xl border border-slate-100"
+                      loading="lazy"
                     />
                   </div>
                 </div>
@@ -975,8 +1005,8 @@ const Dashboard = () => {
               </label>
               <input
                 type="range"
-                min="80"
-                max="110"
+                min="140"
+                max="240"
                 value={resolvedQrSize}
                 onChange={(e) => setQrSize(parseInt(e.target.value))}
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"

@@ -10,15 +10,15 @@ import {
   Tablet,
 } from "lucide-react";
 import { motion } from "../../utils/motion";
-import QRCodeGenerator from "./QRCodeGenerator";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import api from "../../api";
 import toast from "react-hot-toast";
 
 const MyQRCode = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
+  const [isSaving, setIsSaving] = useState(false);
   const [qrConfig, setQrConfig] = useState({
     size: 100,
     level: "H",
@@ -26,6 +26,15 @@ const MyQRCode = () => {
     color: "#000000",
     background: "#FFFFFF",
   });
+
+  const [previewConfig, setPreviewConfig] = useState(qrConfig);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setPreviewConfig(qrConfig);
+    }, 150); // 150ms debounce for snappier feel
+    return () => clearTimeout(handler);
+  }, [qrConfig]);
 
   const [previewDevice, setPreviewDevice] = useState("desktop");
   const qrContainerRef = useRef(null);
@@ -113,121 +122,75 @@ const MyQRCode = () => {
     }));
   };
 
+  const handleSaveConfig = async () => {
+    setIsSaving(true);
+    try {
+      const res = await api.post("/qrcode", qrConfig);
+      if (res.data?.success) {
+        await refreshUser?.();
+        toast.success("QR Code updated and generated successfully on S3!");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      }
+    } catch (err) {
+      console.error("Failed to save QR config:", err);
+      toast.error("Failed to save QR configuration. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleDownload = async (format = "png") => {
-    const safeName = (user?.name || "QR_Code").replace(/\s+/g, "_");
+    const node = qrCardRef.current;
+    if (!node) {
+      toast.error("QR card not ready yet");
+      return;
+    }
 
-    // For PNG, capture the full preview card (gradient frame + QR + text)
-    if (format === "png") {
-      if (!qrCardRef.current) {
-        toast.error("QR card not ready yet");
-        return;
-      }
+    try {
+      const { toPng, toSvg } = await import("html-to-image");
 
-      try {
-        const { toPng } = await import("html-to-image");
-        const dataUrl = await toPng(qrCardRef.current, {
+      // Wait for image to fully load
+      const images = Array.from(node.querySelectorAll("img"));
+      await Promise.all(
+        images.map(
+          (img) =>
+            new Promise((resolve) => {
+              if (img.complete) return resolve();
+              const done = () => resolve();
+              img.addEventListener("load", done, { once: true });
+              img.addEventListener("error", done, { once: true });
+              setTimeout(done, 1500);
+            })
+        )
+      );
+
+      let dataUrl;
+      if (format === "svg") {
+        dataUrl = await toSvg(node, {
+          backgroundColor: "transparent",
           cacheBust: true,
-          backgroundColor: "#020617",
-          pixelRatio: 6,
-          skipFonts: true,
         });
-
-        const link = document.createElement("a");
-        link.download = `${safeName}.png`;
-        link.href = dataUrl;
-        link.click();
-        toast.success("Downloaded PNG file");
-      } catch (e) {
-        console.error("QR card PNG download failed:", e);
-        toast.error("Unable to download PNG. Please try again.");
+      } else {
+        dataUrl = await toPng(node, {
+          backgroundColor: "transparent",
+          pixelRatio: 4, // Ultra-sharp 4x scale
+          cacheBust: true,
+        });
       }
 
-      return;
-    }
-
-    // SVG and other formats fall back to the raw QR canvas/dataUrl
-    if (!qrCodeRef.current) {
-      toast.error("QR not ready yet");
-      return;
-    }
-
-    if (format === "svg") {
-      // Preferred: capture the full card (gradient frame + QR + text) as SVG
-      if (qrCardRef.current) {
-        try {
-          const { toSvg } = await import("html-to-image");
-          let svgMarkup = await toSvg(qrCardRef.current, {
-            cacheBust: true,
-            backgroundColor: "#020617",
-            pixelRatio: 3,
-            skipFonts: true,
-          });
-
-          // html-to-image returns a data URL string for SVG, so we need to
-          // strip the prefix and decode the payload to get raw SVG markup.
-          if (
-            typeof svgMarkup === "string" &&
-            svgMarkup.startsWith("data:image/svg+xml")
-          ) {
-            const commaIndex = svgMarkup.indexOf(",");
-            if (commaIndex !== -1) {
-              const encoded = svgMarkup.slice(commaIndex + 1);
-              try {
-                svgMarkup = decodeURIComponent(encoded);
-              } catch {
-                svgMarkup = encoded;
-              }
-            }
-          }
-
-          const blob = new Blob([svgMarkup], {
-            type: "image/svg+xml;charset=utf-8",
-          });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.download = `${safeName}.svg`;
-          link.href = url;
-          link.click();
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-          toast.success("Downloaded SVG file");
-          return;
-        } catch (e) {
-          console.error("QR card SVG download failed, falling back:", e);
-          // fall through to raw QR SVG fallback below
-        }
-      }
-
-      const rawSvg =
-        `<?xml version="1.0" encoding="UTF-8"?>\n` +
-        `<svg xmlns='http://www.w3.org/2000/svg' width='${qrConfig.size}' height='${qrConfig.size}'>\n` +
-        `<rect width='100%' height='100%' fill='${qrConfig.background}'/>\n` +
-        `<image href='${qrCodeRef.current.getDataUrl() || ""}' width='${
-          qrConfig.size
-        }' height='${qrConfig.size}' />\n` +
-        `</svg>`;
-      const blob = new Blob([rawSvg], { type: "image/svg+xml;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
+      const safeName = (user?.name || "User").replace(/\s+/g, "_");
       const link = document.createElement("a");
-      link.download = `${safeName}.svg`;
-      link.href = url;
+      link.href = dataUrl;
+      link.download = `${safeName}_QR_Card.${format}`;
       link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success("Downloaded SVG file");
-      return;
-    }
 
-    const canvas = qrCodeRef.current.getCanvas();
-    if (!canvas) {
-      toast.error("QR not ready yet");
-      return;
+      toast.success(`Downloaded ${format.toUpperCase()} file`);
+    } catch (e) {
+      console.error("QR download failed:", e);
+      toast.error(`Unable to download ${format.toUpperCase()} file`);
     }
-
-    const url = canvas.toDataURL(`image/${format}`);
-    const link = document.createElement("a");
-    link.download = `${safeName}.${format}`;
-    link.href = url;
-    link.click();
-    toast.success(`Downloaded ${format.toUpperCase()} file`);
   };
 
   const handleCopyLink = async () => {
@@ -262,15 +225,11 @@ const MyQRCode = () => {
     { name: "Wine Red", color: "#722F37", bg: "#FDF2F8" },
   ];
 
-  const qrfolioLogoSrc = "/assets/QrLogo.webp";
-
   const resolvedQrSize = useMemo(() => {
     const raw = typeof qrConfig.size === "number" ? qrConfig.size : 100;
     const clamped = Math.min(Math.max(raw, 100), 160);
-    if (previewDevice === "mobile") return Math.min(clamped, 100);
-    if (previewDevice === "tablet") return Math.min(clamped, 140);
     return clamped;
-  }, [qrConfig.size, previewDevice]);
+  }, [qrConfig.size]);
 
   return (
     <motion.div
@@ -317,10 +276,10 @@ const MyQRCode = () => {
           </div>
 
           <div className="mb-6 flex justify-center">
+            {/* Outer wrapper with shadow for gorgeous screen rendering */}
             <div
-              ref={qrCardRef}
               className={`
-                relative rounded-3xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-emerald-400 p-[1px] shadow-[0_22px_50px_rgba(15,23,42,0.9)] transition-all duration-300
+                relative rounded-3xl shadow-[0_22px_50px_rgba(15,23,42,0.9)] transition-all duration-300
                 ${
                   previewDevice === "mobile"
                     ? "max-w-xs"
@@ -330,23 +289,22 @@ const MyQRCode = () => {
                 }
               `}
             >
+              {/* Inner container captured by html-to-image with NO shadow to prevent gray corner artifacts */}
               <div
-                className="rounded-[26px] border border-slate-900 bg-slate-950/95 p-6"
-                // style={{ backgroundColor: qrConfig.background }}
+                ref={qrCardRef}
+                className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-emerald-400 p-[1px] w-full"
               >
+                <div
+                  className="rounded-[26px] border border-slate-900 bg-slate-950/95 p-6"
+                >
                 <div ref={qrContainerRef} className="flex justify-center">
-                  <QRCodeGenerator
-                    ref={qrCodeRef}
-                    value={profileUrl}
-                    size={resolvedQrSize}
-                    level={qrConfig.level}
-                    margin={qrConfig.margin}
-                    color={qrConfig.color}
-                    background={qrConfig.background}
-                    logoSrc={qrfolioLogoSrc}
-                    logoSizeRatio={0.2}
-                    className="overflow-hidden rounded-2xl"
-                    pixelRatio={3}
+                  <img
+                    src={`${apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`}/qrcode/custom?text=${encodeURIComponent(profileUrl)}&size=${previewConfig.size || 120}&color=${encodeURIComponent(previewConfig.color || "#000000")}&background=${encodeURIComponent(previewConfig.background || "#FFFFFF")}&margin=${previewConfig.margin || 4}&level=${previewConfig.level || "H"}`}
+                    alt="QR Code"
+                    style={{ width: resolvedQrSize * 1.5, height: resolvedQrSize * 1.5, imageRendering: "pixelated" }}
+                    className="overflow-hidden rounded-2xl border border-slate-800"
+                    crossOrigin="anonymous"
+                    loading="eager"
                   />
                 </div>
                 <div className="mt-4 text-center">
@@ -363,6 +321,7 @@ const MyQRCode = () => {
               </div>
             </div>
           </div>
+        </div>
 
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -435,14 +394,12 @@ const MyQRCode = () => {
                 type="range"
                 min="100"
                 max="160"
-                value={resolvedQrSize}
+                value={qrConfig.size || 120}
                 onChange={(e) =>
                   handleConfigChange("size", parseInt(e.target.value))
                 }
-                onInput={(e) =>
-                  handleConfigChange("size", parseInt(e.target.value))
-                }
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"
+                style={{ touchAction: "none" }}
               />
             </div>
 
@@ -474,10 +431,8 @@ const MyQRCode = () => {
                 onChange={(e) =>
                   handleConfigChange("margin", parseInt(e.target.value))
                 }
-                onInput={(e) =>
-                  handleConfigChange("margin", parseInt(e.target.value))
-                }
                 className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"
+                style={{ touchAction: "none" }}
               />
             </div>
 
@@ -556,6 +511,23 @@ const MyQRCode = () => {
                 </div>
               </div>
             </div>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSaveConfig}
+              disabled={isSaving}
+              className="flex w-full items-center justify-center space-x-2 rounded-lg bg-primary-500 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSaving ? (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                  <span>Regenerating QR on S3...</span>
+                </>
+              ) : (
+                <span>Save & Regenerate QR Code</span>
+              )}
+            </motion.button>
 
             <div className="rounded-lg border border-primary-500/30 bg-primary-500/10 p-4">
               <h4 className="mb-2 font-medium text-primary-100">Usage Tips</h4>
