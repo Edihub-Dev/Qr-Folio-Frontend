@@ -1110,19 +1110,61 @@ export const AuthProvider = ({ children }) => {
 
   const uploadGalleryImage = useCallback(async (formData) => {
     try {
-      const res = await api.post("/gallery/images", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+      const file = formData.get("file");
+      const title = formData.get("title") || "";
+      const description = formData.get("description") || "";
+
+      if (!file) {
+        return { success: false, error: "No file provided" };
+      }
+
+      // Step 1: Get presigned URL from backend
+      const presignedRes = await api.get("/gallery/presigned-url", {
+        params: {
+          mimeType: file.type,
+          filename: file.name,
         },
       });
 
-      if (res.data?.success && res.data?.item) {
-        return { success: true, item: res.data.item };
+      if (!presignedRes.data?.success || !presignedRes.data?.presignedUrl) {
+        return {
+          success: false,
+          error: presignedRes.data?.error || "Failed to generate presigned upload URL",
+        };
+      }
+
+      const { presignedUrl, url, storageKey } = presignedRes.data;
+
+      // Step 2: Upload raw file to S3 (bypassing server buffer to prevent timeout)
+      const uploadRes = await fetch(presignedUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
+
+      if (!uploadRes.ok) {
+        return { success: false, error: "Direct upload to S3 failed" };
+      }
+
+      // Step 3: Create database entry via backend confirmation
+      const confirmRes = await api.post("/gallery/confirm", {
+        url,
+        storageKey,
+        mimeType: file.type,
+        size: file.size,
+        title,
+        description,
+      });
+
+      if (confirmRes.data?.success && confirmRes.data?.item) {
+        return { success: true, item: confirmRes.data.item };
       }
 
       return {
         success: false,
-        error: res.data?.error || res.data?.message || "Failed to upload image",
+        error: confirmRes.data?.error || "Failed to save upload info in backend",
       };
     } catch (error) {
       return {

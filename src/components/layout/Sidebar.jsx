@@ -214,6 +214,11 @@ const Sidebar = ({
                 <button
                   key={item.id}
                   onClick={() => {
+                    if (item.id === "admin") {
+                      const adminUrl = import.meta.env.VITE_ADMIN_URL || "http://localhost:5175";
+                      window.open(adminUrl, "_blank");
+                      return;
+                    }
                     setActiveTab(item.id);
                     navigate(item.path);
                     if (isMobile) setIsCollapsed(true);
