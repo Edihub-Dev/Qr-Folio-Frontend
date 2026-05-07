@@ -223,6 +223,7 @@ const Sidebar = ({
                       window.open(adminUrl, "_blank");
                       return;
                     }
+                    
                     setActiveTab(item.id);
                     navigate(item.path);
                     if (isMobile) setIsCollapsed(true);
