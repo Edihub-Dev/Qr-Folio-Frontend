@@ -24,6 +24,56 @@ const Dashboard = () => {
   const [referralCode, setReferralCode] = useState("");
   const qrDownloadRef = useRef(null);
 
+  const [scans, setScans] = useState([]);
+  const [scansLoading, setScansLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchScans = async () => {
+      try {
+        setScansLoading(true);
+        const res = await api.get("/user/scans");
+        if (res.data?.success) {
+          setScans(res.data.scans || []);
+        }
+      } catch (err) {
+        console.error("Failed to load scans list", err);
+      } finally {
+        setScansLoading(false);
+      }
+    };
+    fetchScans();
+  }, []);
+
+  const analyticsData = useMemo(() => {
+    const total = scans.length;
+    let mobile = 0;
+    let desktop = 0;
+    let tablet = 0;
+
+    const browsers = {};
+
+    scans.forEach((scan) => {
+      const dev = (scan.device || "").toLowerCase();
+      if (dev === "mobile") mobile++;
+      else if (dev === "tablet") tablet++;
+      else desktop++;
+
+      const bName = scan.browser || "Other";
+      browsers[bName] = (browsers[bName] || 0) + 1;
+    });
+
+    const sortedBrowsers = Object.entries(browsers)
+      .map(([name, count]) => ({ name, count, pct: total ? Math.round((count / total) * 100) : 0 }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      total,
+      mobilePct: total ? Math.round(((mobile + tablet) / total) * 100) : 0,
+      desktopPct: total ? Math.round((desktop / total) * 100) : 0,
+      browsers: sortedBrowsers.slice(0, 3),
+    };
+  }, [scans]);
+
   const baseClientUrl = useMemo(() => {
     const envUrl = import.meta.env.VITE_CLIENT_BASE_URL;
     if (envUrl) {
@@ -793,6 +843,106 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+{/* 
+      <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6 shadow-xl backdrop-blur space-y-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </span>
+              Networking Scan Analytics
+            </h2>
+            <p className="text-sm text-slate-400">
+              Track how visitors engage with your public business card in real-time.
+            </p>
+          </div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-primary-300">
+            Real-time tracking active
+          </div>
+        </div>
+
+        {scansLoading ? (
+          <div className="py-8 text-center text-sm text-slate-400">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500 mx-auto mb-2" />
+            Loading scan data...
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-5 flex flex-col justify-between shadow-inner">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Total Profile Scans
+              </span>
+              <div className="my-4">
+                <span className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-emerald-400">
+                  {analyticsData.total}
+                </span>
+              </div>
+              <span className="text-xs text-slate-500">
+                Total number of times your QR code or link has been opened.
+              </span>
+            </div>
+
+            <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-5 space-y-4 shadow-inner">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Device Distribution
+              </span>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs text-slate-300">
+                    <span>Mobile / Tablet</span>
+                    <span className="font-semibold text-emerald-400">{analyticsData.mobilePct}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
+                      style={{ width: `${analyticsData.mobilePct}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs text-slate-300">
+                    <span>Desktop</span>
+                    <span className="font-semibold text-primary-400">{analyticsData.desktopPct}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-primary-500 to-indigo-400 rounded-full transition-all duration-500"
+                      style={{ width: `${analyticsData.desktopPct}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-5 space-y-3 shadow-inner">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Top Browsers
+              </span>
+              {analyticsData.browsers.length === 0 ? (
+                <div className="py-6 text-center text-xs text-slate-500">
+                  No browser data recorded yet.
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {analyticsData.browsers.map((browser, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <span className="font-bold text-slate-500">{idx + 1}.</span>
+                        <span>{browser.name}</span>
+                      </div>
+                      <span className="font-semibold text-white">{browser.pct}%</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div> */}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/50 backdrop-blur">

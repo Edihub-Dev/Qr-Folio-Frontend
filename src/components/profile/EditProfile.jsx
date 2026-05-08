@@ -28,6 +28,7 @@ const EditProfile = () => {
     instagram: "",
     facebook: "",
     whatsapp: "",
+    theme: "default",
   });
 
   const [avatar, setAvatar] = useState("");
@@ -62,6 +63,7 @@ const EditProfile = () => {
         instagram: user.instagram || "",
         facebook: user.facebook || "",
         whatsapp: user.whatsapp || "",
+        theme: user.theme || "default",
       });
       setAvatar(user.profilePhoto || "");
     }
@@ -621,6 +623,88 @@ const EditProfile = () => {
               </div>
             </div>
           </div>
+
+          {/* <div>
+            <h3 className={clsx('mb-4', 'text-lg', 'font-semibold', 'text-slate-100')}>
+              Premium Profile Themes
+            </h3>
+            <p className={clsx('text-sm', 'text-slate-400', 'mb-6')}>
+              Choose a stunning custom theme to elevate your digital business card and wow your visitors.
+            </p>
+            <div className={clsx('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-4', 'gap-4')}>
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, theme: 'default' }))}
+                className={clsx(
+                  'relative', 'flex', 'flex-col', 'items-start', 'rounded-xl', 'border', 'p-4', 'text-left', 'transition-all', 'duration-200',
+                  formData.theme === 'default'
+                    ? 'border-indigo-500 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.25)]'
+                    : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/60'
+                )}
+              >
+                <div className={clsx('w-full', 'h-24', 'rounded-lg', 'bg-slate-950', 'mb-3', 'flex', 'items-center', 'justify-center', 'overflow-hidden', 'relative', 'border', 'border-white/5')}>
+                  <div className={clsx('absolute', 'w-8', 'h-8', 'rounded-full', 'bg-indigo-500/25', 'top-2', 'left-2', 'blur-sm')} />
+                  <div className={clsx('relative', 'w-10', 'h-10', 'rounded-full', 'border-2', 'border-indigo-400', 'bg-slate-900', 'flex', 'items-center', 'justify-center', 'text-[10px]', 'text-slate-200', 'font-bold')}>QR</div>
+                </div>
+                <div className={clsx('font-semibold', 'text-sm', 'text-slate-200')}>Default Slate</div>
+                <div className={clsx('text-xs', 'text-slate-400', 'mt-1')}>Sleek dark indigo look</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, theme: 'glassmorphism' }))}
+                className={clsx(
+                  'relative', 'flex', 'flex-col', 'items-start', 'rounded-xl', 'border', 'p-4', 'text-left', 'transition-all', 'duration-200',
+                  formData.theme === 'glassmorphism'
+                    ? 'border-indigo-500 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.25)]'
+                    : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/60'
+                )}
+              >
+                <div className={clsx('w-full', 'h-24', 'rounded-lg', 'bg-slate-950', 'mb-3', 'flex', 'items-center', 'justify-center', 'overflow-hidden', 'relative', 'border', 'border-white/5')}>
+                  <div className={clsx('absolute', 'w-14', 'h-14', 'rounded-full', 'bg-gradient-to-tr', 'from-fuchsia-500', 'to-cyan-400', 'top-1', 'left-1', 'opacity-70', 'blur-[2px]')} />
+                  <div className={clsx('relative', 'w-10', 'h-10', 'rounded-full', 'border', 'border-white/20', 'bg-white/10', 'backdrop-blur-md', 'flex', 'items-center', 'justify-center', 'text-[10px]', 'text-white', 'font-bold')}>QR</div>
+                </div>
+                <div className={clsx('font-semibold', 'text-sm', 'text-slate-200')}>Glassmorphism</div>
+                <div className={clsx('text-xs', 'text-slate-400', 'mt-1')}>Frosted glass & gradients</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, theme: 'sleek-dark' }))}
+                className={clsx(
+                  'relative', 'flex', 'flex-col', 'items-start', 'rounded-xl', 'border', 'p-4', 'text-left', 'transition-all', 'duration-200',
+                  formData.theme === 'sleek-dark'
+                    ? 'border-indigo-500 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.25)]'
+                    : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/60'
+                )}
+              >
+                <div className={clsx('w-full', 'h-24', 'rounded-lg', 'bg-black', 'mb-3', 'flex', 'items-center', 'justify-center', 'overflow-hidden', 'relative', 'border', 'border-white/5')}>
+                  <div className={clsx('absolute', 'w-8', 'h-8', 'rounded-full', 'bg-emerald-500/25', 'top-2', 'left-2', 'blur-sm')} />
+                  <div className={clsx('relative', 'w-10', 'h-10', 'rounded-full', 'border-2', 'border-emerald-500', 'bg-neutral-900', 'shadow-[0_0_10px_rgba(16,185,129,0.3)]', 'flex', 'items-center', 'justify-center', 'text-[10px]', 'text-emerald-400', 'font-bold')}>QR</div>
+                </div>
+                <div className={clsx('font-semibold', 'text-sm', 'text-slate-200')}>Neon Dark</div>
+                <div className={clsx('text-xs', 'text-slate-400', 'mt-1')}>Electric neon green glow</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, theme: 'royal-gold' }))}
+                className={clsx(
+                  'relative', 'flex', 'flex-col', 'items-start', 'rounded-xl', 'border', 'p-4', 'text-left', 'transition-all', 'duration-200',
+                  formData.theme === 'royal-gold'
+                    ? 'border-indigo-500 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.25)]'
+                    : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/60'
+                )}
+              >
+                <div className={clsx('w-full', 'h-24', 'rounded-lg', 'bg-neutral-950', 'mb-3', 'flex', 'items-center', 'justify-center', 'overflow-hidden', 'relative', 'border', 'border-white/5')}>
+                  <div className={clsx('absolute', 'w-8', 'h-8', 'rounded-full', 'bg-amber-500/10', 'top-2', 'left-2', 'blur-sm')} />
+                  <div className={clsx('relative', 'w-10', 'h-10', 'rounded-full', 'border-2', 'border-amber-500', 'bg-neutral-900', 'flex', 'items-center', 'justify-center', 'text-[10px]', 'text-amber-400', 'font-bold')}>QR</div>
+                </div>
+                <div className={clsx('font-semibold', 'text-sm', 'text-slate-200')}>Royal Gold</div>
+                <div className={clsx('text-xs', 'text-slate-400', 'mt-1')}>Premium metallic gold</div>
+              </button>
+            </div>
+          </div> */}
 
           <div className={clsx('flex', 'justify-end', 'space-x-4', 'border-t', 'border-slate-800', 'pt-6')}>
             <button

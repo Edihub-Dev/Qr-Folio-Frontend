@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Share2,
   Eye,
+  Inbox,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -79,6 +80,13 @@ const Sidebar = ({
         path: "/dashboard/refer",
         minPlan: "basic",
       },
+      // {
+      //   id: "leads",
+      //   label: "My Leads",
+      //   icon: Inbox,
+      //   path: "/dashboard/leads",
+      //   minPlan: "basic",
+      // },
       {
         id: "public-profile",
         label: "Generate QR ID Card",

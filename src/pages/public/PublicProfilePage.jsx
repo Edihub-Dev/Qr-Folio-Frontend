@@ -62,6 +62,33 @@ const PublicProfilePage = () => {
   const [docPreviewCount, setDocPreviewCount] = useState(0);
   const [videoPreviewCount, setVideoPreviewCount] = useState(0);
 
+  const [leadForm, setLeadForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [leadSubmitting, setLeadSubmitting] = useState(false);
+  const [leadSuccess, setLeadSuccess] = useState(false);
+  const [leadError, setLeadError] = useState("");
+
+  const handleLeadSubmit = async (e) => {
+    e.preventDefault();
+    if (!leadForm.name || !leadForm.email) {
+      setLeadError("Name and Email are required.");
+      return;
+    }
+    try {
+      setLeadSubmitting(true);
+      setLeadError("");
+      const targetUserId = user?.authUserId || user?.id || id;
+      await api.post(`/leads/${targetUserId}`, leadForm);
+      setLeadSuccess(true);
+      setLeadForm({ name: "", email: "", phone: "", message: "" });
+      setTimeout(() => setLeadSuccess(false), 5000); // Reset success after 5s
+    } catch (err) {
+      console.error("Error submitting lead:", err);
+      setLeadError(err.response?.data?.error || "Failed to submit lead. Please try again.");
+    } finally {
+      setLeadSubmitting(false);
+    }
+  };
+
   const fetchUser = useCallback(async () => {
     if (!id) return;
 
@@ -909,8 +936,119 @@ useEffect(() => {
     sameAs: socialLinks.map((link) => link.href),
   };
 
+  const activeTheme = user?.theme || 'default';
+
+  const themeClasses = {
+    default: {
+      bg: 'bg-slate-950 text-slate-100',
+      bgBlobs: (
+        <div className={clsx('pointer-events-none', 'absolute', 'inset-0')}>
+          <div className={clsx('absolute', 'inset-0', 'bg-gradient-to-b', 'from-slate-950', 'via-slate-950', 'to-slate-950')} />
+        </div>
+      ),
+      backButton: 'border-indigo-500/40 bg-slate-900/60 text-indigo-100 shadow-indigo-900/40 hover:border-indigo-300/70 hover:bg-slate-900/80 hover:text-white',
+      asideOuter: 'bg-slate-900/80 ring-1 ring-white/10 shadow-slate-950/70',
+      asideInner: 'bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/80',
+      avatarGlow: 'bg-gradient-to-tr from-indigo-400 via-sky-400 to-cyan-300',
+      avatarBorder: 'border-indigo-300/70',
+      designationText: 'text-indigo-200/90',
+      companyText: 'text-indigo-200',
+      infoIcon: 'bg-indigo-500/15 text-indigo-200',
+      primaryButton: 'from-indigo-400 via-sky-400 to-cyan-300 text-slate-950 shadow-[0_16px_40px_rgba(56,189,248,0.45)]',
+      sectionCard: 'rounded-3xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 shadow-lg shadow-slate-950/70',
+      cardInner: 'rounded-2xl border border-white/10 bg-slate-900/80 p-5 text-center shadow-lg shadow-slate-950/80',
+      headerText: 'text-indigo-100',
+      subButton: 'border border-indigo-400/40 bg-slate-900/80 text-indigo-100 shadow-md hover:border-indigo-200/70 hover:bg-slate-900/90 hover:text-white',
+      infoBg: 'bg-slate-900/70 ring-1 ring-white/5',
+      qrGlow: 'bg-[radial-gradient(circle_at_top,_rgba(129,140,248,0.7),_transparent_55%)]',
+      qrCard: 'border border-white/10 bg-slate-900/80 shadow-slate-950/80',
+      inputBg: 'bg-slate-900/80 border-white/10 text-white placeholder-slate-400 focus:ring-indigo-500'
+    },
+    glassmorphism: {
+      bg: 'bg-[#03001e] text-white',
+      bgBlobs: (
+        <div className={clsx('pointer-events-none', 'absolute', 'inset-0', 'overflow-hidden')}>
+          <div className="absolute top-[10%] left-[5%] w-80 h-80 rounded-full bg-pink-500/15 blur-[80px]" />
+          <div className="absolute bottom-[10%] right-[5%] w-96 h-96 rounded-full bg-cyan-500/15 blur-[90px]" />
+          <div className="absolute top-[40%] right-[20%] w-72 h-72 rounded-full bg-purple-500/15 blur-[80px]" />
+        </div>
+      ),
+      backButton: 'border-white/20 bg-white/10 text-white shadow-black/20 hover:border-white/40 hover:bg-white/20 hover:text-white',
+      asideOuter: 'bg-white/5 backdrop-blur-md ring-1 ring-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.37)]',
+      asideInner: 'bg-gradient-to-b from-white/15 via-white/5 to-white/10',
+      avatarGlow: 'bg-gradient-to-tr from-pink-400 via-purple-400 to-cyan-300',
+      avatarBorder: 'border-white/40',
+      designationText: 'text-pink-200',
+      companyText: 'text-cyan-200',
+      infoIcon: 'bg-white/10 text-pink-200',
+      primaryButton: 'from-pink-400 via-purple-400 to-cyan-300 text-white shadow-[0_16px_40px_rgba(236,72,153,0.35)]',
+      sectionCard: 'rounded-3xl border border-white/20 bg-white/5 backdrop-blur-md p-6 sm:p-8 shadow-lg shadow-black/40',
+      cardInner: 'rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-5 text-center shadow-md shadow-black/30',
+      headerText: 'text-white',
+      subButton: 'border border-white/20 bg-white/10 text-white hover:border-white/40 hover:bg-white/20',
+      infoBg: 'bg-white/5 ring-1 ring-white/10',
+      qrGlow: 'bg-[radial-gradient(circle_at_top,_rgba(236,72,153,0.3),_transparent_55%)]',
+      qrCard: 'border border-white/20 bg-white/5 backdrop-blur-md shadow-black/40',
+      inputBg: 'bg-white/5 border-white/20 text-white placeholder-white/50 focus:ring-pink-500'
+    },
+    'sleek-dark': {
+      bg: 'bg-neutral-950 text-neutral-100',
+      bgBlobs: (
+        <div className={clsx('pointer-events-none', 'absolute', 'inset-0', 'overflow-hidden')}>
+          <div className="absolute top-[15%] left-[10%] w-80 h-80 rounded-full bg-emerald-500/5 blur-[100px]" />
+          <div className="absolute bottom-[15%] right-[10%] w-80 h-80 rounded-full bg-teal-500/5 blur-[100px]" />
+        </div>
+      ),
+      backButton: 'border-emerald-500/30 bg-neutral-900/80 text-emerald-100 shadow-neutral-950/50 hover:border-emerald-400 hover:bg-neutral-900 hover:text-white',
+      asideOuter: 'bg-neutral-900/90 ring-1 ring-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.15)]',
+      asideInner: 'bg-gradient-to-b from-neutral-900 via-neutral-900 to-neutral-950',
+      avatarGlow: 'bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-300',
+      avatarBorder: 'border-emerald-500/50',
+      designationText: 'text-emerald-300',
+      companyText: 'text-teal-300',
+      infoIcon: 'bg-emerald-500/10 text-emerald-300',
+      primaryButton: 'from-emerald-400 via-teal-500 to-cyan-400 text-black font-bold shadow-[0_16px_40px_rgba(16,185,129,0.35)]',
+      sectionCard: 'rounded-3xl border border-emerald-500/20 bg-neutral-900/80 p-6 sm:p-8 shadow-lg shadow-black/90',
+      cardInner: 'rounded-2xl border border-emerald-500/20 bg-neutral-950 p-5 text-center shadow-md shadow-black/80',
+      headerText: 'text-emerald-400',
+      subButton: 'border border-emerald-500/30 bg-neutral-900/60 text-emerald-100 hover:border-emerald-400 hover:bg-neutral-900 hover:text-white',
+      infoBg: 'bg-neutral-900/80 ring-1 ring-emerald-500/20',
+      qrGlow: 'bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.3),_transparent_55%)]',
+      qrCard: 'border border-emerald-500/20 bg-neutral-900/80 shadow-black/80',
+      inputBg: 'bg-neutral-950 border-emerald-500/20 text-neutral-100 placeholder-neutral-500 focus:ring-emerald-500'
+    },
+    'royal-gold': {
+      bg: 'bg-[#0d0d0d] text-amber-50',
+      bgBlobs: (
+        <div className={clsx('pointer-events-none', 'absolute', 'inset-0', 'overflow-hidden')}>
+          <div className="absolute top-[20%] left-[5%] w-80 h-80 rounded-full bg-amber-500/5 blur-[100px]" />
+          <div className="absolute bottom-[20%] right-[5%] w-80 h-80 rounded-full bg-yellow-600/5 blur-[100px]" />
+        </div>
+      ),
+      backButton: 'border-amber-500/30 bg-neutral-900/80 text-amber-100 shadow-neutral-950/50 hover:border-amber-400 hover:bg-neutral-900 hover:text-white',
+      asideOuter: 'bg-[#141414]/90 ring-1 ring-amber-500/40 shadow-[0_0_25px_rgba(245,158,11,0.15)]',
+      asideInner: 'bg-gradient-to-b from-[#181818] via-[#121212] to-[#1a1a1a]',
+      avatarGlow: 'bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300',
+      avatarBorder: 'border-amber-400/50',
+      designationText: 'text-amber-200',
+      companyText: 'text-yellow-300',
+      infoIcon: 'bg-amber-500/10 text-amber-300',
+      primaryButton: 'from-amber-400 via-yellow-500 to-amber-300 text-black font-bold shadow-[0_16px_40px_rgba(245,158,11,0.35)]',
+      sectionCard: 'rounded-3xl border border-amber-500/20 bg-[#121212]/80 p-6 sm:p-8 shadow-lg shadow-black/95',
+      cardInner: 'rounded-2xl border border-amber-500/20 bg-[#1a1a1a] p-5 text-center shadow-md shadow-black/90',
+      headerText: 'text-amber-400',
+      subButton: 'border border-amber-500/30 bg-neutral-900/60 text-amber-100 hover:border-amber-400 hover:bg-neutral-900 hover:text-white',
+      infoBg: 'bg-[#141414] ring-1 ring-amber-500/20',
+      qrGlow: 'bg-[radial-gradient(circle_at_top,_rgba(245,158,11,0.25),_transparent_55%)]',
+      qrCard: 'border border-amber-500/20 bg-[#141414]/90 shadow-black/90',
+      inputBg: 'bg-[#1a1a1a] border-amber-500/20 text-amber-50 placeholder-amber-500/30 focus:ring-amber-500'
+    }
+  };
+
+  const style = themeClasses[activeTheme] || themeClasses.default;
+
   return (
-    <div className={clsx('relative', 'min-h-screen', 'overflow-hidden', 'bg-slate-950')}>
+    <div className={clsx('relative', 'min-h-screen', 'overflow-hidden', style.bg)}>
       <PageSEO
         title={`${displayName}'s digital business card`}
         description={
@@ -921,9 +1059,7 @@ useEffect(() => {
         ogType="profile"
         structuredData={profileSchema}
       />
-      <div className={clsx('pointer-events-none', 'absolute', 'inset-0')}>
-        <div className={clsx('absolute', 'inset-0', 'bg-gradient-to-b', 'from-slate-950', 'via-slate-950', 'to-slate-950')} />
-      </div>
+      {style.bgBlobs}
 
       <div className={clsx('relative', 'z-10', 'flex', 'min-h-screen', 'flex-col')}>
         <div className="w-full">
@@ -931,7 +1067,7 @@ useEffect(() => {
             <button
               type="button"
               onClick={handleBackClick}
-              className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-full', 'border', 'border-indigo-500/40', 'bg-slate-900/60', 'px-4', 'py-2', 'text-sm', 'font-semibold', 'text-indigo-100', 'shadow-lg', 'shadow-indigo-900/40', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:border-indigo-300/70', 'hover:bg-slate-900/80', 'hover:text-white')}
+              className={clsx('inline-flex', 'items-center', 'gap-2', 'rounded-full', 'border', style.backButton, 'px-4', 'py-2', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5')}
             >
               <ArrowLeft className={clsx('h-4', 'w-4')} />
               Back
@@ -945,13 +1081,13 @@ useEffect(() => {
               <div
                 id="public-card-print"
                 ref={downloadRef}
-                className={clsx('space-y-6', 'rounded-[32px]', 'bg-slate-900/80', 'p-[1px]', 'shadow-xl', 'shadow-slate-950/70', 'ring-1', 'ring-white/10')}
+                className={clsx('space-y-6', 'rounded-[32px]', style.asideOuter, 'p-[1px]', 'shadow-xl')}
               >
-                <div className={clsx('rounded-[30px]', 'bg-gradient-to-b', 'from-slate-900/80', 'via-slate-900/60', 'to-slate-900/80', 'p-8')}>
+                <div className={clsx('rounded-[30px]', style.asideInner, 'p-8')}>
                   <div className={clsx('flex', 'flex-col', 'items-center', 'text-center')}>
                     <div className="relative">
-                      <div className={clsx('absolute', '-inset-1', 'rounded-full', 'bg-gradient-to-tr', 'from-indigo-400', 'via-sky-400', 'to-cyan-300', 'opacity-60', 'blur-md')} />
-                      <div className={clsx('relative', 'h-40', 'w-40', 'overflow-hidden', 'rounded-full', 'border-4', 'border-indigo-300/70', 'bg-slate-900', 'shadow-[0_22px_40px_rgba(15,23,42,0.9)]')}>
+                      <div className={clsx('absolute', '-inset-1', 'rounded-full', style.avatarGlow, 'opacity-60', 'blur-md')} />
+                      <div className={clsx('relative', 'h-40', 'w-40', 'overflow-hidden', 'rounded-full', 'border-4', style.avatarBorder, 'bg-slate-900', 'shadow-[0_22px_40px_rgba(15,23,42,0.9)]')}>
                         <img
                           src={user?.profilePhotoDataUri || avatar}
                           alt={displayName}
@@ -969,12 +1105,12 @@ useEffect(() => {
                       <h1 className={clsx('text-2xl', 'font-semibold', 'tracking-tight', 'text-slate-50')}>
                         {displayName}
                       </h1>
-                      <div className={clsx('text-xs', 'font-medium', 'uppercase', 'tracking-[0.22em]', 'text-indigo-200/90')}>
+                      <div className={clsx('text-xs', 'font-medium', 'uppercase', 'tracking-[0.22em]', style.designationText)}>
                         {user?.designation || ""}
                       </div>
                       <div className={clsx('text-sm', 'font-medium', 'text-slate-300')}>
                         at{" "}
-                        <span className={clsx('font-semibold', 'text-indigo-200')}>
+                        <span className={clsx('font-semibold', style.companyText)}>
                           {companyName !== "" ? companyName : "Company"}
                         </span>
                       </div>
@@ -1001,7 +1137,7 @@ useEffect(() => {
                             href={companyWebsiteUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={clsx('mt-4', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'bg-indigo-500', 'px-4', 'py-2', 'text-xs', 'font-semibold', 'text-white', 'shadow-md', 'shadow-slate-950/70', 'hover:bg-indigo-400')}
+                            className={clsx('mt-4', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'bg-gradient-to-r', style.primaryButton, 'px-4', 'py-2', 'text-xs', 'font-semibold', 'shadow-md', 'shadow-slate-950/70')}
                           >
                             Visit website
                           </a>
@@ -1010,7 +1146,7 @@ useEffect(() => {
                           <button
                             type="button"
                             onClick={scrollToDocuments}
-                            className={clsx('mt-2', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'gap-2', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-4', 'py-2', 'text-xs', 'font-semibold', 'text-indigo-100', 'shadow-md', 'shadow-slate-950/70', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90')}
+                            className={clsx('mt-2', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'gap-2', 'rounded-full', style.subButton, 'px-4', 'py-2', 'text-xs', 'font-semibold')}
                           >
                             <FileText className={clsx('h-4', 'w-4')} />
                             View Certificates /  Documents
@@ -1019,22 +1155,22 @@ useEffect(() => {
                       </>
                     )}
                     <div className={clsx('mt-6', 'w-full', 'space-y-3', 'text-left', 'text-xs', 'text-slate-200/90')}>
-                      <div className={clsx('flex', 'items-center', 'gap-3', 'rounded-2xl', 'bg-slate-900/70', 'px-3', 'py-2', 'ring-1', 'ring-white/5')}>
-                        <span className={clsx('flex', 'h-8', 'w-8', 'items-center', 'justify-center', 'rounded-full', 'bg-indigo-500/15', 'text-indigo-200')}>
+                      <div className={clsx('flex', 'items-center', 'gap-3', 'rounded-2xl', 'px-3', 'py-2', style.infoBg)}>
+                        <span className={clsx('flex', 'h-8', 'w-8', 'items-center', 'justify-center', 'rounded-full', style.infoIcon)}>
                           <Mail className={clsx('h-4', 'w-4')} />
                         </span>
                         <span className={clsx('break-all', 'text-sm')}>
                           {displayEmail}
                         </span>
                       </div>
-                      <div className={clsx('flex', 'items-center', 'gap-3', 'rounded-2xl', 'bg-slate-900/70', 'px-3', 'py-2', 'ring-1', 'ring-white/5')}>
-                        <span className={clsx('flex', 'h-8', 'w-8', 'items-center', 'justify-center', 'rounded-full', 'bg-indigo-500/15', 'text-indigo-200')}>
+                      <div className={clsx('flex', 'items-center', 'gap-3', 'rounded-2xl', 'px-3', 'py-2', style.infoBg)}>
+                        <span className={clsx('flex', 'h-8', 'w-8', 'items-center', 'justify-center', 'rounded-full', style.infoIcon)}>
                           <Phone className={clsx('h-4', 'w-4')} />
                         </span>
                         <span className={clsx('break-all', 'text-sm')}>{user?.phone}</span>
                       </div>
-                      <div className={clsx('flex', 'items-start', 'gap-3', 'rounded-2xl', 'bg-slate-900/70', 'px-3', 'py-2', 'ring-1', 'ring-white/5')}>
-                        <span className={clsx('mt-0.5', 'flex', 'h-8', 'w-8', 'items-center', 'justify-center', 'rounded-full', 'bg-indigo-500/15', 'text-indigo-200')}>
+                      <div className={clsx('flex', 'items-start', 'gap-3', 'rounded-2xl', 'px-3', 'py-2', style.infoBg)}>
+                        <span className={clsx('mt-0.5', 'flex', 'h-8', 'w-8', 'items-center', 'justify-center', 'rounded-full', style.infoIcon)}>
                           <MapPin className={clsx('h-4', 'w-4')} />
                         </span>
                         <span className={clsx('break-words', 'text-sm', 'leading-snug')}>
@@ -1045,8 +1181,8 @@ useEffect(() => {
                   </div>
                 </div>
 
-                <div className={clsx('relative', 'overflow-hidden', 'rounded-[32px]', 'border', 'border-white/10', 'bg-slate-900/80', 'p-6', 'text-white', 'shadow-lg', 'shadow-slate-950/80')}>
-                  <div className={clsx('pointer-events-none', 'absolute', 'inset-0', 'bg-[radial-gradient(circle_at_top,_rgba(129,140,248,0.7),_transparent_55%)]')} />
+                <div className={clsx('relative', 'overflow-hidden', 'rounded-[32px]', 'p-6', 'text-white', style.qrCard)}>
+                  <div className={clsx('pointer-events-none', 'absolute', 'inset-0', style.qrGlow)} />
                   <div className={clsx('pointer-events-none', 'absolute', 'inset-0', 'bg-gradient-to-br', 'from-slate-900/10', 'via-indigo-900/10', 'to-slate-950/60')} />
                   <div className={clsx('relative', 'flex', 'flex-col', 'items-center', 'text-center')}>
                     <div className={clsx('rounded-3xl', 'bg-gradient-to-br', 'from-indigo-500', 'via-fuchsia-500', 'to-emerald-400', 'p-[1px]', 'shadow-[0_28px_50px_rgba(15,23,42,0.65)]')}>
@@ -1060,7 +1196,7 @@ useEffect(() => {
                         />
                       </div>
                     </div>
-                    <div className={clsx('mt-6', 'text-[0.65rem]', 'font-semibold', 'uppercase', 'tracking-[0.28em]', 'text-indigo-100/90')}>
+                    <div className={clsx('mt-6', 'text-[0.65rem]', 'font-semibold', 'uppercase', 'tracking-[0.28em]', style.designationText)}>
                       Powered by
                     </div>
                     <button
@@ -1079,35 +1215,35 @@ useEffect(() => {
                 <button
                   type="button"
                   onClick={handleShare}
-                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'bg-gradient-to-r', 'from-indigo-400', 'via-sky-400', 'to-cyan-300', 'px-8', 'py-3', 'text-sm', 'font-semibold', 'text-slate-950', 'shadow-[0_16px_40px_rgba(56,189,248,0.45)]', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:shadow-[0_22px_48px_rgba(56,189,248,0.65)]')}
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'bg-gradient-to-r', style.primaryButton, 'px-8', 'py-3', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5')}
                 >
                   Connect Now &gt;
                 </button>
                 <button
                   type="button"
                   onClick={handleDownloadPDF}
-                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-8', 'py-3', 'text-sm', 'font-semibold', 'text-indigo-100', 'shadow-lg', 'shadow-slate-950/70', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90', 'hover:text-white')}
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', style.subButton, 'px-8', 'py-3', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5')}
                 >
                   Download Card PDF
                 </button>
                 <button
                   type="button"
                   onClick={handleDownloadCard}
-                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-8', 'py-3', 'text-sm', 'font-semibold', 'text-indigo-100', 'shadow-lg', 'shadow-slate-950/70', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90', 'hover:text-white')}
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', style.subButton, 'px-8', 'py-3', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5')}
                 >
                   Download Card Image
                 </button>
                 <button
                   type="button"
                   onClick={handleDownloadQrCode}
-                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-8', 'py-3', 'text-sm', 'font-semibold', 'text-indigo-100', 'shadow-lg', 'shadow-slate-950/70', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90', 'hover:text-white')}
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', style.subButton, 'px-8', 'py-3', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5')}
                 >
                   Download QR Code
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveContact}
-                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'border', 'border-indigo-400/40', 'bg-slate-900/80', 'px-8', 'py-3', 'text-sm', 'font-semibold', 'text-indigo-100', 'shadow-lg', 'shadow-slate-950/70', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'hover:border-indigo-200/70', 'hover:bg-slate-900/90', 'hover:text-white')}
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', style.subButton, 'px-8', 'py-3', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5')}
                 >
                   Save Contact
                 </button>
@@ -1125,10 +1261,10 @@ useEffect(() => {
             </aside>
 
             <main className={clsx('flex-1', 'space-y-6')}>
-              <section className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8', 'shadow-lg', 'shadow-slate-950/70')}>
+              <section className={clsx(style.sectionCard)}>
                 <div className="space-y-8">
                   <div className={clsx('max-w-3xl', 'space-y-4')}>
-                    <h2 className={clsx('text-2xl', 'font-semibold', 'text-left', 'justify-center', 'tracking-tight', 'text-indigo-100')}>
+                    <h2 className={clsx('text-2xl', 'font-semibold', 'text-left', 'justify-center', 'tracking-tight', style.headerText)}>
                       About Me
                     </h2>
                     <p className={clsx('text-base', 'leading-relaxed', 'text-slate-200/90')}>
@@ -1139,38 +1275,38 @@ useEffect(() => {
                 </div>
               </section>
 
-              <section className={clsx('grid', 'gap-10', 'rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'pt-10', 'shadow-lg', 'shadow-slate-950/70', 'lg:grid-cols-[minmax(0,380px),1fr]', 'sm:p-8')}>
+              <section className={clsx('grid', 'gap-10', style.sectionCard, 'lg:grid-cols-[minmax(0,380px),1fr]')}>
                 {/* Professional Details */}
                 <div className="space-y-5">
-                  <h2 className={clsx('text-2xl', 'font-semibold', 'tracking-tight', 'text-indigo-100')}>
+                  <h2 className={clsx('text-2xl', 'font-semibold', 'tracking-tight', style.headerText)}>
                     Professional Details
                   </h2>
                   <div className={clsx('grid', 'min-h-0', 'grid-cols-1', 'gap-4', 'md:grid-cols-2')}>
                     {/* Company Name Card */}
-                    <div className={clsx('flex', 'min-h-[200px]', 'flex-col', 'items-center', 'gap-3', 'rounded-2xl', 'border', 'border-white/10', 'bg-slate-900/80', 'p-5', 'text-center', 'shadow-lg', 'shadow-slate-950/80', 'transition-all', 'duration-300', 'hover:-translate-y-1', 'hover:shadow-xl')}>
-                      <div className={clsx('m-5', 'flex', 'h-12', 'w-12', 'items-center', 'justify-center', 'rounded-2xl', 'bg-indigo-500/15', 'text-indigo-200', 'shadow-inner', 'shadow-slate-950/70')}>
+                    <div className={clsx('flex', 'min-h-[200px]', 'flex-col', 'items-center', 'gap-3', 'transition-all', 'duration-300', 'hover:-translate-y-1', style.cardInner)}>
+                      <div className={clsx('m-5', 'flex', 'h-12', 'w-12', 'items-center', 'justify-center', 'rounded-2xl', style.infoIcon, 'shadow-inner')}>
                         <Building2 className={clsx('h-6', 'w-6')} />
                       </div>
                       <div className={clsx('min-w-0', 'w-full')}>
                         <p className={clsx('text-500', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-300')}>
                           Company Name
                         </p>
-                        <p className={clsx('mt-2', 'break-words', 'whitespace-pre-wrap', 'text-base', 'font-semibold', 'text-indigo-100', 'sm:text-lg')}>
+                        <p className={clsx('mt-2', 'break-words', 'whitespace-pre-wrap', 'text-base', 'font-semibold', style.headerText, 'sm:text-lg')}>
                           {companyName}
                         </p>
                       </div>
                     </div>
 
                     {/* Designation Card */}
-                    <div className={clsx('flex', 'min-h-[200px]', 'flex-col', 'items-center', 'gap-3', 'rounded-2xl', 'border', 'border-white/10', 'bg-slate-900/80', 'p-5', 'text-center', 'shadow-[0_18px_40px_rgba(15,23,42,0.9)]', 'transition-all', 'duration-300', 'hover:-translate-y-1', 'hover:shadow-[0_24px_60px_rgba(15,23,42,0.95)]')}>
-                      <div className={clsx('m-5', 'flex', 'h-12', 'w-12', 'items-center', 'justify-center', 'rounded-2xl', 'bg-sky-500/15', 'text-sky-200', 'shadow-inner', 'shadow-slate-950/70')}>
+                    <div className={clsx('flex', 'min-h-[200px]', 'flex-col', 'items-center', 'gap-3', 'transition-all', 'duration-300', 'hover:-translate-y-1', style.cardInner)}>
+                      <div className={clsx('m-5', 'flex', 'h-12', 'w-12', 'items-center', 'justify-center', 'rounded-2xl', style.infoIcon, 'shadow-inner')}>
                         <Briefcase className={clsx('h-6', 'w-6')} />
                       </div>
                       <div className={clsx('min-w-0', 'w-full')}>
                         <p className={clsx('text-500', 'font-semibold', 'uppercase', 'tracking-wide', 'text-slate-300')}>
                           Designation
                         </p>
-                        <p className={clsx('mt-2', 'break-words', 'whitespace-pre-wrap', 'text-base', 'font-semibold', 'text-indigo-100', 'sm:text-lg')}>
+                        <p className={clsx('mt-2', 'break-words', 'whitespace-pre-wrap', 'text-base', 'font-semibold', style.headerText, 'sm:text-lg')}>
                           {user?.designation || "—"}
                         </p>
                       </div>
@@ -1181,7 +1317,7 @@ useEffect(() => {
                 {/* Company Description */}
                 <div className="space-y-5">
                   <div className="space-y-4">
-                    <h2 className={clsx('text-2xl', 'font-semibold', 'tracking-tight', 'text-indigo-100')}>
+                    <h2 className={clsx('text-2xl', 'font-semibold', 'tracking-tight', style.headerText)}>
                       Company Description
                     </h2>
                     <p className={clsx('break-words', 'text-base', 'leading-relaxed', 'text-slate-200/90')}>
@@ -1193,15 +1329,15 @@ useEffect(() => {
 
                   {/* Experience & Referral */}
                   <div className={clsx('flex', 'flex-col', 'gap-3')}>
-                    <div className={clsx('flex', 'w-full', 'items-stretch', 'rounded-[999px]', 'border', 'border-white/10', 'bg-slate-900/80', 'text-white', 'shadow-md', 'shadow-slate-950/60')}>
-                      <div className={clsx('flex', 'items-center', 'justify-center', 'rounded-l-[999px]', 'bg-gradient-to-r', 'from-indigo-500', 'to-sky-400', 'px-16', 'py-3', 'text-xs', 'font-semibold', 'uppercase', 'tracking-wide')}>
+                    <div className={clsx('flex', 'w-full', 'items-stretch', 'rounded-[999px]', style.cardInner)}>
+                      <div className={clsx('flex', 'items-center', 'justify-center', 'rounded-l-[999px]', 'bg-gradient-to-r', style.primaryButton, 'px-16', 'py-3', 'text-xs', 'font-semibold', 'uppercase', 'tracking-wide')}>
                         Experience
                       </div>
-                      <div className={clsx('flex', 'flex-1', 'items-center', 'justify-center', 'px-5', 'py-3', 'text-base', 'font-semibold', 'text-indigo-100')}>
+                      <div className={clsx('flex', 'flex-1', 'items-center', 'justify-center', 'px-5', 'py-3', 'text-base', 'font-semibold', style.headerText)}>
                         {companyExperience || "-"}
                       </div>
                     </div>
-                    <div className={clsx('flex', 'w-full', 'flex-col', 'gap-3', 'rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/80', 'p-4', 'text-slate-100', 'shadow-md', 'shadow-slate-950/60')}>
+                    <div className={clsx('flex', 'w-full', 'flex-col', 'gap-3', 'p-4', 'text-slate-100', style.cardInner)}>
                       <div className={clsx('flex', 'flex-wrap', 'items-center', 'justify-between', 'gap-2')}>
                         <p className={clsx('text-xs', 'font-semibold', 'uppercase', 'tracking-[0.3em]', 'text-slate-400')}>
                           Referral Code
@@ -1212,13 +1348,13 @@ useEffect(() => {
                             <button
                               type="button"
                               onClick={handleCopyReferralCode}
-                              className={clsx('inline-flex', 'items-center', 'justify-center', 'gap-1.5', 'rounded-full', 'bg-gradient-to-r', 'from-indigo-500', 'via-sky-500', 'to-cyan-400', 'px-4', 'py-1.5', 'text-xs', 'font-semibold', 'text-white', 'shadow-lg', 'shadow-slate-950/60', 'transition', 'hover:brightness-110')}
+                              className={clsx('inline-flex', 'items-center', 'justify-center', 'gap-1.5', 'rounded-full', 'bg-gradient-to-r', style.primaryButton, 'px-4', 'py-1.5', 'text-xs', 'font-semibold', 'transition', 'hover:brightness-110')}
                             >
                               <Copy className={clsx('h-4', 'w-4')} />
                             </button>
                           )}
                       </div>
-                      <p className={clsx('break-all', 'text-sm', 'font-medium', 'text-indigo-100')}>
+                      <p className={clsx('break-all', 'text-sm', 'font-medium', style.headerText)}>
                         {companyReferralCode || "-"}
                       </p>
                     </div>
@@ -1232,10 +1368,10 @@ useEffect(() => {
               const previewImages = imageItems.slice(0, previewCount);
 
               return (
-    <div className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8')}>
-<h2 className={clsx('mb-4', 'text-xl', 'font-semibold', 'text-indigo-100')}>
-  Photo Gallery
-</h2>
+                <div className={clsx(style.sectionCard)}>
+                  <h2 className={clsx('mb-4', 'text-xl', 'font-semibold', style.headerText)}>
+                    Photo Gallery
+                  </h2>
                   <div className={clsx('grid', 'grid-cols-2', 'md:grid-cols-3', 'gap-3')}>
 
                     {previewImages.map((item, index) => {
@@ -1278,8 +1414,8 @@ useEffect(() => {
   const previewDocs = documentItems.slice(0, docPreviewCount);
 
   return (
-    <div id="documents-section" className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8')}>
-      <h2 className={clsx('mb-4', 'text-xl', 'font-semibold', 'text-indigo-100')}>
+    <div id="documents-section" className={clsx(style.sectionCard)}>
+      <h2 className={clsx('mb-4', 'text-xl', 'font-semibold', style.headerText)}>
         Certificates/Documents
       </h2>
 
@@ -1296,9 +1432,9 @@ useEffect(() => {
                   ? setDocPreviewCount(documentItems.length)
                   : window.open(item.url, "_blank")
               }
-              className={clsx('relative', 'rounded-2xl', 'bg-slate-900', 'border', 'border-white/10', 'p-6', 'flex', 'flex-col', 'items-center', 'justify-center', 'text-center')}
+              className={clsx('relative', 'p-6', 'flex', 'flex-col', 'items-center', 'justify-center', 'text-center', style.cardInner)}
             >
-              <FileText className={clsx('h-10', 'w-10', 'text-indigo-300', 'mb-3')} />
+              <FileText className={clsx('h-10', 'w-10', style.designationText, 'mb-3')} />
               <p className={clsx('text-xs', 'text-slate-300', 'line-clamp-2')}>
                 {item.title || "Document"}
               </p>
@@ -1325,8 +1461,8 @@ useEffect(() => {
   const previewVideos = videoItems.slice(0, videoPreviewCount);
 
   return (
-    <div className={clsx('rounded-3xl', 'border', 'border-white/10', 'bg-slate-900/70', 'p-6', 'sm:p-8')}>
-      <h2 className={clsx('mb-4', 'text-xl', 'font-semibold', 'text-indigo-100')}>
+    <div className={clsx(style.sectionCard)}>
+      <h2 className={clsx('mb-4', 'text-xl', 'font-semibold', style.headerText)}>
         Work Videos
       </h2>
 
@@ -1370,7 +1506,106 @@ useEffect(() => {
   );
 })()}
 
+              {/* QUICK CONNECT LEAD CAPTURE FORM */}
+              {/* <section className={clsx(style.sectionCard, 'mt-8', 'space-y-6')}>
+                <div className="space-y-2">
+                  <h2 className={clsx('text-2xl', 'font-semibold', 'tracking-tight', style.headerText)}>
+                    Quick Connect
+                  </h2>
+                  <p className="text-sm text-slate-300">
+                    Leave your details and we will get back to you as soon as possible.
+                  </p>
+                </div>
 
+                <form onSubmit={handleLeadSubmit} className="space-y-4">
+                  {leadSuccess ? (
+                    <div className="rounded-2xl bg-emerald-500/10 p-5 text-center text-emerald-400 border border-emerald-500/30">
+                      <p className="text-sm font-semibold">
+                        🎉 Message Sent Successfully!
+                      </p>
+                      <p className="mt-1 text-xs text-emerald-300">
+                        We have captured your request and will connect with you soon.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {leadError && (
+                        <div className="rounded-xl bg-red-500/10 p-4 text-xs text-red-400 border border-red-500/20">
+                          {leadError}
+                        </div>
+                      )}
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-1">
+                          <label htmlFor="lead-name" className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                            Name *
+                          </label>
+                          <input
+                            id="lead-name"
+                            type="text"
+                            required
+                            placeholder="John Doe"
+                            value={leadForm.name}
+                            onChange={(e) => setLeadForm((prev) => ({ ...prev, name: e.target.value }))}
+                            className={clsx('w-full', 'rounded-2xl', 'p-4', 'text-sm', 'font-medium', 'transition', 'duration-300', 'outline-none', 'ring-1', 'ring-white/10', style.inputBg)}
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label htmlFor="lead-email" className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                            Email *
+                          </label>
+                          <input
+                            id="lead-email"
+                            type="email"
+                            required
+                            placeholder="john@example.com"
+                            value={leadForm.email}
+                            onChange={(e) => setLeadForm((prev) => ({ ...prev, email: e.target.value }))}
+                            className={clsx('w-full', 'rounded-2xl', 'p-4', 'text-sm', 'font-medium', 'transition', 'duration-300', 'outline-none', 'ring-1', 'ring-white/10', style.inputBg)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label htmlFor="lead-phone" className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          Phone Number
+                        </label>
+                        <input
+                          id="lead-phone"
+                          type="tel"
+                          placeholder="+91 9876543210"
+                          value={leadForm.phone}
+                          onChange={(e) => setLeadForm((prev) => ({ ...prev, phone: e.target.value }))}
+                          className={clsx('w-full', 'rounded-2xl', 'p-4', 'text-sm', 'font-medium', 'transition', 'duration-300', 'outline-none', 'ring-1', 'ring-white/10', style.inputBg)}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label htmlFor="lead-message" className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          Message
+                        </label>
+                        <textarea
+                          id="lead-message"
+                          rows="4"
+                          placeholder="How can we help you?"
+                          value={leadForm.message}
+                          onChange={(e) => setLeadForm((prev) => ({ ...prev, message: e.target.value }))}
+                          className={clsx('w-full', 'rounded-2xl', 'p-4', 'text-sm', 'font-medium', 'transition', 'duration-300', 'outline-none', 'ring-1', 'ring-white/10', style.inputBg)}
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={leadSubmitting}
+                        className={clsx('w-full', 'inline-flex', 'items-center', 'justify-center', 'rounded-full', 'bg-gradient-to-r', style.primaryButton, 'px-8', 'py-3.5', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5', 'disabled:opacity-50')}
+                      >
+                        {leadSubmitting ? "Sending..." : "Submit Inquiry"}
+                      </button>
+                    </>
+                  )}
+                </form>
+              </section> */}
 
             </main>
           </div>

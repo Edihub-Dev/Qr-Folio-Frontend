@@ -20,6 +20,7 @@ const CompanyDetails = lazy(() => import("../../components/profile/CompanyDetail
 const MyQRCode = lazy(() => import("../../components/qr/MyQRCode"));
 const ReferPage = lazy(() => import("./ReferPage"));
 const GalleryPage = lazy(() => import("./GalleryPage"));
+const LeadsPage = lazy(() => import("./LeadsPage"));
 
 const DashboardLayout = () => {
   const { user } = useAuth();
@@ -98,6 +99,7 @@ const DashboardLayout = () => {
     else if (path.includes("/dashboard/company")) setActiveTab("company");
     else if (path.includes("/dashboard/qrcode")) setActiveTab("qrcode");
     else if (path.includes("/dashboard/refer")) setActiveTab("refer");
+    else if (path.includes("/dashboard/leads")) setActiveTab("leads");
   }, [location.pathname]);
 
   const renderWithFallback = (node) => (
@@ -130,6 +132,8 @@ const DashboardLayout = () => {
           : renderRestrictedFeature("My QR Code");
       case "refer":
         return renderWithFallback(<ReferPage />);
+      case "leads":
+        return renderWithFallback(<LeadsPage />);
       default:
         return renderWithFallback(<Dashboard />);
     }
@@ -228,6 +232,7 @@ const DashboardLayout = () => {
                 }
               />
               <Route path="refer" element={renderWithFallback(<ReferPage />)} />
+              <Route path="leads" element={renderWithFallback(<LeadsPage />)} />
               <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
           </div>
