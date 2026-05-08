@@ -1,16 +1,11 @@
 import axios from "axios";
 
-const envBaseUrl = import.meta?.env?.VITE_API_BASE_URL;
-const isLocalHost =
-  typeof window !== "undefined" &&
-  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-const defaultBaseUrl = isLocalHost ? "http://localhost:5000" : "https://api.qrfolio.net";
-
-const apiBaseUrl = (envBaseUrl || defaultBaseUrl).replace(/\/$/, "");
+const envBaseUrl = import.meta?.env?.VITE_API_BASE_URL || "";
+const cleanBaseUrl = envBaseUrl.endsWith("/api") ? envBaseUrl.slice(0, -4) : envBaseUrl;
+const apiBaseUrl = cleanBaseUrl.replace(/\/$/, "");
 
 const api = axios.create({
   baseURL: `${apiBaseUrl}/api`,
-  // withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
