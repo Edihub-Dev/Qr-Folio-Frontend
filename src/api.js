@@ -4,7 +4,7 @@ const isLocalHost =
   typeof window !== "undefined" &&
   (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
 
-const envBaseUrl = import.meta?.env?.VITE_API_BASE_URL || (isLocalHost ? "http://localhost:5000" : "");
+const envBaseUrl = import.meta?.env?.VITE_API_BASE_URL || (isLocalHost ? "http://localhost:5000" : "https://api.qrfolio.net");
 const cleanBaseUrl = envBaseUrl.endsWith("/api") ? envBaseUrl.slice(0, -4) : envBaseUrl;
 const apiBaseUrl = cleanBaseUrl.replace(/\/$/, "");
 
