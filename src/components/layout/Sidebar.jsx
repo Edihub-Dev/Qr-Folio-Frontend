@@ -217,7 +217,7 @@ const Sidebar = ({
                   onClick={() => {
                     if (item.id === "admin") {
                       const isProd = import.meta.env.PROD;
-                      const defaultAdminUrl = isProd ? "https://qr-folio-admin.vercel.app" : "http://localhost:5175";
+                      const defaultAdminUrl = isProd ? "https://admin.qrfolio.net" : "http://localhost:5175";
                       const adminUrl = import.meta.env.VITE_ADMIN_URL || defaultAdminUrl;
                       toast.success("Opening Admin Portal...");
                       window.open(adminUrl, "_blank");
