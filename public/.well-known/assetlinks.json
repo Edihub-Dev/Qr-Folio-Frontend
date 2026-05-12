@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.qrfolio.qrfolio_mobile_app",
+      "sha256_cert_fingerprints": [
+        "B3:EE:6F:4C:A7:F5:12:05:BE:11:95:F2:B3:FB:90:EB:90:E6:DF:BC:F3:0C:EF:88:D2:CE:47:0F:85:37:E2:89"
+      ]
+    }
+  }
+]
