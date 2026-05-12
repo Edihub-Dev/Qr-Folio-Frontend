@@ -249,7 +249,7 @@ const Dashboard = () => {
   const apiBase = useMemo(
     () =>
       import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
-      "http://api.qrfolio.net",
+      "",
     []
   );
 
@@ -844,8 +844,8 @@ const Dashboard = () => {
         </div>
       )}
 
-{/* 
-      <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6 shadow-xl backdrop-blur space-y-6">
+
+      {/* <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6 shadow-xl backdrop-blur space-y-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">

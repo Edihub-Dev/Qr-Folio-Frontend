@@ -623,8 +623,8 @@ const EditProfile = () => {
               </div>
             </div>
           </div>
-
-          {/* <div>
+{/* 
+          <div>
             <h3 className={clsx('mb-4', 'text-lg', 'font-semibold', 'text-slate-100')}>
               Premium Profile Themes
             </h3>

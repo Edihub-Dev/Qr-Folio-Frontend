@@ -25,6 +25,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
+  UserPlus,
+  Sparkles,
+  MessageSquare,
+  Send,
+  Minus,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api";
@@ -40,7 +45,7 @@ const PublicProfilePage = () => {
   const apiBase = useMemo(
     () =>
       import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
-      "http://api.qrfolio.net",
+      "",
     []
   );
   const [user, setUser] = useState(null);
@@ -61,6 +66,119 @@ const PublicProfilePage = () => {
   const [previewCount, setPreviewCount] = useState(0);
   const [docPreviewCount, setDocPreviewCount] = useState(0);
   const [videoPreviewCount, setVideoPreviewCount] = useState(0);
+
+  // AI Chatbot States & Functions
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isBotTyping, setIsBotTyping] = useState(false);
+  const chatBottomRef = useRef(null);
+
+  useEffect(() => {
+    if (chatBottomRef.current) {
+      chatBottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages, isBotTyping, isChatOpen]);
+
+  useEffect(() => {
+    if (user) {
+      setChatMessages([
+        {
+          sender: "bot",
+          text: `Hi there! I am ${user.name || "User"}'s AI Profile Assistant. Ask me anything about my background, skills, contact info, or social links!`,
+        },
+      ]);
+    }
+  }, [user]);
+
+  const handleBotResponse = (userInput) => {
+    setIsBotTyping(true);
+    setTimeout(() => {
+      const text = userInput.toLowerCase();
+      let reply = "";
+
+      const name = user?.name || "the profile owner";
+      const des = user?.designation || "";
+      const comp = user?.companyName || "";
+      const bio = user?.bio || professionalSummary || "";
+      const ph = user?.phone || "not listed";
+      const em = user?.email || "not listed";
+      const addr = user?.address || "not listed";
+
+      if (text.includes("who") || text.includes("about") || text.includes("profile") || text.includes("bio") || text.includes("designation") || text.includes("introduce")) {
+        reply = `I am pleased to introduce ${name}. ${des ? `${name} serves as ${des}` : ""}${comp ? ` at ${comp}` : ""}. ${bio ? `Here is my brief professional overview: "${bio}"` : ""}`;
+      } else if (text.includes("contact") || text.includes("phone") || text.includes("email") || text.includes("call") || text.includes("message") || text.includes("number")) {
+        reply = `You can easily get in touch with ${name} via:\n\n📧 Email: ${em}\n📱 Phone: ${ph}\n\nFeel free to write an email or call directly!`;
+      } else if (text.includes("skill") || text.includes("expertise") || text.includes("what do you do") || text.includes("do you know") || text.includes("specialty")) {
+        if (skills && skills.length > 0) {
+          reply = `${name}'s core areas of expertise include:\n\n• ${skills.join("\n• ")}\n\nThese skills make me highly proficient in my field!`;
+        } else {
+          reply = `${name} is an experienced professional in my field. You can learn more about my work by reviewing my full profile overview or getting in touch!`;
+        }
+      } else if (text.includes("company") || text.includes("work") || text.includes("job") || text.includes("business")) {
+        reply = `${name} ${des ? `currently works as ${des}` : ""}${comp ? ` at ${comp}` : ""}. ${comp ? `You can visit my company website or click on the social links to check out my company's latest achievements!` : ""}`;
+      } else if (text.includes("address") || text.includes("location") || text.includes("where") || text.includes("live")) {
+        reply = `${name} is located at: ${addr}. You can find my exact location pinned on the map on my profile page!`;
+      } else if (text.includes("social") || text.includes("link") || text.includes("linkedin") || text.includes("instagram") || text.includes("github") || text.includes("website")) {
+        if (socialLinks && socialLinks.length > 0) {
+          const linksText = socialLinks.map(l => `• ${l.label}: ${l.href}`).join("\n");
+          reply = `Here are my active social handles and website links:\n\n${linksText}`;
+        } else {
+          reply = `You can reach out to ${name} using my phone number or email directly listed on the profile card!`;
+        }
+      } else {
+        reply = `I am ${name}'s AI Assistant. I can help you find my contact info, check out my core skills, read my professional bio, or get my social links. What would you like to know?`;
+      }
+
+      setChatMessages((prev) => [...prev, { sender: "bot", text: reply }]);
+      setIsBotTyping(false);
+    }, 800);
+  };
+
+  const handleSendChatMessage = (e) => {
+    if (e) e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    const userInput = chatInput;
+    setChatMessages((prev) => [...prev, { sender: "user", text: userInput }]);
+    setChatInput("");
+    handleBotResponse(userInput);
+  };
+
+  const renderMessageText = (text) => {
+    if (!text) return "";
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g;
+
+    const words = text.split(/(\s+)/);
+    return words.map((word, idx) => {
+      if (word.match(urlRegex)) {
+        return (
+          <a
+            key={idx}
+            href={word}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary-300 underline hover:text-primary-200 transition break-all"
+          >
+            {word}
+          </a>
+        );
+      }
+      if (word.match(emailRegex)) {
+        return (
+          <a
+            key={idx}
+            href={`mailto:${word}`}
+            className="text-primary-300 underline hover:text-primary-200 transition break-all"
+          >
+            {word}
+          </a>
+        );
+      }
+      return word;
+    });
+  };
 
   const [leadForm, setLeadForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [leadSubmitting, setLeadSubmitting] = useState(false);
@@ -788,6 +906,7 @@ useEffect(() => {
           ? `ADR;TYPE=HOME:;;${user.address.replace(/,/g, ";")}`
           : "",
         user?.companyName ? `ORG:${user.companyName}` : "",
+        user?.website || companyWebsiteUrl ? `URL:${user.website || companyWebsiteUrl}` : `URL:${window.location.href}`,
         "END:VCARD",
       ]
         .filter(Boolean)
@@ -1214,10 +1333,18 @@ useEffect(() => {
               <div className={clsx('flex', 'flex-col', 'gap-3')}>
                 <button
                   type="button"
-                  onClick={handleShare}
-                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', 'bg-gradient-to-r', style.primaryButton, 'px-8', 'py-3', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5')}
+                  onClick={handleSaveContact}
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'gap-2', 'rounded-full', 'bg-gradient-to-r', style.primaryButton, 'px-8', 'py-3.5', 'text-sm', 'font-bold', 'shadow-lg', 'transition-all', 'duration-300', 'hover:-translate-y-1', 'hover:scale-[1.01]')}
                 >
-                  Connect Now &gt;
+                  <UserPlus className="h-4 w-4" />
+                  Save Contact (vCard)
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', style.subButton, 'px-8', 'py-3', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5')}
+                >
+                  Share Card
                 </button>
                 <button
                   type="button"
@@ -1239,13 +1366,6 @@ useEffect(() => {
                   className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', style.subButton, 'px-8', 'py-3', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5')}
                 >
                   Download QR Code
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveContact}
-                  className={clsx('no-print', 'inline-flex', 'w-full', 'items-center', 'justify-center', 'rounded-full', style.subButton, 'px-8', 'py-3', 'text-sm', 'font-semibold', 'transition-all', 'duration-300', 'hover:-translate-y-0.5')}
-                >
-                  Save Contact
                 </button>
               </div>
               <div className={clsx('text-center', 'text-[0.7rem]', 'font-semibold', 'text-slate-400')}>
@@ -1708,6 +1828,108 @@ useEffect(() => {
           </div>
         </div>
       </div>
+
+
+      {/* <div className="no-print fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+        {isChatOpen && (
+          <div className="w-[320px] sm:w-[360px] h-[480px] rounded-3xl border border-white/10 bg-slate-950/90 shadow-2xl backdrop-blur-xl flex flex-col overflow-hidden transition-all duration-300">
+            <div className="p-4 border-b border-white/5 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-950 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-primary-500 to-indigo-500 shadow-md">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border border-slate-950 animate-pulse" />
+                </div>
+                <div className="text-left">
+                  <h4 className="text-sm font-bold text-white">AI Assistant</h4>
+                  <p className="text-[10px] text-slate-400">Online & Ready</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsChatOpen(false)}
+                className="h-8 w-8 rounded-full flex items-center justify-center bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition"
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="p-2 border-b border-white/5 bg-slate-900/40 flex gap-2 overflow-x-auto scrollbar-none no-scrollbar">
+              {[
+                { label: "About Me", query: "Who are you?" },
+                { label: "Contact Info", query: "How to contact you?" },
+                { label: "Core Skills", query: "What are your skills?" },
+                { label: "Socials", query: "Show social links" },
+              ].map((chip) => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => {
+                    setChatMessages((prev) => [...prev, { sender: "user", text: chip.query }]);
+                    handleBotResponse(chip.query);
+                  }}
+                  className="whitespace-nowrap rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-200 hover:bg-indigo-500/20 transition-all"
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex-1 p-4 overflow-y-auto space-y-3 flex flex-col">
+              {chatMessages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`max-w-[85%] rounded-2xl p-3 text-sm leading-relaxed text-left ${
+                    msg.sender === "bot"
+                      ? "bg-white/5 border border-white/5 text-slate-100 self-start rounded-tl-none whitespace-pre-wrap"
+                      : "bg-gradient-to-r from-primary-500 to-indigo-500 text-white self-end rounded-tr-none"
+                  }`}
+                >
+                  {renderMessageText(msg.text)}
+                </div>
+              ))}
+              {isBotTyping && (
+                <div className="bg-white/5 border border-white/5 text-slate-400 self-start rounded-2xl rounded-tl-none p-3 text-xs flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              )}
+              <div ref={chatBottomRef} />
+            </div>
+
+            <form onSubmit={handleSendChatMessage} className="p-3 border-t border-white/5 bg-slate-900/60 flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Ask me anything..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                className="flex-1 rounded-full bg-slate-950 border border-white/10 px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition"
+              />
+              <button
+                type="submit"
+                className="h-8 w-8 rounded-full flex items-center justify-center bg-gradient-to-r from-primary-500 to-indigo-500 text-white shadow-md hover:-translate-y-0.5 hover:scale-105 transition-all duration-200"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setIsChatOpen(!isChatOpen)}
+          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary-500 via-indigo-500 to-purple-600 shadow-xl shadow-indigo-950/50 hover:scale-105 transition-all duration-300"
+        >
+          <span className="absolute inset-0 rounded-full bg-indigo-500/30 animate-ping opacity-75" />
+          {isChatOpen ? (
+            <X className="h-6 w-6 text-white" />
+          ) : (
+            <MessageSquare className="h-6 w-6 text-white" />
+          )}
+        </button>
+      </div> */}
     </div>
   );
 };

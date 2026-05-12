@@ -27,7 +27,6 @@ import PaymentSuccess from "./pages/payment/PaymentSuccess";
 import PaymentFailure from "./pages/payment/PaymentFailure";
 import ChainpayCheckout from "./pages/payment/ChainpayCheckout";
 import MaintenancePage from "./pages/misc/MaintenancePage";
-import RouteGuard from "./components/subAdmin/RouteGuard";
 import { ROLES, PERMISSIONS } from "./config/permissions";
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {

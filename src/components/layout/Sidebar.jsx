@@ -80,13 +80,13 @@ const Sidebar = ({
         path: "/dashboard/refer",
         minPlan: "basic",
       },
-      // {
-      //   id: "leads",
-      //   label: "My Leads",
-      //   icon: Inbox,
-      //   path: "/dashboard/leads",
-      //   minPlan: "basic",
-      // },
+      {
+        id: "leads",
+        label: "My Leads",
+        icon: Inbox,
+        path: "/dashboard/leads",
+        minPlan: "basic",
+      },
       {
         id: "public-profile",
         label: "Generate QR ID Card",

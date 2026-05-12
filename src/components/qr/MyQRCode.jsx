@@ -88,7 +88,7 @@ const MyQRCode = () => {
   const apiBase = useMemo(
     () =>
       import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
-      "http://api.qrfolio.net",
+      "",
     []
   );
   const hasFetchedConfig = useRef(false);
